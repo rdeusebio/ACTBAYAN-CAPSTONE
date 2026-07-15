@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActBayan — ID Verification</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .verification-container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            display: flex;
+            overflow: hidden;
+        }
+        .v-left {
+            flex: 1;
+            background: linear-gradient(135deg, var(--red) 0%, #b30000 100%);
+            color: #fff;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .v-left h2 { font-size: 28px; margin-bottom: 15px; }
+        .v-left p { opacity: 0.9; line-height: 1.6; margin-bottom: 30px; }
+        
+        .accepted-ids {
+            list-style: none;
+            padding: 0; margin: 0;
+        }
+        .accepted-ids li {
+            background: rgba(255,255,255,0.1);
+            margin-bottom: 10px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 500;
+        }
+        .accepted-ids i { font-size: 20px; }
+        
+        .v-right {
+            flex: 1.2;
+            padding: 40px;
+            background: #fdfdfd;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            background: #f9f9f9;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+        }
+        .upload-area:hover { border-color: var(--red); background: #fff5f5; }
+        .upload-area input { display: none; }
+        .upload-icon { font-size: 40px; color: #ccc; margin-bottom: 15px; transition: 0.3s; }
+        .upload-area:hover .upload-icon { color: var(--red); }
+        .upload-text { font-size: 16px; font-weight: 600; color: #555; }
+        .upload-subtext { font-size: 13px; color: #999; margin-top: 5px; }
+        
+        .preview-container {
+            display: none;
+            margin-top: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #eee;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .preview-container img {
+            width: 100%;
+            display: block;
+        }
+        .remove-btn {
+            position: absolute;
+            top: 10px; right: 10px;
+            background: rgba(255,0,0,0.8);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 30px; height: 30px;
+            cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+        }
+        
+        .submit-btn { margin-top: 30px; width: 100%; }
+        
+        @media (max-width: 768px) {
+            .verification-container { flex-direction: column; margin: 20px; }
+        }
+    </style>
+</head>
+<body style="background: var(--bg-body); display: flex; align-items: center; min-height: 100vh;">
+
+    <div class="verification-container">
+        <div class="v-left">
+            <i class="fas fa-shield-alt" style="font-size: 48px; margin-bottom: 20px;"></i>
+            <h2>Identity Verification</h2>
+            <p>To keep the ActBayan community secure and authentic, we require proof of identity before activating your account. Please upload a clear photo or scanned copy of one of the following:</p>
+            
+            <ul class="accepted-ids">
+                <li><i class="fas fa-id-card"></i> Philippine National ID (PhilSys)</li>
+                <li><i class="fas fa-passport"></i> Valid Passport</li>
+                <li><i class="fas fa-car"></i> Driver's License</li>
+                <li><i class="fas fa-file-signature"></i> Voter's ID / Certification</li>
+                <li><i class="fas fa-home"></i> Barangay Indigency / Clearance</li>
+            </ul>
+        </div>
+        
+        <div class="v-right">
+            <h3 style="margin-top: 0; color: var(--text-dark); margin-bottom: 5px;">Upload Your Document</h3>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">Ensure all text is readable and the edges of the card are visible.</p>
+            
+            <form action="/id_verification" method="POST" enctype="multipart/form-data">
+                <!-- Keep user_id hidden to link to their pending account -->
+                <input type="hidden" name="user_id" value="{{ user_id }}">
+                
+                <label class="upload-area" id="upload-label">
+                    <input type="file" name="id_proof" id="id-proof" accept="image/*,application/pdf" required onchange="handleFile(this)">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <div class="upload-text">Click to browse or drag file here</div>
+                    <div class="upload-subtext">Supports JPG, PNG, PDF (Max 5MB)</div>
+                </label>
+                
+                <div class="preview-container" id="preview-box">
+                    <button type="button" class="remove-btn" onclick="removeFile()"><i class="fas fa-times"></i></button>
+                    <img id="image-preview" src="">
+                    <!-- We can also add an iframe for PDF preview if needed, but keeping it simple for images -->
+                    <div id="pdf-preview" style="display:none; padding: 20px; text-align:center; background:#eee; font-weight:600; color:#555;">
+                        <i class="fas fa-file-pdf" style="font-size: 30px; color:#d32f2f; margin-bottom:10px;"></i><br>
+                        PDF Selected
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submit-btn" disabled>
+                    Submit Verification <i class="fas fa-check-circle"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+<script>
+    function handleFile(input) {
+        const file = input.files[0];
+        if (!file) return;
+        
+        const previewBox = document.getElementById('preview-box');
+        const imgPreview = document.getElementById('image-preview');
+        const pdfPreview = document.getElementById('pdf-preview');
+        const uploadLabel = document.getElementById('upload-label');
+        const submitBtn = document.getElementById('submit-btn');
+        
+        uploadLabel.style.display = 'none';
+        previewBox.style.display = 'block';
+        submitBtn.disabled = false;
+        
+        if (file.type === 'application/pdf') {
+            imgPreview.style.display = 'none';
+            pdfPreview.style.display = 'block';
+        } else {
+            pdfPreview.style.display = 'none';
+            imgPreview.style.display = 'block';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imgPreview.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    function removeFile() {
+        document.getElementById('id-proof').value = "";
+        document.getElementById('upload-label').style.display = 'block';
+        document.getElementById('preview-box').style.display = 'none';
+        document.getElementById('submit-btn').disabled = true;
+    }
+</script>
+</body>
+</html>

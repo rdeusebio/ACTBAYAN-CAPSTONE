@@ -1,0 +1,285 @@
+{% extends "admin_base.html" %}
+
+{% block extra_css %}
+<style>
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 16px;
+    }
+    .header h1 {
+        font-size: 24px;
+        margin: 0;
+        font-weight: 900;
+        letter-spacing: -0.5px;
+        color: var(--main);
+    }
+    .header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--red-lt);
+        color: var(--red);
+        border-radius: 50px;
+        padding: 5px 12px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px 22px;
+        margin-bottom: 24px;
+        box-shadow: var(--sh-sm);
+    }
+    .filter-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: flex-end;
+    }
+    .f-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
+        min-width: 180px;
+    }
+    .f-group label {
+        font-size: 11.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--muted);
+    }
+    .f-input {
+        background: var(--search);
+        border: 1px solid transparent;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-family: 'Inter', sans-serif;
+        font-size: 13.5px;
+        color: var(--main);
+        outline: none;
+        transition: border-color 0.2s;
+        width: 100%;
+    }
+    .f-input:focus {
+        border-color: var(--red);
+    }
+    
+    .f-actions {
+        display: flex;
+        gap: 10px;
+        padding-bottom: 1px;
+    }
+    .btn {
+        border: none;
+        border-radius: 10px;
+        padding: 11px 18px;
+        font-weight: 800;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        transition: all 0.2s;
+        font-family: 'Inter', sans-serif;
+    }
+    .btn-primary {
+        background: var(--red);
+        color: #fff;
+    }
+    .btn-primary:hover {
+        background: var(--red-h);
+    }
+    .btn-secondary {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--main);
+    }
+    .btn-secondary:hover {
+        background: var(--hover-bg);
+    }
+
+    /* ── TABLE ── */
+    .table-container {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: var(--sh-sm);
+        overflow: hidden;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    thead th {
+        text-align: left;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--muted);
+        background: var(--search);
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+    }
+    tbody tr {
+        transition: background 0.15s;
+    }
+    tbody tr:hover {
+        background: var(--hover-bg);
+    }
+    tbody td {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13.5px;
+        vertical-align: middle;
+        color: var(--main);
+    }
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .act-date {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        white-space: nowrap;
+    }
+    .act-title {
+        font-weight: 700;
+        color: var(--main);
+        display: block;
+        margin-bottom: 3px;
+    }
+    .act-desc {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.4;
+    }
+    
+    .type-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 50px;
+        font-size: 10.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: var(--search);
+        color: var(--muted);
+    }
+    .type-feedback { background: rgba(16,185,129,0.1); color: #059669; }
+    .type-update { background: rgba(59,130,246,0.1); color: #2563eb; }
+    .type-report { background: var(--red-lt); color: var(--red); }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--muted);
+    }
+    .empty-state i {
+        font-size: 32px;
+        opacity: 0.3;
+        display: block;
+        margin-bottom: 12px;
+    }
+    .empty-state p {
+        font-size: 14px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div>
+        <h1>User Activities</h1>
+        <div class="header-badge" style="margin-top:6px;"><i class="fas fa-history"></i> System Log</div>
+    </div>
+</div>
+
+<form class="filter-bar" method="GET" action="/activities">
+    <div class="filter-grid">
+        <div class="f-group">
+            <label>Search Fullname</label>
+            <input class="f-input" name="q" type="text" placeholder="e.g., Juan Dela Cruz" value="{{ request.args.get('q','') }}">
+        </div>
+
+        <div class="f-group" style="min-width: 140px; flex: 0.5;">
+            <label>Action Type</label>
+            <select class="f-input" name="action_type">
+                <option value="" {% if request.args.get('action_type','') == '' %}selected{% endif %}>All Types</option>
+                <option value="feedback" {% if request.args.get('action_type') == 'feedback' %}selected{% endif %}>Feedback</option>
+                <option value="update" {% if request.args.get('action_type') == 'update' %}selected{% endif %}>Update</option>
+                <option value="report" {% if request.args.get('action_type') == 'report' %}selected{% endif %}>Report</option>
+            </select>
+        </div>
+
+        <div class="f-group" style="min-width: 140px; flex: 0.5;">
+            <label>From Date</label>
+            <input class="f-input" name="from_date" type="date" value="{{ request.args.get('from_date','') }}">
+        </div>
+
+        <div class="f-group" style="min-width: 140px; flex: 0.5;">
+            <label>To Date</label>
+            <input class="f-input" name="to_date" type="date" value="{{ request.args.get('to_date','') }}">
+        </div>
+
+        <div class="f-actions">
+            <button type="submit" class="btn btn-primary" title="Apply filters to the table below"><i class="fas fa-search"></i> Filter</button>
+            <a href="/activities" class="btn btn-secondary" title="Clear all filters"><i class="fas fa-rotate-left"></i> Reset</a>
+            <button type="submit" formaction="/api/export/activities" class="btn btn-secondary" style="color:var(--red);border-color:var(--red);" title="Download current filtered view as Excel"><i class="fas fa-file-excel"></i> Export</button>
+        </div>
+    </div>
+</form>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>Type</th>
+                <th>User / Action Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if not activities or activities|length == 0 %}
+                <tr>
+                    <td colspan="3">
+                        <div class="empty-state">
+                            <i class="fas fa-folder-open"></i>
+                            <p>No activities found matching your filters.</p>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                {% for act in activities %}
+                    <tr>
+                        <td style="width: 15%;"><div class="act-date">{{ act.dt }}</div></td>
+                        <td style="width: 10%;">
+                            {% set t = act.type|lower %}
+                            <span class="type-badge type-{{ t }}">{{ act.type }}</span>
+                        </td>
+                        <td>
+                            <span class="act-title">{{ act.title or '-' }} <span style="font-weight:400;color:var(--muted);font-size:12px;">by</span> {{ act.fullname or 'System' }}</span>
+                            <div class="act-desc">{{ act.text or '-' }}</div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

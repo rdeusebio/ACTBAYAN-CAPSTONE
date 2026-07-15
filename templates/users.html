@@ -1,0 +1,288 @@
+{% extends "admin_base.html" %}
+
+{% block extra_css %}
+<style>
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 16px;
+    }
+    .header h1 {
+        font-size: 24px;
+        margin: 0;
+        font-weight: 900;
+        letter-spacing: -0.5px;
+        color: var(--main);
+    }
+    .header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--red-lt);
+        color: var(--red);
+        border-radius: 50px;
+        padding: 5px 12px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .table-container {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: var(--sh-sm);
+        overflow: hidden;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    thead th {
+        text-align: left;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--muted);
+        background: var(--search);
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+    }
+    tbody tr {
+        transition: background 0.15s;
+    }
+    tbody tr:hover {
+        background: var(--hover-bg);
+    }
+    tbody td {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13.5px;
+        vertical-align: middle;
+        color: var(--main);
+    }
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .u-pic {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--red), #b91c1c);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .u-details {
+        display: flex;
+        flex-direction: column;
+    }
+    .u-fullname {
+        font-weight: 700;
+        color: var(--main);
+    }
+    .u-email {
+        font-size: 11.5px;
+        color: var(--muted);
+        margin-top: 2px;
+    }
+    
+    .role-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 50px;
+        font-size: 10.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: var(--search);
+        color: var(--muted);
+    }
+    .role-resident { background: rgba(59,130,246,0.1); color: #2563eb; }
+    .role-lgu { background: rgba(16,185,129,0.1); color: #059669; }
+    .role-admin { background: var(--red-lt); color: var(--red); }
+    
+    .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .btn {
+        border: none;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11.5px;
+        transition: all 0.2s;
+        font-family: 'Inter', sans-serif;
+    }
+    .btn-danger {
+        background: var(--red-lt);
+        color: var(--red);
+    }
+    .btn-danger:hover {
+        background: var(--red);
+        color: #fff;
+    }
+    .btn-warn {
+        background: rgba(245,158,11,0.15);
+        color: #d97706;
+    }
+    .btn-warn:hover {
+        background: #d97706;
+        color: #fff;
+    }
+    .btn-outline {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--muted);
+    }
+    .btn-outline:hover {
+        background: var(--hover-bg);
+        color: var(--main);
+        border-color: var(--muted);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--muted);
+    }
+    .empty-state i {
+        font-size: 32px;
+        opacity: 0.3;
+        display: block;
+        margin-bottom: 12px;
+    }
+    .empty-state p {
+        font-size: 14px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div>
+        <h1>User Management</h1>
+        <div class="header-badge" style="margin-top:6px;"><i class="fas fa-shield-halved"></i> Admin Tools</div>
+    </div>
+    <a href="/api/export/users" class="btn btn-outline" style="color:var(--red);border-color:var(--red);">
+        <i class="fas fa-file-excel"></i> Export Excel
+    </a>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>User Details</th>
+                <th>Phone Number</th>
+                <th>Role</th>
+                <th>ID</th>
+                <th style="text-align: right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if users %}
+                {% for u in users %}
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                {% if u.profile_photo %}
+                                    {% set pp_str = (u.profile_photo|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                                    {% set cp = pp_str.replace('static/', '', 1) if pp_str.startswith('static/') else pp_str %}
+                                    <div class="u-pic" style="padding:0;overflow:hidden;background:var(--search);border:1px solid var(--border);">
+                                        <img src="{{ url_for('static', filename=cp) }}" alt="{{ u.fullname }}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='{{ u.fullname[0]|upper if u.fullname else '?' }}'">
+                                    </div>
+                                {% else %}
+                                    <div class="u-pic">{{ u.fullname[0]|upper if u.fullname else '?' }}</div>
+                                {% endif %}
+                                <div class="u-details">
+                                    <span class="u-fullname">{{ u.fullname }}</span>
+                                    <span class="u-email">{{ u.email }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span style="font-family:monospace;font-size:13px;color:var(--muted);">{{ u.phone_number }}</span></td>
+                        <td>
+                            {% set r = u.role|lower|replace(' ','') %}
+                            <span class="role-badge role-{{ r }}">{{ u.role }}</span>
+                        </td>
+                        <td><span style="font-size:12px;color:var(--muted);font-weight:700;">#{{ u.account_id }}</span></td>
+
+                        <td style="text-align: right;">
+                            <div class="actions" style="justify-content: flex-end;">
+                                {# Ban / Unban #}
+                                <!-- In a real app we would check if u.is_locked, but for now we just show both or rely on the same UI -->
+                                <form action="/users" method="POST" style="display:inline;">
+                                    <input type="hidden" name="act" value="ban">
+                                    <input type="hidden" name="account_id" value="{{ u.account_id }}">
+                                    <button class="btn btn-outline" type="submit" onclick="return confirm('Lock this account?');" title="Ban User">
+                                        <i class="fas fa-lock"></i>
+                                    </button>
+                                </form>
+                                <form action="/users" method="POST" style="display:inline;">
+                                    <input type="hidden" name="act" value="unban">
+                                    <input type="hidden" name="account_id" value="{{ u.account_id }}">
+                                    <button class="btn btn-outline" type="submit" onclick="return confirm('Unlock this account?');" title="Unban User">
+                                        <i class="fas fa-unlock"></i>
+                                    </button>
+                                </form>
+                                
+                                {# Restrict #}
+                                <form action="/users" method="POST" style="display:inline;">
+                                    <input type="hidden" name="act" value="restrict">
+                                    <input type="hidden" name="account_id" value="{{ u.account_id }}">
+                                    <button class="btn btn-warn" type="submit" title="Restrict User">
+                                        <i class="fas fa-user-slash"></i>
+                                    </button>
+                                </form>
+                                
+                                {# Remove #}
+                                <form action="/users" method="POST" style="display:inline;">
+                                    <input type="hidden" name="act" value="remove">
+                                    <input type="hidden" name="account_id" value="{{ u.account_id }}">
+                                    <button class="btn btn-danger" type="submit" onclick="return confirm('Permanently remove this user? This action cannot be undone.');" title="Remove User">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i class="fas fa-users-slash"></i>
+                            <p>No user accounts found.</p>
+                        </div>
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

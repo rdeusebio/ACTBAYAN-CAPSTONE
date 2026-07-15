@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActBayan — Register</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Password Strength Meter Styles */
+        .pw-strength-wrap { margin-top: 10px; background: rgba(0,0,0,0.025); padding: 14px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); transition: all 0.3s; }
+        .pw-bars { display: flex; gap: 6px; margin-bottom: 8px; height: 6px; }
+        .pw-bar { flex: 1; background: #e5e7eb; border-radius: 4px; transition: all 0.3s ease; }
+        .pw-label { font-size: 11.5px; font-weight: 700; color: #6b7280; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .pw-rules { display: flex; flex-direction: column; gap: 6px; }
+        .pw-rule { font-size: 12px; color: #6b7280; display: flex; align-items: center; gap: 8px; transition: all 0.2s; font-weight: 500; }
+        .pw-rule.valid { color: #16a34a; font-weight: 700; }
+        .pw-rule i { font-size: 14px; width: 16px; text-align: center; }
+
+        /* Custom Legal & Consent Checkboxes */
+        .consent-card { background: rgba(139,0,0,0.03); border: 1.5px solid rgba(139,0,0,0.15); border-radius: 14px; padding: 16px 18px; margin: 18px 0 24px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .consent-item { display: flex; align-items: flex-start; gap: 12px; }
+        .consent-item input[type="checkbox"] { width: 19px; height: 19px; accent-color: #dc2626; cursor: pointer; margin-top: 2px; flex-shrink: 0; border-radius: 5px; }
+        .consent-item label { font-size: 13px; color: #374151; line-height: 1.5; cursor: pointer; font-weight: 500; margin: 0; }
+        .legal-link { color: #dc2626; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; transition: color 0.2s; }
+        .legal-link:hover { color: #991b1b; }
+
+        /* Sleek Glassmorphic Legal Modals */
+        .legal-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); z-index: 9999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(5px); padding: 20px; }
+        .legal-modal-backdrop.open { opacity: 1; pointer-events: auto; }
+        .legal-modal { background: #ffffff; width: 100%; max-width: 540px; border-radius: 20px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.3); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.16,1,0.3,1); display: flex; flex-direction: column; max-height: 85vh; }
+        .legal-modal-backdrop.open .legal-modal { transform: translateY(0); }
+        .legal-modal-head { background: linear-gradient(135deg, #5a0000 0%, #8b0000 55%, #b91c1c 100%); color: #fff; padding: 22px 26px; position: relative; }
+        .legal-modal-title { font-size: 19px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 12px; }
+        .legal-modal-close { position: absolute; top: 20px; right: 22px; background: rgba(255,255,255,0.15); border: none; color: #fff; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: background 0.2s; }
+        .legal-modal-close:hover { background: rgba(255,255,255,0.3); }
+        .legal-modal-body { padding: 26px; overflow-y: auto; font-size: 14px; color: #4b5563; line-height: 1.7; }
+        .legal-modal-body h4 { font-size: 15.5px; color: #1f2937; margin: 18px 0 6px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .legal-modal-body h4:first-child { margin-top: 0; }
+        .legal-modal-foot { padding: 18px 26px; background: #f9fafb; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; }
+        .btn-accept { background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; border: none; padding: 11px 24px; border-radius: 12px; font-weight: 700; font-size: 13.5px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(239,68,68,0.35); display: flex; align-items: center; gap: 8px; }
+        .btn-accept:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(239,68,68,0.45); }
+    </style>
+</head>
+<body>
+
+<div class="auth-wrapper">
+
+    <div class="left-panel">
+        <div class="left-deco-dot"></div>
+        <a href="/" class="left-logo" style="display: inline-flex !important; align-items: center !important; gap: 10px !important; text-decoration: none !important;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 40px; height: 40px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+
+        <div class="left-hero">
+            <div class="left-badge">
+                <i class="fas fa-shield-alt"></i> Secure Community Portal
+            </div>
+            <div class="left-headline">
+                Your Voice,<br><em>Heard</em> Here.
+            </div>
+            <p class="left-sub">
+                Register to submit concerns, view resolutions,
+                and stay updated on all news from Barangay Picaleon.
+            </p>
+        </div>
+
+        <div class="left-footer-text">
+            © 2026 ActBayan — Barangay Picaleon, General Mamerto Natividad, Nueva Ecija
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="auth-box" style="max-width: 480px;">
+            <div class="form-title">Join ActBayan ✨</div>
+            <p class="form-subtitle">Already have an account? <a href="login">Login here</a></p>
+
+            {% if error %}
+            <div class="form-error" style="background:#fee2e2;color:#b91c1c;padding:12px 16px;border-radius:12px;font-size:13px;font-weight:700;margin-bottom:18px;border:1px solid #fca5a5;display:flex;align-items:center;gap:10px;box-shadow:0 4px 12px rgba(239,68,68,0.1);">
+                <i class="fas fa-exclamation-triangle" style="font-size:16px;"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <form id="signupForm" class="form-panel active" method="POST" action="/register">
+                
+                <div class="form-group">
+                    <label for="e">Email Address</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input id="e" type="email" name="e" placeholder="Enter your email address" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="pn">Phone Number</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-phone input-icon"></i>
+                        <input id="pn" type="text" name="pn" placeholder="09XX XXX XXXX" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="pass1">Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" name="pass" id="pass1" placeholder="Create a password (min 8 chars)" minlength="8" required oninput="checkPwStrength(this.value)">
+                        <i class="fas fa-eye toggle-pw" onclick="togglePw('pass1', this)"></i>
+                    </div>
+                    <!-- Password Strength Meter & Instructions -->
+                    <div class="pw-strength-wrap" id="pw-meter-box" style="display: none;">
+                        <div class="pw-label">
+                            <span>Password Strength:</span>
+                            <span id="pw-strength-text" style="color: #ef4444;">Too Weak</span>
+                        </div>
+                        <div class="pw-bars">
+                            <div class="pw-bar" id="bar-1"></div>
+                            <div class="pw-bar" id="bar-2"></div>
+                            <div class="pw-bar" id="bar-3"></div>
+                            <div class="pw-bar" id="bar-4"></div>
+                        </div>
+                        <div class="pw-rules">
+                            <div class="pw-rule" id="rule-len"><i class="far fa-circle"></i> <span>At least <strong>8 characters</strong> long</span></div>
+                            <div class="pw-rule" id="rule-case"><i class="far fa-circle"></i> <span>Both <strong>uppercase & lowercase</strong> letters</span></div>
+                            <div class="pw-rule" id="rule-num"><i class="far fa-circle"></i> <span>At least <strong>one number</strong> (0-9)</span></div>
+                            <div class="pw-rule" id="rule-spec"><i class="far fa-circle"></i> <span>At least <strong>one special symbol</strong> (@$!%*?&#)</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="conpass1">Confirm Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" name="conpass" id="conpass1" placeholder="Repeat password" minlength="8" required oninput="checkPwMatch()">
+                        <i class="fas fa-eye toggle-pw" onclick="togglePw('conpass1', this)"></i>
+                    </div>
+                    <div id="pw-match-msg" style="font-size: 12.5px; margin-top: 6px; font-weight: 700; display: none;"></div>
+                </div>
+
+                <!-- Custom Checkboxes for Terms & Privacy Act -->
+                <div class="consent-card">
+                    <div class="consent-item">
+                        <input type="checkbox" id="chk-tos" name="tos_agreed" required>
+                        <label for="chk-tos">I have read, understood, and agree to the <span class="legal-link" onclick="openLegalModal('tos-modal')">Terms of Service & Community Guidelines</span> of ActBayan.</label>
+                    </div>
+                    <div class="consent-item">
+                        <input type="checkbox" id="chk-privacy" name="privacy_agreed" required>
+                        <label for="chk-privacy">I consent to the collection and processing of my personal data under the <span class="legal-link" onclick="openLegalModal('privacy-modal')">Data Privacy Act of 2012 (RA 10173)</span> for LGU verification.</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" style="height: 50px; font-size: 16px; font-weight: 800; letter-spacing: 0.5px;">
+                    <i class="fas fa-user-plus"></i> Register Community Account
+                </button>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<!-- ===== TERMS OF SERVICE MODAL ===== -->
+<div class="legal-modal-backdrop" id="tos-modal" onclick="if(event.target===this) closeLegalModal('tos-modal')">
+    <div class="legal-modal">
+        <div class="legal-modal-head">
+            <h3 class="legal-modal-title"><i class="fas fa-file-contract"></i> Terms of Service & Guidelines</h3>
+            <button class="legal-modal-close" onclick="closeLegalModal('tos-modal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="legal-modal-body">
+            <h4><i class="fas fa-users" style="color:#ef4444;"></i> 1. Community Respect & Public Accountability</h4>
+            <p>ActBayan is a dedicated digital platform designed for the residents of Barangay Picaleon. Users agree to maintain constructive, respectful communication when submitting community concerns or commenting on local reports.</p>
+            
+            <h4><i class="fas fa-check-double" style="color:#ef4444;"></i> 2. Authenticity of Reported Concerns</h4>
+            <p>All reports submitted through ActBayan must represent genuine barangay issues (e.g., infrastructure, safety, public utilities, waste management). Submitting false reports, misleading evidence, or defamatory content is strictly prohibited and may result in account suspension.</p>
+            
+            <h4><i class="fas fa-landmark" style="color:#ef4444;"></i> 3. LGU Verification & Action</h4>
+            <p>By filing a public concern, you authorize Barangay Picaleon officials and verified LGU personnel to inspect, verify, and track the status of the reported issue on the public community map.</p>
+        </div>
+        <div class="legal-modal-foot">
+            <button class="btn-accept" onclick="acceptAndCheck('tos-modal', 'chk-tos')"><i class="fas fa-check"></i> I Agree & Accept</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== DATA PRIVACY ACT MODAL ===== -->
+<div class="legal-modal-backdrop" id="privacy-modal" onclick="if(event.target===this) closeLegalModal('privacy-modal')">
+    <div class="legal-modal">
+        <div class="legal-modal-head">
+            <h3 class="legal-modal-title"><i class="fas fa-shield-alt"></i> Data Privacy Act of 2012 (RA 10173)</h3>
+            <button class="legal-modal-close" onclick="closeLegalModal('privacy-modal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="legal-modal-body">
+            <h4><i class="fas fa-lock" style="color:#ef4444;"></i> 1. Commitment to Resident Privacy</h4>
+            <p>In full compliance with <strong>Republic Act No. 10173</strong> (Data Privacy Act of 2012), ActBayan and the Local Government of Barangay Picaleon commit to safeguarding your personal records, contact details, and identity verification.</p>
+            
+            <h4><i class="fas fa-clipboard-list" style="color:#ef4444;"></i> 2. Purpose of Data Collection</h4>
+            <p>Your personal data is collected exclusively for legitimate public governance: authenticating barangay residency, verifying reported community concerns, communicating direct resolution updates, and generating anonymized municipal analytics.</p>
+            
+            <h4><i class="fas fa-user-shield" style="color:#ef4444;"></i> 3. Data Security & Non-Disclosure</h4>
+            <p>We implement robust administrative and technical encryption protocols to protect your records against unauthorized access. Your personal contact information will never be shared with unauthorized third parties or commercial advertisers.</p>
+        </div>
+        <div class="legal-modal-foot">
+            <button class="btn-accept" onclick="acceptAndCheck('privacy-modal', 'chk-privacy')"><i class="fas fa-user-shield"></i> I Consent & Accept</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== TOGGLE PASSWORD VISIBILITY =====
+    function togglePw(id, icon) {
+        const input = document.getElementById(id);
+        const isText = input.type === 'text';
+        input.type = isText ? 'password' : 'text';
+        icon.className = 'fas toggle-pw ' + (isText ? 'fa-eye' : 'fa-eye-slash');
+    }
+
+    // ===== LIVE PASSWORD STRENGTH & INSTRUCTION CHECKER =====
+    function checkPwStrength(val) {
+        const meterBox = document.getElementById('pw-meter-box');
+        if (val.length > 0) {
+            meterBox.style.display = 'block';
+        } else {
+            meterBox.style.display = 'none';
+            return;
+        }
+
+        // Rules
+        const lenValid = val.length >= 8;
+        const caseValid = /[a-z]/.test(val) && /[A-Z]/.test(val);
+        const numValid = /[0-9]/.test(val);
+        const specValid = /[^a-zA-Z0-9]/.test(val);
+
+        updateRule('rule-len', lenValid);
+        updateRule('rule-case', caseValid);
+        updateRule('rule-num', numValid);
+        updateRule('rule-spec', specValid);
+
+        // Calculate score (0 to 4)
+        const score = (lenValid ? 1 : 0) + (caseValid ? 1 : 0) + (numValid ? 1 : 0) + (specValid ? 1 : 0);
+
+        const bar1 = document.getElementById('bar-1');
+        const bar2 = document.getElementById('bar-2');
+        const bar3 = document.getElementById('bar-3');
+        const bar4 = document.getElementById('bar-4');
+        const stText = document.getElementById('pw-strength-text');
+
+        // Reset bars
+        [bar1, bar2, bar3, bar4].forEach(b => b.style.background = '#e5e7eb');
+
+        if (score === 1) {
+            bar1.style.background = '#ef4444'; // Red
+            stText.textContent = 'Weak';
+            stText.style.color = '#ef4444';
+        } else if (score === 2) {
+            bar1.style.background = '#f97316'; bar2.style.background = '#f97316'; // Orange
+            stText.textContent = 'Fair';
+            stText.style.color = '#f97316';
+        } else if (score === 3) {
+            bar1.style.background = '#3b82f6'; bar2.style.background = '#3b82f6'; bar3.style.background = '#3b82f6'; // Blue
+            stText.textContent = 'Good';
+            stText.style.color = '#3b82f6';
+        } else if (score === 4) {
+            bar1.style.background = '#16a34a'; bar2.style.background = '#16a34a'; bar3.style.background = '#16a34a'; bar4.style.background = '#16a34a'; // Green
+            stText.textContent = 'Strong! 💪';
+            stText.style.color = '#16a34a';
+        } else {
+            stText.textContent = 'Too Short';
+            stText.style.color = '#6b7280';
+        }
+
+        checkPwMatch();
+    }
+
+    function updateRule(id, isValid) {
+        const el = document.getElementById(id);
+        const icon = el.querySelector('i');
+        if (isValid) {
+            el.classList.add('valid');
+            icon.className = 'fas fa-check-circle';
+            icon.style.color = '#16a34a';
+        } else {
+            el.classList.remove('valid');
+            icon.className = 'far fa-circle';
+            icon.style.color = '#6b7280';
+        }
+    }
+
+    function checkPwMatch() {
+        const p1 = document.getElementById('pass1').value;
+        const p2 = document.getElementById('conpass1').value;
+        const msg = document.getElementById('pw-match-msg');
+        if (p2.length === 0) {
+            msg.style.display = 'none';
+            return;
+        }
+        msg.style.display = 'block';
+        if (p1 === p2) {
+            msg.textContent = '✓ Passwords match';
+            msg.style.color = '#16a34a';
+        } else {
+            msg.textContent = '× Passwords do not match';
+            msg.style.color = '#ef4444';
+        }
+    }
+
+    // ===== FORM VALIDATION BEFORE SUBMIT =====
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+        const lenValid = document.getElementById('pass1').value.length >= 8;
+        const p1 = document.getElementById('pass1').value;
+        const p2 = document.getElementById('conpass1').value;
+        const tos = document.getElementById('chk-tos').checked;
+        const priv = document.getElementById('chk-privacy').checked;
+
+        if (!lenValid) {
+            e.preventDefault();
+            alert('Please ensure your password is at least 8 characters long.');
+            document.getElementById('pass1').focus();
+            return;
+        }
+        if (p1 !== p2) {
+            e.preventDefault();
+            alert('Your confirmation password does not match.');
+            document.getElementById('conpass1').focus();
+            return;
+        }
+        if (!tos || !priv) {
+            e.preventDefault();
+            alert('Please check the consent boxes for Terms of Service and Data Privacy Act before registering.');
+            return;
+        }
+    });
+
+    // ===== LEGAL MODALS =====
+    function openLegalModal(id) {
+        document.getElementById(id).classList.add('open');
+    }
+    function closeLegalModal(id) {
+        document.getElementById(id).classList.remove('open');
+    }
+    function acceptAndCheck(modalId, checkboxId) {
+        document.getElementById(checkboxId).checked = true;
+        closeLegalModal(modalId);
+    }
+</script>
+</body>
+</html>

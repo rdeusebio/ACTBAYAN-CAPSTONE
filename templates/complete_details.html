@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActBayan — Complete Details</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    
+    <style>
+        .file-upload-wrap {
+            border: 2px dashed var(--border-color);
+            border-radius: 11px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--bg-main);
+        }
+        .file-upload-wrap:hover {
+            border-color: var(--red);
+            background: var(--red-light);
+        }
+        .file-upload-wrap input[type="file"] {
+            display: none;
+        }
+        .file-upload-icon {
+            font-size: 24px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .file-name-display {
+            font-size: 13px;
+            color: var(--red);
+            font-weight: 700;
+            margin-top: 5px;
+            display: none;
+        }
+        /* Cropper Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 90%;
+            width: 500px;
+            text-align: center;
+        }
+        .img-container {
+            width: 100%;
+            max-height: 400px;
+            margin-bottom: 15px;
+            background: #f0f0f0;
+        }
+        .img-container img {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+        }
+        .modal-buttons button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-cancel { background: #eee; color: #333; }
+        .btn-crop { background: var(--red); color: #fff; }
+        
+        .preview-circle {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-top: 10px;
+            display: none;
+            border: 2px solid var(--red);
+        }
+    </style>
+</head>
+<body>
+
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Cropper Modal -->
+<div class="modal-overlay" id="cropper-modal">
+    <div class="modal-content">
+        <h3 style="margin-top:0;">Crop Profile Photo</h3>
+        <div class="img-container">
+            <img id="image-to-crop" src="">
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-cancel" onclick="closeCropper()">Cancel</button>
+            <button class="btn-crop" onclick="cropImage()">Crop & Save</button>
+        </div>
+    </div>
+</div>
+
+<div class="auth-wrapper">
+
+    <div class="left-panel">
+        <div class="left-deco-dot"></div>
+        <a href="/" class="left-logo" style="display: inline-flex !important; align-items: center !important; gap: 10px !important; text-decoration: none !important;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 40px; height: 40px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+
+        <div class="left-hero">
+            <div class="left-headline">
+                Almost <em>There!</em>
+            </div>
+            <p class="left-sub">
+                Let's get to know you better. Please complete your profile details to proceed to the ID verification step.
+            </p>
+        </div>
+
+        <div class="left-footer-text">
+            © 2026 ActBayan — Barangay Picaleon, General Mamerto Natividad
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="auth-box" style="max-width: 600px;"> 
+            <div class="form-panel active">
+                
+                <form action="/complete_details" method="POST" id="details-form">
+                    <div class="form-title">Complete Your Details, Mr./Ms {{ u }}</div>
+                    <input type="hidden" name="reg_id" value="{{ reg_id }}">
+                    <input type="hidden" name="cropped_image" id="cropped-image-input">
+
+                    <p class="form-subtitle">Please fill in your correct personal information.</p>
+
+                    <div class="form-group">
+                        <label>Profile Photo (Optional)</label>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <label class="file-upload-wrap" style="flex: 1;">
+                                <input type="file" id="profile-photo" accept="image/*" onchange="initCropper(this)">
+                                <div class="file-upload-icon"><i class="fas fa-camera"></i></div>
+                                <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Choose a photo to crop</div>
+                            </label>
+                            <img id="cropped-preview" class="preview-circle" src="">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fname">First Name</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" id="fname" name="fname" placeholder="Juan" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="lname">Last Name</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" id="lname" name="lname" placeholder="Dela Cruz" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="mname">Middle Name</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" id="mname" name="mname" placeholder="Rizal">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="dob">Date of Birth</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-calendar-alt input-icon"></i>
+                                <input type="date" id="dob" name="dob" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-envelope input-icon"></i>
+                                <input type="email" id="email" name="email" value="{{ email }}" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-phone input-icon"></i>
+                                <input type="tel" id="phone" name="phone" value="{{ phone }}" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
+                    <div style="font-weight: 600; margin-bottom: 15px; color: var(--text-dark);">Complete Address</div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="house_no">House Number / Block / Lot</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-home input-icon"></i>
+                                <input type="text" id="house_no" name="house_no" placeholder="e.g. Blk 1 Lot 2" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="street_name">Street Name</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-road input-icon"></i>
+                                <input type="text" id="street_name" name="street_name" placeholder="e.g. Mabini St." required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="province">Province</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-map input-icon"></i>
+                                <select id="province" name="province" required onchange="loadCities()">
+                                    <option value="">Select Province</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="city">City / Municipality</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-city input-icon"></i>
+                                <select id="city" name="city" required onchange="loadBarangays()" disabled>
+                                    <option value="">Select City/Municipality</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="barangay">Barangay</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-map-marker-alt input-icon"></i>
+                            <select id="barangay" name="barangay" required disabled>
+                                <option value="">Select Barangay</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="province_name" id="province_name">
+                    <input type="hidden" name="city_name" id="city_name">
+                    <input type="hidden" name="barangay_name" id="barangay_name">
+
+                    <button type="submit" class="submit-btn" style="margin-top: 15px;">
+                        Continue to ID Verification <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cropper.js JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<script>
+    // ===== DATE OF BIRTH VALIDATION =====
+    // Set max date to 15 years ago to prevent future dates and assure minimum age
+    const dobInput = document.getElementById('dob');
+    const today = new Date();
+    today.setFullYear(today.getFullYear() - 15);
+    dobInput.max = today.toISOString().split('T')[0];
+
+    // ===== PSGC API INTEGRATION =====
+    const apiBase = "https://psgc.gitlab.io/api";
+    
+    async function loadProvinces() {
+        try {
+            const res = await fetch(`${apiBase}/provinces/`);
+            let data = await res.json();
+            // Sort alphabetically
+            data.sort((a,b) => a.name.localeCompare(b.name));
+            
+            const provSelect = document.getElementById('province');
+            data.forEach(p => {
+                let opt = document.createElement('option');
+                opt.value = p.code;
+                opt.textContent = p.name;
+                provSelect.appendChild(opt);
+            });
+        } catch (e) {
+            console.error("Error loading provinces:", e);
+        }
+    }
+
+    async function loadCities() {
+        const provSelect = document.getElementById('province');
+        const citySelect = document.getElementById('city');
+        const brgySelect = document.getElementById('barangay');
+        
+        // Save name for backend
+        document.getElementById('province_name').value = provSelect.options[provSelect.selectedIndex].text;
+        
+        citySelect.innerHTML = '<option value="">Loading...</option>';
+        citySelect.disabled = true;
+        brgySelect.innerHTML = '<option value="">Select Barangay</option>';
+        brgySelect.disabled = true;
+
+        const code = provSelect.value;
+        if(!code) {
+            citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
+            return;
+        }
+
+        try {
+            const res = await fetch(`${apiBase}/provinces/${code}/cities-municipalities/`);
+            let data = await res.json();
+            data.sort((a,b) => a.name.localeCompare(b.name));
+            
+            citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
+            data.forEach(c => {
+                let opt = document.createElement('option');
+                opt.value = c.code;
+                opt.textContent = c.name;
+                citySelect.appendChild(opt);
+            });
+            citySelect.disabled = false;
+        } catch (e) {
+            console.error("Error loading cities:", e);
+        }
+    }
+
+    async function loadBarangays() {
+        const citySelect = document.getElementById('city');
+        const brgySelect = document.getElementById('barangay');
+        
+        document.getElementById('city_name').value = citySelect.options[citySelect.selectedIndex].text;
+
+        brgySelect.innerHTML = '<option value="">Loading...</option>';
+        brgySelect.disabled = true;
+
+        const code = citySelect.value;
+        if(!code) {
+            brgySelect.innerHTML = '<option value="">Select Barangay</option>';
+            return;
+        }
+
+        try {
+            const res = await fetch(`${apiBase}/cities-municipalities/${code}/barangays/`);
+            let data = await res.json();
+            data.sort((a,b) => a.name.localeCompare(b.name));
+            
+            brgySelect.innerHTML = '<option value="">Select Barangay</option>';
+            data.forEach(b => {
+                let opt = document.createElement('option');
+                opt.value = b.code;
+                opt.textContent = b.name;
+                brgySelect.appendChild(opt);
+            });
+            brgySelect.disabled = false;
+        } catch (e) {
+            console.error("Error loading barangays:", e);
+        }
+    }
+
+    document.getElementById('barangay').addEventListener('change', function() {
+        document.getElementById('barangay_name').value = this.options[this.selectedIndex].text;
+    });
+
+    // Initialize API call
+    window.addEventListener('DOMContentLoaded', () => {
+        loadProvinces();
+    });
+
+    // ===== CROPPER JS LOGIC =====
+    let cropper;
+    const modal = document.getElementById('cropper-modal');
+    const imageToCrop = document.getElementById('image-to-crop');
+    const croppedPreview = document.getElementById('cropped-preview');
+    const croppedImageInput = document.getElementById('cropped-image-input');
+
+    function initCropper(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imageToCrop.src = e.target.result;
+                modal.style.display = 'flex';
+                
+                if (cropper) {
+                    cropper.destroy();
+                }
+                
+                cropper = new Cropper(imageToCrop, {
+                    aspectRatio: 1, // Square profile photo
+                    viewMode: 1,
+                    autoCropArea: 1,
+                });
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function closeCropper() {
+        modal.style.display = 'none';
+        if (cropper) cropper.destroy();
+        document.getElementById('profile-photo').value = ""; // reset input
+    }
+
+    function cropImage() {
+        if (!cropper) return;
+        
+        // Get base64 string of cropped image
+        const canvas = cropper.getCroppedCanvas({
+            width: 300,
+            height: 300
+        });
+        
+        const base64Image = canvas.toDataURL('image/jpeg', 0.9);
+        
+        // Set to hidden input and display preview
+        croppedImageInput.value = base64Image;
+        croppedPreview.src = base64Image;
+        croppedPreview.style.display = 'block';
+        
+        closeCropper();
+    }
+
+</script>
+</body>
+</html>

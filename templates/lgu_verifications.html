@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActBayan — User Verifications</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+        :root {
+            --bg-main: #f4f6f8; --bg-nav-card: #ffffff; --text-main: #202124;
+            --glass-bg: rgba(255, 255, 255, 0.8); --glass-border: rgba(255, 255, 255, 0.4);
+            --backdrop-blur: blur(16px);
+            --text-muted: #5f6368; --border-color: #e0e0e0; --icon-hover: #f1f3f4;
+            --search-bg: #f1f3f4; --primary-red: #8b0000; --primary-red-hover: #a30000;
+            --red-light: rgba(139,0,0,0.08); --hero-overlay: rgba(139,0,0,0.85);
+        }
+        body.dark-mode {
+            --bg-main: #121212; --bg-nav-card: #1e1e1e; --text-main: #e8eaed;
+            --glass-bg: rgba(30, 30, 30, 0.8); --glass-border: rgba(255, 255, 255, 0.05);
+            --text-muted: #9aa0a6; --border-color: #333333; --icon-hover: #2a2a2a;
+            --search-bg: #2a2a2a; --red-light: rgba(139,0,0,0.15); --hero-overlay: rgba(0,0,0,0.8);
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: var(--bg-main); color: var(--text-main); transition: background-color 0.3s, color 0.3s; display: flex; }
+
+        /* LGU SIDEBAR */
+        .sidebar {
+            width: 260px; height: 100vh; position: fixed; left: 0; top: 0;
+            background-color: var(--glass-bg); border-right: 1px solid var(--glass-border);
+            backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur);
+            display: flex; flex-direction: column; padding: 24px 20px;
+            z-index: 1000; transition: background-color 0.3s, border-color 0.3s;
+        }
+        .sidebar-logo {
+            font-weight: 900; font-size: 26px; color: var(--text-main);
+            text-decoration: none; margin-bottom: 30px; padding: 0 10px;
+            display: inline-flex; align-items: center; gap: 10px;
+        }
+        .sidebar-logo span { color: var(--primary-red); }
+        
+        .sidebar-search {
+            display: flex; align-items: center; background-color: var(--search-bg);
+            border-radius: 12px; padding: 10px 14px; gap: 8px; margin-bottom: 24px;
+            border: 1.5px solid transparent; transition: border-color 0.2s;
+        }
+        .sidebar-search:focus-within { border-color: var(--primary-red); }
+        .sidebar-search i { color: var(--text-muted); font-size: 13px; }
+        .sidebar-search input {
+            background: transparent; border: none; outline: none; font-size: 13px;
+            color: var(--text-main); width: 100%; font-family: 'Inter';
+        }
+
+        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .sidebar-link {
+            display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+            border-radius: 12px; color: var(--text-muted); text-decoration: none;
+            font-weight: 600; font-size: 14px; transition: all 0.2s;
+        }
+        .sidebar-link i { font-size: 18px; width: 20px; text-align: center; }
+        .sidebar-link:hover { background-color: var(--icon-hover); color: var(--primary-red); }
+        .sidebar-link.active { background-color: var(--primary-red); color: white; }
+        .notif-badge { background-color: #cc0000; color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 50px; margin-left: auto; }
+
+        .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .theme-toggle-btn {
+            display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; color: var(--text-muted); cursor: pointer;
+            font-weight: 600; font-size: 14px; background: transparent; border: none; font-family: 'Inter'; width: 100%; text-align: left;
+        }
+        .theme-toggle-btn:hover { background-color: var(--icon-hover); color: var(--text-main); }
+        
+        .user-profile-btn { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #c0392b); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+        .user-info { display: flex; flex-direction: column; overflow: hidden; }
+        .user-name { font-size: 13px; font-weight: 700; color: var(--text-main); }
+        .user-role { font-size: 11px; color: var(--text-muted); }
+
+        /* MAIN CONTENT */
+        .main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
+        .page-header { 
+            background-color: #8b0000;
+            background-image: linear-gradient(135deg, rgba(139,0,0,0.88) 0%, rgba(185,28,28,0.82) 50%, rgba(139,0,0,0.88) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}");
+            background-size: cover; background-position: center;
+            padding: 50px 50px; position: relative; overflow: hidden; color: white; border-bottom: 1px solid var(--border-color);
+        }
+        .page-header-title { font-size: 42px; font-weight: 900; margin: 0 0 8px; letter-spacing: -1px; text-shadow: 2px 2px 6px rgba(0,0,0,0.3); }
+        .page-header-sub { font-size: 15px; color: rgba(255,255,255,0.9); margin: 0; font-weight: 600; text-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+
+        .container { padding: 40px 50px; max-width: 1400px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; align-items: start;}
+
+        /* POST FORM */
+        .post-card { background: var(--glass-bg); backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur); border-radius: 20px; border: 1px solid var(--glass-border); padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .post-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); border-color: rgba(139,0,0,0.2); }
+        .section-title { font-size: 18px; font-weight: 800; color: var(--text-main); margin: 0 0 20px; display: flex; align-items: center; gap: 8px;}
+        .section-title i { color: var(--primary-red); }
+        
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .form-input { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border-color); border-radius: 10px; font-size: 14px; color: var(--text-main); background: var(--search-bg); font-family: 'Inter'; outline: none; transition: 0.2s; }
+        .form-input:focus { border-color: var(--primary-red); background: var(--bg-nav-card); }
+        textarea.form-input { min-height: 150px; resize: vertical; }
+
+        .btn-post { width: 100%; background: var(--primary-red); color: white; border: none; padding: 14px; border-radius: 10px; font-size: 14px; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; font-family: 'Inter'; }
+        .btn-post:hover { background: var(--primary-red-hover); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(139,0,0,0.2);}
+
+        /* ANNOUNCEMENT LIST */
+        .list-card { background: var(--glass-bg); backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur); border-radius: 20px; border: 1px solid var(--glass-border); overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .list-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); border-color: rgba(139,0,0,0.2); }
+        .list-header { padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
+        
+        .ann-item { padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; transition: 0.2s;}
+        .ann-item:hover { background: var(--search-bg); }
+        .ann-item:last-child { border-bottom: none; }
+        
+        .ann-tag { display: inline-block; padding: 4px 10px; border-radius: 5px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: var(--search-bg); color: var(--text-muted); margin-bottom: 8px;}
+        .ann-title { font-size: 15px; font-weight: 800; color: var(--text-main); margin: 0 0 6px; }
+        .ann-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 12px; }
+        .ann-meta i { color: var(--primary-red); }
+
+        .btn-delete { background: transparent; color: #ef4444; border: 1.5px solid rgba(239,68,68,0.3); padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; flex-shrink: 0;}
+        .btn-delete:hover { background: #ef4444; color: white; border-color: #ef4444; }
+
+        .mobile-topbar { display: none; }
+        @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .mobile-topbar {
+                display: flex; align-items: center; justify-content: space-between;
+                position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+                background: var(--bg-nav-card); border-bottom: 1px solid var(--border-color);
+                z-index: 2000; padding: 0 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            }
+            .mobile-logo { font-size: 20px; font-weight: 900; color: var(--text-main); text-decoration: none; }
+            .mobile-logo span { color: var(--primary-red); }
+            .mobile-top-actions { display: flex; align-items: center; gap: 10px; }
+            .mobile-action-btn {
+                width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-color);
+                background: var(--search-bg); color: var(--text-muted); display: flex; align-items: center;
+                justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s;
+            }
+            .mobile-action-btn.logout { color: #dc2626; }
+            .mobile-avatar {
+                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #b91c1c);
+                color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; overflow: hidden;
+            }
+            .mobile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+            
+            .sidebar {
+                display: flex !important; width: calc(100% - 32px) !important; max-width: 440px !important; height: 64px !important;
+                top: auto !important; bottom: 16px !important; left: 50% !important; transform: translateX(-50%) !important;
+                flex-direction: row !important; justify-content: space-between !important; align-items: center !important;
+                padding: 0 10px !important; border-right: none !important; border-top: none !important;
+                border: 1.5px solid var(--border-color) !important; border-radius: 50px !important;
+                background: var(--bg-nav-card) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important;
+                box-shadow: 0 14px 38px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.08) !important; z-index: 2000 !important; position: fixed !important;
+            }
+            .sidebar-logo, .lgu-badge, .sidebar-footer { display: none !important; }
+            .sidebar-menu { display: flex !important; flex-direction: row !important; justify-content: space-around !important; align-items: center !important; width: 100% !important; gap: 4px !important; margin: 0 !important; padding: 0 !important; }
+            .sidebar-link {
+                flex: 1 !important; display: flex !important; flex-direction: row !important; justify-content: center !important; align-items: center !important;
+                padding: 12px 0 !important; border-radius: 50px !important; color: var(--text-muted) !important; font-size: 13px !important;
+                font-weight: 800 !important; transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important; height: 44px !important; max-width: none !important; width: auto !important; position: relative !important;
+            }
+            .sidebar-link i { font-size: 20px !important; width: auto !important; margin: 0 !important; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important; }
+            .sidebar-link:not(.active) span:not(.notif-badge) { display: none !important; opacity: 0 !important; width: 0 !important; overflow: hidden !important; }
+            .sidebar-link:not(.active) .notif-badge { position: absolute !important; top: 3px !important; right: calc(50% - 16px) !important; z-index: 5 !important; }
+            .sidebar-link:not(.active):hover i { color: var(--primary-red) !important; transform: scale(1.15) !important; }
+            .sidebar-link.active {
+                flex: 0 1 auto !important; max-width: calc(100% - 140px) !important; background: var(--primary-red) !important; color: #ffffff !important; padding: 0 14px !important;
+                gap: 6px !important; box-shadow: 0 6px 20px rgba(185, 28, 28, 0.42) !important; transform: translateY(-2px) !important; overflow: hidden !important;
+            }
+            .sidebar-link.active i { color: #ffffff !important; font-size: 18px !important; flex-shrink: 0 !important; }
+            .sidebar-link.active span:not(.notif-badge) {
+                display: inline-block !important; opacity: 1 !important; width: auto !important; max-width: 105px !important;
+                overflow: hidden !important; text-overflow: ellipsis !important; font-size: 12px !important; font-weight: 800 !important;
+                letter-spacing: 0.2px !important; white-space: nowrap !important;
+            }
+            .sidebar-link.active .notif-badge {
+                position: static !important; display: inline-flex !important; align-items: center !important; justify-content: center !important;
+                margin-left: 2px !important; background: #ffffff !important; color: var(--primary-red) !important; box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+                padding: 1px 6px !important; border-radius: 50px !important; font-size: 10px !important; font-weight: 800 !important; flex-shrink: 0 !important;
+            }
+            .main-content { margin-left: 0; margin-top: 60px; margin-bottom: 96px; width: 100%; max-width: 100vw; overflow-x: hidden; box-sizing: border-box !important; }
+            .container, .page-header-inner { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; padding: 14px !important; }
+            div[style*="display: grid"] { grid-template-columns: 1fr !important; width: 100% !important; box-sizing: border-box !important; }
+        }
+    </style>
+</head>
+<body>
+
+{% set fname = (user.first_name|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.first_name else 'LGU' %}
+{% set lname = (user.last_name|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.last_name else 'Official' %}
+{% set lgu_photo = (user.profile_photo|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.profile_photo else '' %}
+
+<!-- Mobile Topbar Header -->
+<header class="mobile-topbar">
+    <a href="/lgu" class="mobile-logo" style="display: inline-flex !important; align-items: center !important; gap: 8px !important; text-decoration: none !important;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 34px; height: 34px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+    <div class="mobile-top-actions">
+        <button class="mobile-action-btn" onclick="document.getElementById('theme-toggle-btn')?.click()" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
+        <a href="{{ url_for('logout') }}" class="mobile-action-btn logout" title="Logout"><i class="fas fa-right-from-bracket"></i></a>
+        <div class="mobile-avatar">
+            {% if user and user.profile_photo %}
+                {% set raw_path = (user.profile_photo | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                {% set clean_path = raw_path.replace("static/", "", 1) if raw_path.startswith("static/") else raw_path %}
+                <img src="{{ url_for('static', filename=clean_path) }}" alt="DP">
+            {% else %}
+                {{ fname[:1] | upper }}
+            {% endif %}
+        </div>
+    </div>
+</header>
+
+<aside class="sidebar">
+    <a href="#" class="sidebar-logo" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 38px; height: 38px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+    <div class="sidebar-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="sidebar-search-input" placeholder="Search concerns...">
+    </div>
+    <nav class="sidebar-menu">
+        <a href="/lgu" class="sidebar-link">
+            <i class="fas fa-home"></i> <span>Reports</span>
+        </a>
+        <a href="/lgu_announcements" class="sidebar-link">
+            <i class="fas fa-bullhorn"></i> <span>Announcements</span>
+        </a>
+        <a href="/lgu_map" class="sidebar-link">
+            <i class="fas fa-map"></i> <span>Map</span>
+        </a>
+        <a href="/lgu_analytics" class="sidebar-link">
+            <i class="fas fa-chart-bar"></i> <span>Analytics</span>
+        </a>
+        <a href="/lgu_verifications" class="sidebar-link active">
+            <i class="fas fa-user-check"></i> <span>Verifications</span>
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <button class="theme-toggle-btn" id="theme-toggle-btn">
+            <i class="fas fa-moon" id="theme-icon"></i> <span id="theme-label">Dark Mode</span>
+        </button>
+        <a href="/logout" class="theme-toggle-btn" style="text-decoration:none;color:var(--text-muted);">
+            <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+        </a>
+        <div class="user-profile-btn">
+            <div class="user-avatar" style="overflow:hidden;">
+                {% if admin_user and admin_user.profile_photo %}
+                    {% set lgu_photo_str = (lgu_photo|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if lgu_photo else '' %}
+                    {% set clean_photo = lgu_photo_str.replace('static/', '', 1) if lgu_photo_str.startswith('static/') else lgu_photo_str %}
+                    <img src="{{ url_for('static', filename=clean_photo) }}" alt="DP" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                {% else %}
+                    {{ fname[:1] | upper }}
+                {% endif %}
+            </div>
+            <div class="user-info">
+                <span class="user-name">{{ fname }} {{ lname }}</span>
+                <span class="user-role">LGU Official</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<main class="main-content">
+    <div class="page-header">
+        <h1 class="page-header-title">User Verifications</h1>
+        <p class="page-header-sub">Review and approve new resident registrations to ensure community authenticity.</p>
+    </div>
+
+    <div class="container" style="display: block;">
+        
+        <div class="list-card">
+            <div class="list-header">
+                <h2 class="section-title" style="margin:0;"><i class="fas fa-users"></i> Pending Approvals</h2>
+            </div>
+            
+            <div class="ann-list">
+                {% if pending_users %}
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 24px;">
+                    {% for u in pending_users %}
+                        <div class="ann-item" style="display: flex; flex-direction: column; border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                                <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; background: var(--search-bg); flex-shrink: 0;">
+                                    {% if u.profile_photo %}
+                                        {% set pp_str = (u.profile_photo|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if u.profile_photo else '' %}
+                                        {% set cp = pp_str.replace('static/', '', 1) if pp_str.startswith('static/') else pp_str %}
+                                        <img src="{{ url_for('static', filename=cp) }}" alt="{{ u.first_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary-red), #c0392b); color: white; font-weight: bold; font-size: 20px;">
+                                            {{ u.first_name[:1]|upper }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 800; font-size: 16px; color: var(--text-main);">{{ u.first_name }} {{ u.last_name }}</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);"><i class="fas fa-envelope"></i> {{ u.email or 'No email' }}</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);"><i class="fas fa-phone"></i> {{ u.phone_number or 'No phone' }}</div>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-bottom: 16px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">Proof of Identity</div>
+                                {% if u.id_proof_path %}
+                                    <a href="/{{ u.id_proof_path }}" target="_blank">
+                                        {% set id_str = (u.id_proof_path|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if u.id_proof_path else '' %}
+                                        {% set idp = id_str.replace('static/', '', 1) if id_str.startswith('static/') else id_str %}
+                                        <img src="{{ url_for('static', filename=idp) }}" style="width: 100%; height: 160px; object-fit: contain; border: 1px dashed var(--border-color); border-radius: 8px; background: var(--search-bg);">
+                                    </a>
+                                {% else %}
+                                    <div style="width: 100%; height: 100px; display: flex; align-items: center; justify-content: center; background: var(--search-bg); border-radius: 8px; color: var(--text-muted); font-size: 12px; font-style: italic;">
+                                        No ID provided
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div style="display: flex; gap: 10px; margin-top: auto;">
+                                <form action="{{ url_for('verify_user') }}" method="POST" style="flex: 1;">
+                                    <input type="hidden" name="account_id" value="{{ u.account_id }}">
+                                    <input type="hidden" name="action" value="accept">
+                                    <button type="submit" style="width: 100%; padding: 10px; background: #22c55e; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                        <i class="fas fa-check"></i> Accept
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('verify_user') }}" method="POST" style="flex: 1;">
+                                    <input type="hidden" name="account_id" value="{{ u.account_id }}">
+                                    <input type="hidden" name="action" value="reject">
+                                    <button type="submit" onclick="return confirm('Are you sure you want to reject this registration?')" style="width: 100%; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="padding: 60px; text-align: center; color: var(--text-muted);">
+                        <i class="fas fa-shield-alt" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px;"></i>
+                        <h3 style="font-weight: 800; font-size: 18px; margin: 0 0 8px; color: var(--text-main);">All Caught Up</h3>
+                        <p style="font-size: 14px; margin: 0;">There are no pending user verifications right now.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    function toggleDark() {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        document.getElementById('theme-icon').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        document.getElementById('theme-label').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
+    
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('theme-icon').className = 'fas fa-sun';
+        const themeLabel = document.getElementById('theme-label');
+        if (themeLabel) themeLabel.textContent = 'Light Mode';
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+{% extends "admin_base.html" %}
+
+{% block extra_css %}
+<style>
+    .page-title { font-size: 24px; font-weight: 800; margin-bottom: 24px; }
+    .card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); padding: 20px; box-shadow: var(--sh-sm); }
+    .table-responsive { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; }
+    th { padding: 12px 16px; border-bottom: 2px solid var(--border); color: var(--muted); font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+    td { padding: 16px; border-bottom: 1px solid var(--border); color: var(--main); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    .badge { padding: 4px 10px; border-radius: 50px; font-size: 11px; font-weight: 700; }
+    .badge-pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .badge-in-progress { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .badge-resolved { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .img-preview { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: var(--search); }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">All Reports & Concerns</h1>
+
+<div class="card">
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Report Info</th>
+                    <th>Resident</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Date Filed</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reports %}
+                <tr>
+                    <td>
+                        {% if r.image_url %}
+                            {% set raw_path = (r.image_url | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                            {% set clean_path = raw_path.replace("static/", "", 1) if raw_path.startswith("static/") else raw_path %}
+                            <img src="{{ url_for('static', filename=clean_path) }}" class="img-preview" alt="Report">
+                        {% else %}
+                            <div class="img-preview" style="display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:20px;">
+                                <i class="fas fa-image"></i>
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="font-weight: 700; margin-bottom: 4px; font-size: 14px;">{{ r.title }}</div>
+                        <div style="font-size: 12px; color: var(--muted); max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ r.description }}</div>
+                    </td>
+                    <td style="font-weight: 600;">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            {% if r.reporter_photo %}
+                                {% set pp_str = (r.reporter_photo|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                                {% set cp = pp_str.replace('static/', '', 1) if pp_str.startswith('static/') else pp_str %}
+                                <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid var(--border);background:var(--search);">
+                                    <img src="{{ url_for('static', filename=cp) }}" alt="{{ r.first_name }}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='{{ r.first_name[0]|upper }}'">
+                                </div>
+                            {% else %}
+                                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    {{ r.first_name[0]|upper }}
+                                </div>
+                            {% endif %}
+                            <span>{{ r.first_name }} {{ r.last_name }}</span>
+                        </div>
+                    </td>
+                    <td style="color: var(--muted); font-size: 12.5px;">{{ r.locname or 'Unknown Location' }}</td>
+                    <td>
+                        {% set st = r.status | lower %}
+                        {% if st == 'pending' %}
+                            <span class="badge badge-pending">PENDING</span>
+                        {% elif st == 'in progress' %}
+                            <span class="badge badge-in-progress">IN PROGRESS</span>
+                        {% elif st == 'resolved' %}
+                            <span class="badge badge-resolved">RESOLVED</span>
+                        {% else %}
+                            <span class="badge badge-pending">{{ r.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="color: var(--muted); font-size: 12px;">{{ r.created_at.strftime('%b %d, %Y') if r.created_at else '-' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px; color: var(--muted);">No reports have been filed yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

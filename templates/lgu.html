@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActBayan — Concerns</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+        :root {
+            --bg-main: #f4f6f8;
+            --bg-nav-card: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --backdrop-blur: blur(16px);
+            --text-main: #202124;
+            --text-muted: #5f6368;
+            --border-color: #e0e0e0;
+            --icon-hover: #f1f3f4;
+            --search-bg: #f1f3f4;
+            --primary-red: #8b0000;
+            --primary-red-hover: #a30000;
+            --red-light: rgba(139,0,0,0.08);
+            --hero-overlay: rgba(139,0,0,0.85);
+        }
+
+        body.dark-mode {
+            --bg-main: #121212;
+            --bg-nav-card: #1e1e1e;
+            --glass-bg: rgba(30, 30, 30, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --text-main: #e8eaed;
+            --text-muted: #9aa0a6;
+            --border-color: #333333;
+            --icon-hover: #2a2a2a;
+            --search-bg: #2a2a2a;
+            --red-light: rgba(139,0,0,0.15);
+            --hero-overlay: rgba(0,0,0,0.8);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px; height: 100vh; position: fixed; left: 0; top: 0;
+            background-color: var(--glass-bg); border-right: 1px solid var(--glass-border);
+            backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur);
+            display: flex; flex-direction: column; padding: 24px 20px;
+            z-index: 1000; transition: background-color 0.3s, border-color 0.3s;
+        }
+        .sidebar-logo {
+            font-weight: 900; font-size: 26px; color: var(--text-main);
+            text-decoration: none; margin-bottom: 30px; padding: 0 10px;
+            display: inline-flex; align-items: center; gap: 10px;
+        }
+        .sidebar-logo span { color: var(--primary-red); }
+        
+        .sidebar-search {
+            display: flex; align-items: center; background-color: var(--search-bg);
+            border-radius: 12px; padding: 10px 14px; gap: 8px; margin-bottom: 24px;
+            border: 1.5px solid transparent; transition: border-color 0.2s;
+        }
+        .sidebar-search:focus-within { border-color: var(--primary-red); }
+        .sidebar-search i { color: var(--text-muted); font-size: 13px; }
+        .sidebar-search input {
+            background: transparent; border: none; outline: none; font-size: 13px;
+            color: var(--text-main); width: 100%; font-family: 'Inter';
+        }
+
+        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .sidebar-link {
+            display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+            border-radius: 12px; color: var(--text-muted); text-decoration: none;
+            font-weight: 600; font-size: 14px; transition: all 0.2s;
+        }
+        .sidebar-link i { font-size: 18px; width: 20px; text-align: center; }
+        .sidebar-link:hover { background-color: var(--icon-hover); color: var(--primary-red); }
+        .sidebar-link.active { background-color: var(--primary-red); color: white; }
+        .notif-badge { background-color: #cc0000; color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 50px; margin-left: auto; }
+
+        .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .theme-toggle-btn {
+            display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; color: var(--text-muted); cursor: pointer;
+            font-weight: 600; font-size: 14px; background: transparent; border: none; font-family: 'Inter'; width: 100%; text-align: left;
+        }
+        .theme-toggle-btn:hover { background-color: var(--icon-hover); color: var(--text-main); }
+        
+        .user-profile-btn { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #c0392b); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+        .user-info { display: flex; flex-direction: column; overflow: hidden; }
+        .user-name { font-size: 13px; font-weight: 700; color: var(--text-main); }
+        .user-role { font-size: 11px; color: var(--text-muted); }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
+
+        .page-header {
+            background-color: #8b0000;
+            background-image: linear-gradient(135deg, rgba(139,0,0,0.88) 0%, rgba(185,28,28,0.82) 50%, rgba(139,0,0,0.88) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}");
+            background-size: cover; background-position: center;
+            padding: 50px 50px; position: relative; overflow: hidden; color: white;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .page-badge {
+            display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.3); border-radius: 50px; padding: 6px 16px;
+            font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .page-title { font-size: 42px; font-weight: 900; letter-spacing: -1px; margin-bottom: 8px; margin-top: 0; text-shadow: 2px 2px 6px rgba(0,0,0,0.3); }
+        .page-subtitle { font-size: 15px; color: rgba(255,255,255,0.9); font-weight: 600; margin: 0; text-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+
+        .main-wrap { max-width: 1100px; margin: 0 auto; padding: 40px; display: grid; grid-template-columns: 1fr 340px; gap: 30px; align-items: start; width: 100%; }
+
+        /* ===== CATEGORY FILTER CHIPS ===== */
+        .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .chip {
+            padding: 8px 18px; border-radius: 50px; font-size: 13px; font-weight: 700;
+            border: 1px solid var(--border-color); background: var(--glass-bg);
+            backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur);
+            color: var(--text-muted); cursor: pointer; transition: all 0.3s ease;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .chip:hover { border-color: var(--primary-red); color: var(--primary-red); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(139,0,0,0.1); }
+        .chip.active { background: var(--primary-red); color: white; border-color: var(--primary-red); box-shadow: 0 4px 12px rgba(139,0,0,0.2); }
+
+        /* ===== CONCERN FEED ===== */
+        .concern-feed { display: flex; flex-direction: column; gap: 20px; }
+        .concern-post {
+            background: var(--glass-bg); backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur);
+            border-radius: 20px; border: 1px solid var(--glass-border);
+            overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+        }
+        .concern-post:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); border-color: rgba(139,0,0,0.3); }
+        .concern-post.hidden { display: none; }
+        .post-header { display: flex; align-items: center; gap: 12px; padding: 16px 18px 12px; }
+        .post-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #c0392b); color: white; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+        .post-user { flex: 1; }
+        .post-username { font-size: 14px; font-weight: 700; color: var(--text-main); }
+        .post-time { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+        
+        .post-category {
+            font-size: 11px; font-weight: 700; padding: 4px 11px; border-radius: 50px;
+            letter-spacing: 0.5px; text-transform: uppercase; flex-shrink: 0;
+            background: var(--search-bg); color: var(--text-main);
+        }
+        .cat-road { background: #fef3c7; color: #92400e; }
+        .cat-sanitation { background: #d1fae5; color: #065f46; }
+        .cat-safety { background: #fee2e2; color: #991b1b; }
+        .cat-flooding { background: #dbeafe; color: #1e40af; }
+        .cat-lighting { background: #fef9c3; color: #854d0e; }
+        
+        body.dark-mode .cat-road { background: #451a03; color: #fcd34d; }
+        body.dark-mode .cat-sanitation { background: #052e16; color: #6ee7b7; }
+        body.dark-mode .cat-safety { background: #450a0a; color: #fca5a5; }
+        body.dark-mode .cat-flooding { background: #172554; color: #93c5fd; }
+        body.dark-mode .cat-lighting { background: #422006; color: #fde68a; }
+
+        .post-img-wrap { position: relative; width: 100%; height: 240px; background: var(--border-color); cursor: pointer; }
+        .post-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
+        .post-img-wrap:hover img { transform: scale(1.02); }
+        .post-img-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #607d8b, #90a4ae); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 13px; cursor: default; }
+        
+        .img-zoom-hint {
+            position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.55);
+            color: white; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 50px;
+            opacity: 0; transition: opacity 0.2s; pointer-events: none; display: flex; align-items: center; gap: 5px;
+        }
+        .post-img-wrap:hover .img-zoom-hint { opacity: 1; }
+
+        .status-overlay {
+            position: absolute; top: 12px; left: 12px; font-size: 11px; font-weight: 800; letter-spacing: 1px;
+            padding: 5px 12px; border-radius: 50px; text-transform: uppercase;
+        }
+        .status-pending { background: #fbbf24; color: #1c1917; }
+        .status-progress { background: #3b82f6; color: white; }
+        .status-resolved { background: #22c55e; color: white; }
+
+        .post-body { padding: 14px 18px; }
+        .post-title { font-size: 16px; font-weight: 800; color: var(--text-main); margin: 0 0 8px 0; }
+        .post-caption { font-size: 14px; line-height: 1.6; color: var(--text-muted); margin-bottom: 12px; }
+        .post-caption.clamped { display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .read-more-btn { font-size: 13px; font-weight: 700; color: var(--primary-red); background: none; border: none; cursor: pointer; padding: 0; margin-bottom: 12px; display: block; }
+        .post-location { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-main); font-weight: 600; }
+        .post-location i { color: var(--primary-red); }
+
+        .post-footer { display: flex; padding: 12px 18px; border-top: 1px solid var(--border-color); gap: 4px; align-items: center; }
+        .action-btn { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 50px; font-size: 13px; font-weight: 700; border: none; background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.2s ease; }
+        .action-btn:hover { background: var(--search-bg); color: var(--text-main); }
+        .action-btn.upvoted { color: var(--primary-red); background: var(--red-light); }
+        .action-btn.upvoted i { transform: scale(1.2); }
+
+        /* ===== SLIDING COMMENT DRAWER ===== */
+        .comment-drawer {
+            position: fixed;
+            top: 0; right: -420px;
+            width: 400px; max-width: 100%; height: 100vh;
+            background: var(--bg-nav-card);
+            z-index: 10000;
+            box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column;
+        }
+        body.dark-mode .comment-drawer { box-shadow: -4px 0 24px rgba(0,0,0,0.5); }
+        .comment-drawer.open { right: 0; }
+        .comment-drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .comment-drawer-overlay.open { opacity: 1; visibility: visible; }
+        .comment-drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--border-color); }
+        .comment-drawer-title { font-size: 16px; font-weight: 800; color: var(--text-main); }
+        .comment-drawer-close { font-size: 20px; color: var(--text-muted); cursor: pointer; background: none; border: none; padding: 4px; }
+        .comment-drawer-close:hover { color: var(--primary-red); }
+        .comment-shell { flex: 1; padding: 16px 22px 14px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+        .comment-list { display: flex; flex-direction: column; gap: 14px; }
+        .comment-item { display: flex; gap: 10px; align-items: flex-start; animation: commentSlideIn 0.25s ease both; }
+        @keyframes commentSlideIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+        .comment-mono { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #c0392b); color: white; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 0 2px var(--bg-nav-card), 0 0 0 3.5px rgba(139,0,0,0.25); overflow: hidden; }
+        .comment-bubble { background: var(--bg-nav-card); border: 1px solid var(--border-color); border-radius: 0 14px 14px 14px; padding: 9px 13px; flex: 1; }
+        .comment-bubble:hover { border-color: rgba(139,0,0,0.2); }
+        .comment-author { font-size: 11px; font-weight: 800; color: var(--primary-red); margin-bottom: 3px; }
+        .comment-text { font-size: 13px; color: var(--text-main); line-height: 1.5; }
+        .no-comments { text-align: center; padding: 18px 0 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--text-muted); }
+        .no-comments-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--search-bg); display: flex; align-items: center; justify-content: center; font-size: 16px; border: 1px dashed var(--border-color); }
+        .no-comments-text { font-size: 12px; font-weight: 600; }
+        .comment-input-bar { display: flex; gap: 10px; align-items: center; background: var(--bg-nav-card); border: 1.5px solid var(--border-color); border-radius: 16px; padding: 8px 8px 8px 14px; transition: border-color 0.2s, box-shadow 0.2s; }
+        .comment-input-bar:focus-within { border-color: var(--primary-red); box-shadow: 0 0 0 3px rgba(139,0,0,0.08); }
+        .comment-input-bar input { flex: 1; background: none; border: none; outline: none; font-family: 'Inter'; font-size: 13px; color: var(--text-main); }
+        .comment-submit-btn { background: var(--primary-red); color: white; border: none; width: 34px; height: 34px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; transition: background 0.2s, transform 0.15s; }
+        .comment-submit-btn:hover { background: var(--primary-red-hover); transform: scale(1.08); }
+
+        .quick-submit {
+            background: linear-gradient(135deg, #6b0000, #8b0000); border-radius: 18px; padding: 22px 20px; color: white;
+            position: sticky; top: 30px;
+        }
+        .qs-title { font-size: 16px; font-weight: 900; margin-bottom: 6px; }
+        .qs-sub { font-size: 13px; opacity: 0.8; line-height: 1.5; margin-bottom: 18px; }
+        .qs-btn {
+            width: 100%; padding: 12px; border-radius: 50px; background: white; color: #8b0000;
+            border: none; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;
+        }
+        .qs-btn:hover { transform: translateY(-2px); }
+
+        /* ===== REDESIGNED MULTI-STEP MODAL CSS ===== */
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+            z-index: 2000; opacity: 0; visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-backdrop.open { opacity: 1; visibility: visible; }
+
+        .modal {
+            background: var(--bg-nav-card); border-radius: 20px;
+            max-width: 500px; width: 100%; transform: translateY(20px) scale(0.97);
+            transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+            box-shadow: 0 28px 80px rgba(0,0,0,0.28);
+            max-height: 92vh; overflow-y: auto;
+        }
+        .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
+
+        .modal-head {
+            background: linear-gradient(135deg, #5a0000 0%, #8b0000 55%, #b91c1c 100%);
+            padding: 22px 24px 20px; position: relative; overflow: hidden;
+            display: flex; align-items: flex-start; justify-content: space-between;
+            border-radius: 20px 20px 0 0;
+        }
+        .modal-head-deco {
+            position: absolute; top: -24px; right: -24px; width: 130px; height: 130px;
+            border-radius: 50%; border: 24px solid rgba(255,255,255,0.06); pointer-events: none;
+        }
+        .modal-head-deco2 {
+            position: absolute; bottom: -28px; right: 60px; width: 85px; height: 85px;
+            border-radius: 50%; border: 16px solid rgba(255,255,255,0.04); pointer-events: none;
+        }
+        .modal-head-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 50px; padding: 4px 12px; font-size: 10px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.8px; color: white; margin-bottom: 10px;
+        }
+        .modal-head-title { font-size: 22px; font-weight: 900; color: white; letter-spacing: -0.5px; line-height: 1.1; margin: 0; }
+        .modal-head-sub { font-size: 12px; color: rgba(255,255,255,0.72); margin-top: 5px; font-weight: 500; }
+        .modal-close-btn {
+            background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.2);
+            color: white; width: 32px; height: 32px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; cursor: pointer; font-size: 13px;
+            flex-shrink: 0; transition: background 0.2s; line-height: 1;
+        }
+        .modal-close-btn:hover { background: rgba(255,255,255,0.28); }
+
+        .modal-step-bar { display: flex; align-items: center; padding: 16px 24px 0; background: var(--bg-nav-card); }
+        .modal-step-item { display: flex; align-items: center; gap: 8px; flex: 1; }
+        .modal-step-item:last-child { flex: 0; }
+        .modal-step-num {
+            width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800; border: 2px solid var(--border-color); color: var(--text-muted); transition: all 0.3s; flex-shrink: 0;
+        }
+        .modal-step-num.active { background: var(--primary-red); border-color: var(--primary-red); color: white; }
+        .modal-step-num.done   { background: var(--red-light); border-color: var(--primary-red); color: var(--primary-red); }
+        .modal-step-lbl { font-size: 11px; font-weight: 700; color: var(--text-muted); transition: color 0.3s; }
+        .modal-step-lbl.active { color: var(--primary-red); }
+        .modal-step-lbl.done   { color: var(--primary-red); }
+        .modal-step-seg { flex: 1; height: 2px; background: var(--border-color); margin: 0 10px; border-radius: 2px; transition: background 0.3s; }
+        .modal-step-seg.done { background: var(--primary-red); }
+
+        .modal-body { padding: 20px 24px 24px; }
+        .modal-panel { display: none; }
+        .modal-panel.active { display: block; animation: panelFade 0.3s ease; }
+        @keyframes panelFade { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
+        .modal-section-head { font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+        .modal-section-head::after { content: ''; flex: 1; height: 1px; background: var(--border-color); }
+
+        .modal-cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .modal-cat-tile {
+            border: 1.5px solid var(--border-color); border-radius: 12px; padding: 13px 8px; text-align: center;
+            cursor: pointer; transition: all 0.2s; background: var(--search-bg);
+        }
+        .modal-cat-tile:hover { border-color: var(--primary-red); background: var(--red-light); }
+        .modal-cat-tile.selected { border-color: var(--primary-red); background: var(--red-light); }
+        .modal-cat-emoji { font-size: 20px; display: block; margin-bottom: 5px; line-height: 1; }
+        .modal-cat-name { font-size: 11px; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.4px; }
+        .modal-cat-desc { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+        .modal-cat-tile.selected .modal-cat-name { color: var(--primary-red); }
+
+        .modal-form-row { margin-bottom: 14px; }
+        .modal-form-row label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 7px; }
+        .modal-form-row label i { color: var(--primary-red); font-size: 10px; }
+        .modal-finp {
+            width: 100%; padding: 11px 14px; border: 1.5px solid var(--border-color); border-radius: 11px;
+            font-size: 13px; background: var(--search-bg); color: var(--text-main); font-family: 'Inter'; outline: none; transition: border-color 0.2s, background 0.2s;
+        }
+        .modal-finp:focus { border-color: var(--primary-red); background: var(--bg-nav-card); }
+        textarea.modal-finp { resize: vertical; min-height: 90px; }
+
+        .modal-upload-tile {
+            border: 2px dashed var(--border-color); border-radius: 12px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--search-bg); display: block;
+        }
+        .modal-upload-tile:hover { border-color: var(--primary-red); background: var(--red-light); }
+        .modal-upload-tile input { display: none; }
+        .modal-upload-tile i { font-size: 22px; color: var(--text-muted); display: block; margin-bottom: 8px; }
+        .modal-upload-tile p { font-size: 12px; color: var(--text-muted); font-weight: 600; margin: 0 0 4px 0; }
+        .modal-upload-tile small { font-size: 10px; color: var(--text-muted); opacity: 0.7; }
+        .modal-upload-tile.has-file { border-style: solid; border-color: var(--primary-red); background: var(--red-light); padding: 12px 16px; }
+        .modal-upload-tile.has-file i { color: var(--primary-red); font-size: 18px; margin-bottom: 4px; }
+        .modal-upload-tile.has-file p { color: var(--primary-red); }
+
+        .modal-preview-wrap { display: none; position: relative; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .modal-preview-wrap.visible { display: block; }
+        .modal-preview-img { width: 100%; max-height: 170px; object-fit: cover; display: block; }
+        .modal-preview-actions { position: absolute; bottom: 10px; right: 10px; display: flex; gap: 6px; }
+        .modal-preview-btn { background: rgba(0,0,0,0.58); color: white; border: none; border-radius: 50px; padding: 5px 11px; font-size: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: 'Inter'; transition: background 0.2s; }
+        .modal-preview-btn:hover { background: rgba(139,0,0,0.85); }
+
+        .modal-review-box { background: var(--search-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+        .modal-review-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .modal-review-row:last-child { margin-bottom: 0; }
+        .modal-review-key { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); min-width: 72px; padding-top: 1px; }
+        .modal-review-val { font-size: 13px; font-weight: 600; color: var(--text-main); line-height: 1.4; flex: 1; }
+        .modal-review-cat-pill { display: inline-flex; align-items: center; gap: 5px; background: var(--red-light); color: var(--primary-red); padding: 3px 10px; border-radius: 50px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; }
+
+        .modal-disclaimer { display: flex; align-items: flex-start; gap: 9px; background: var(--red-light); border: 1px solid rgba(139,0,0,0.2); border-radius: 11px; padding: 11px 13px; margin-bottom: 16px; }
+        .modal-disclaimer i { color: var(--primary-red); font-size: 12px; margin-top: 2px; flex-shrink: 0; }
+        .modal-disclaimer p { font-size: 11px; color: var(--text-main); line-height: 1.5; font-weight: 500; margin: 0; }
+
+        .modal-action-row { display: flex; gap: 10px; margin-top: 18px; }
+        .modal-btn-back { padding: 11px 18px; border-radius: 50px; border: 1.5px solid var(--border-color); background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Inter'; transition: all 0.2s; display: flex; align-items: center; gap: 7px; }
+        .modal-btn-back:hover { background: var(--search-bg); color: var(--text-main); }
+        .modal-btn-next { flex: 1; padding: 12px 18px; border-radius: 50px; border: none; background: var(--primary-red); color: white; font-size: 13px; font-weight: 800; cursor: pointer; font-family: 'Inter'; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 7px; }
+        .modal-btn-next:hover { background: var(--primary-red-hover); transform: translateY(-1px); }
+        .modal-btn-next:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+        .modal-success { text-align: center; padding: 10px 0 8px; }
+        .modal-success-ring { width: 68px; height: 68px; border-radius: 50%; background: var(--red-light); border: 3px solid var(--primary-red); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px; color: var(--primary-red); }
+        .modal-success-title { font-size: 20px; font-weight: 900; color: var(--text-main); margin-bottom: 7px; }
+        .modal-success-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+        /* ===== LIGHTBOX ===== */
+        .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
+        .lightbox.open { opacity: 1; visibility: visible; }
+        .lightbox-img { max-width: 92vw; max-height: 88vh; border-radius: 12px; object-fit: contain; transform: scale(0.9); transition: transform 0.3s; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .lightbox.open .lightbox-img { transform: scale(1); }
+        .lightbox-close { position: fixed; top: 20px; right: 24px; background: rgba(255,255,255,0.15); border: none; color: white; width: 42px; height: 42px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 10000; }
+        .lightbox-close:hover { background: var(--primary-red); }
+        .lightbox-caption { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: white; font-size: 13px; font-weight: 600; padding: 8px 18px; border-radius: 50px; white-space: nowrap; }
+
+        /* ===== TOAST ===== */
+        .toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 9998; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: var(--bg-nav-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 13px 18px; font-size: 13px; font-weight: 600; color: var(--text-main); box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 10px; transform: translateX(100px); opacity: 0; transition: all 0.35s cubic-bezier(0.16,1,0.3,1); min-width: 220px; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast i { color: var(--primary-red); }
+
+        .no-results-msg { display: none; text-align: center; padding: 60px 20px; background: var(--bg-nav-card); border-radius: 18px; border: 1px solid var(--border-color); }
+        .no-results-msg.visible { display: block; }
+
+        .mobile-topbar { display: none; }
+        @media (max-width: 900px) { .main-wrap { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow-x: hidden; }
+            .mobile-topbar {
+                display: flex; align-items: center; justify-content: space-between;
+                position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+                background: var(--bg-nav-card); border-bottom: 1px solid var(--border-color);
+                z-index: 2000; padding: 0 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            }
+            .mobile-logo { font-size: 20px; font-weight: 900; color: var(--text-main); text-decoration: none; }
+            .mobile-logo span { color: var(--primary-red); }
+            .mobile-top-actions { display: flex; align-items: center; gap: 10px; }
+            .mobile-action-btn {
+                width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-color);
+                background: var(--search-bg); color: var(--text-muted); display: flex; align-items: center;
+                justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s;
+            }
+            .mobile-action-btn.logout { color: #dc2626; }
+            .mobile-avatar {
+                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #b91c1c);
+                color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; overflow: hidden;
+            }
+            .mobile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+            
+            .sidebar {
+                display: flex !important; width: calc(100% - 32px) !important; max-width: 440px !important; height: 64px !important;
+                top: auto !important; bottom: 16px !important; left: 50% !important; transform: translateX(-50%) !important;
+                flex-direction: row !important; justify-content: space-between !important; align-items: center !important;
+                padding: 0 10px !important; border-right: none !important; border-top: none !important;
+                border: 1.5px solid var(--border-color) !important; border-radius: 50px !important;
+                background: var(--bg-nav-card) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important;
+                box-shadow: 0 14px 38px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.08) !important; z-index: 2000 !important; position: fixed !important;
+            }
+            .sidebar-logo, .sidebar-search, .sidebar-footer { display: none !important; }
+            .sidebar-menu { display: flex !important; flex-direction: row !important; justify-content: space-around !important; align-items: center !important; width: 100% !important; gap: 4px !important; margin: 0 !important; padding: 0 !important; }
+            .sidebar-link {
+                flex: 1 !important; display: flex !important; flex-direction: row !important; justify-content: center !important; align-items: center !important;
+                padding: 12px 0 !important; border-radius: 50px !important; color: var(--text-muted) !important; font-size: 13px !important;
+                font-weight: 800 !important; transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important; height: 44px !important; max-width: none !important; width: auto !important; position: relative !important;
+            }
+            .sidebar-link i { font-size: 20px !important; width: auto !important; margin: 0 !important; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important; }
+            .sidebar-link:not(.active) span:not(.notif-badge) { display: none !important; opacity: 0 !important; width: 0 !important; overflow: hidden !important; }
+            .sidebar-link:not(.active) .notif-badge { position: absolute !important; top: 3px !important; right: calc(50% - 16px) !important; z-index: 5 !important; }
+            .sidebar-link:not(.active):hover i { color: var(--primary-red) !important; transform: scale(1.15) !important; }
+            .sidebar-link.active {
+                flex: 0 1 auto !important; max-width: calc(100% - 140px) !important; background: var(--primary-red) !important; color: #ffffff !important; padding: 0 14px !important;
+                gap: 6px !important; box-shadow: 0 6px 20px rgba(185, 28, 28, 0.42) !important; transform: translateY(-2px) !important; overflow: hidden !important;
+            }
+            .sidebar-link.active i { color: #ffffff !important; font-size: 18px !important; flex-shrink: 0 !important; }
+            .sidebar-link.active span:not(.notif-badge) {
+                display: inline-block !important; opacity: 1 !important; width: auto !important; max-width: 105px !important;
+                overflow: hidden !important; text-overflow: ellipsis !important; font-size: 12px !important; font-weight: 800 !important;
+                letter-spacing: 0.2px !important; white-space: nowrap !important;
+            }
+            .sidebar-link.active .notif-badge {
+                position: static !important; display: inline-flex !important; align-items: center !important; justify-content: center !important;
+                margin-left: 2px !important; background: #ffffff !important; color: var(--primary-red) !important; box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+                padding: 1px 6px !important; border-radius: 50px !important; font-size: 10px !important; font-weight: 800 !important; flex-shrink: 0 !important;
+            }
+            .main-content { margin-left: 0; margin-top: 60px; margin-bottom: 96px; width: 100%; max-width: 100vw; overflow-x: hidden; box-sizing: border-box !important; }
+            .page-header { padding: 22px 14px !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; display: flex !important; flex-direction: column !important; }
+            .page-title { font-size: 26px !important; margin-bottom: 4px !important; }
+            .page-subtitle { font-size: 13px !important; line-height: 1.4 !important; }
+            .main-wrap { display: flex !important; flex-direction: column !important; padding: 14px 12px !important; gap: 16px !important; width: 100% !important; max-width: 100vw !important; box-sizing: border-box !important; overflow-x: hidden !important; }
+            .main-wrap > div { width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; }
+            .filter-chips { flex-wrap: nowrap !important; overflow-x: auto !important; padding-bottom: 8px !important; margin-bottom: 16px !important; -webkit-overflow-scrolling: touch !important; scrollbar-width: none !important; width: 100% !important; max-width: 100% !important; display: flex !important; }
+            .filter-chips::-webkit-scrollbar { display: none !important; }
+            .chip { white-space: nowrap !important; flex-shrink: 0 !important; padding: 6px 14px !important; font-size: 12px !important; }
+            .concern-feed { width: 100% !important; max-width: 100% !important; min-width: 0 !important; overflow: hidden !important; box-sizing: border-box !important; }
+            .concern-post { border-radius: 16px !important; width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; overflow: hidden !important; }
+            .post-header { padding: 12px 14px 10px !important; gap: 10px !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
+            .post-avatar { width: 36px !important; height: 36px !important; font-size: 13px !important; flex-shrink: 0 !important; }
+            .post-username { font-size: 13px !important; }
+            .post-time { font-size: 11px !important; }
+            .post-category { font-size: 10px !important; padding: 3px 9px !important; }
+            .post-img-wrap { height: 200px !important; width: 100% !important; max-width: 100% !important; }
+            .post-body { padding: 12px 14px !important; width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; overflow: hidden !important; }
+            .post-title { font-size: 15px !important; word-break: break-word !important; overflow-wrap: break-word !important; max-width: 100% !important; }
+            .post-caption { font-size: 13px !important; word-break: break-word !important; overflow-wrap: break-word !important; max-width: 100% !important; }
+            .post-footer { padding: 10px 14px !important; display: flex !important; flex-wrap: wrap !important; gap: 6px !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
+            .action-btn { flex: 1 1 auto !important; justify-content: center !important; padding: 6px 10px !important; font-size: 11.5px !important; margin-left: 0 !important; box-sizing: border-box !important; }
+            .comment-drawer { width: 100% !important; right: -100% !important; }
+            .comment-drawer.open { right: 0 !important; }
+            .toast-container { bottom: 80px !important; left: 50% !important; right: auto !important; transform: translateX(-50%) !important; width: 90% !important; max-width: 340px !important; }
+            .modal-box { padding: 18px 14px !important; max-height: 85vh !important; width: 95% !important; box-sizing: border-box !important; }
+        }
+        @media (max-width: 480px) {
+            .page-header { padding: 18px 12px !important; }
+            .page-title { font-size: 22px !important; }
+            .main-wrap { padding: 12px 10px !important; }
+            .post-footer { justify-content: space-between !important; }
+            .action-btn { flex: 1 1 auto !important; justify-content: center !important; padding: 6px 8px !important; font-size: 11px !important; margin-left: 0 !important; }
+            .filter-chips { width: 100% !important; overflow-x: auto !important; padding-bottom: 4px !important; }
+            .chip { white-space: nowrap !important; flex-shrink: 0 !important; }
+        }
+    </style>
+</head>
+<body>
+
+{% set lgu_fname = (user.first_name|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.first_name else 'LGU' %}
+{% set lgu_lname = (user.last_name|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.last_name else 'Official' %}
+
+<!-- Mobile Topbar Header -->
+<header class="mobile-topbar">
+    <a href="/lgu" class="mobile-logo" style="display: inline-flex !important; align-items: center !important; gap: 8px !important; text-decoration: none !important;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 34px; height: 34px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+    <div class="mobile-top-actions">
+        <button class="mobile-action-btn" onclick="document.getElementById('theme-toggle-btn')?.click()" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
+        <a href="{{ url_for('logout') }}" class="mobile-action-btn logout" title="Logout"><i class="fas fa-right-from-bracket"></i></a>
+        <div class="mobile-avatar">
+            {% if user and user.profile_photo %}
+                {% set raw_path = (user.profile_photo | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                {% set clean_path = raw_path.replace("static/", "", 1) if raw_path.startswith("static/") else raw_path %}
+                <img src="{{ url_for('static', filename=clean_path) }}" alt="DP">
+            {% else %}
+                {{ lgu_fname[:1] | upper }}
+            {% endif %}
+        </div>
+    </div>
+</header>
+
+<aside class="sidebar">
+    <a href="#" class="sidebar-logo" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 38px; height: 38px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+    <div class="sidebar-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="sidebar-search-input" placeholder="Search concerns...">
+    </div>
+    <nav class="sidebar-menu">
+        <a href="/lgu" class="sidebar-link active">
+            <i class="fas fa-home"></i> <span>Reports</span>
+        </a>
+        <a href="/lgu_announcements" class="sidebar-link">
+            <i class="fas fa-bullhorn"></i> <span>Announcements</span>
+        </a>
+        <a href="/lgu_map" class="sidebar-link">
+            <i class="fas fa-map"></i> <span>Map</span>
+        </a>
+        <a href="/lgu_analytics" class="sidebar-link">
+            <i class="fas fa-chart-bar"></i> <span>Analytics</span>
+        </a>
+        <a href="/lgu_verifications" class="sidebar-link">
+            <i class="fas fa-user-check"></i> <span>Verifications</span>
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <button class="theme-toggle-btn" id="theme-toggle-btn">
+            <i class="fas fa-moon" id="theme-icon"></i> <span id="theme-label">Dark Mode</span>
+        </button>
+        <a href="{{ url_for('logout') }}" class="theme-toggle-btn" style="text-decoration:none;color:#dc2626;display:flex;align-items:center;gap:14px;padding:12px 16px;">
+            <i class="fas fa-right-from-bracket" style="font-size:18px;width:20px;text-align:center;"></i> <span>Logout</span>
+        </a>
+        <div class="user-profile-btn">
+            <div class="user-avatar" style="overflow:hidden;">
+                {% if user and user.profile_photo %}
+                    {% set raw_path = (user.profile_photo | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                    {% set clean_path = raw_path.replace("static/", "", 1) if raw_path.startswith("static/") else raw_path %}
+                    <img src="{{ url_for('static', filename=clean_path) }}" alt="DP" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                {% else %}
+                    {{ lgu_fname[:1] | upper }}
+                {% endif %}
+            </div>
+            <div class="user-info">
+                <span class="user-name">{{ lgu_fname }} {{ lgu_lname }}</span>
+                <span class="user-role">LGU Official</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<main class="main-content">
+    <div class="page-header">
+        <div class="page-badge"><i class="fas fa-heart"></i> ActBayan Cares</div>
+        <h1 class="page-title">CONCERNS</h1>
+        <p class="page-subtitle">Concern Wall of Barangay Picaleon — Your voice shapes the community</p>
+    </div>
+
+    <div class="main-wrap">
+        <div>
+            <div class="filter-chips" id="filter-chips">
+                <button class="chip active" data-filter="all">All</button>
+                <button class="chip" data-filter="road">Road</button>
+                <button class="chip" data-filter="sanitation">Sanitation</button>
+                <button class="chip" data-filter="flooding">Flooding</button>
+                <button class="chip" data-filter="lighting">Lighting</button>
+                <button class="chip" data-filter="safety">Safety</button>
+            </div>
+
+            <div class="concern-feed" id="concern-feed">
+                {% if reps %}
+                    <div class="card" style="margin-bottom: 18px; cursor: default;" onclick="event.stopPropagation()">
+                        <div class="card-body">
+                        </div>
+                    </div>
+
+                    {% for c in reps %}
+                    <div class="concern-post"
+                         data-category="{{ c.category|lower|replace(' ', '')|replace('/', '') }}"
+                         data-title="{{ c.title|lower }}"
+                         data-location="{{ c.location|lower }}">
+                        <div class="post-header">
+                            <div class="post-avatar" style="overflow:hidden;">
+                                {% if c.profile_photo %}
+                                    {% set raw_pp = (c.profile_photo|string).replace("bytearray(b'","").replace("b'","").replace("')","").replace("'","") %}
+                                    {% set clean_pp = raw_pp.replace("static/","",1) if raw_pp.startswith("static/") else raw_pp %}
+                                    <img src="{{ url_for('static', filename=clean_pp) }}" alt="DP" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                                {% else %}
+                                    {{ c.first_name[0] if c.first_name else '?' }}
+                                {% endif %}
+                            </div>
+                            <div class="post-user">
+                                <div class="post-username">{{ c.first_name }} {{ c.last_name }}</div>
+                                <div class="post-time">{{ c.created_at.strftime('%B %d, %Y') if c.created_at else 'Just now' }}</div>
+                            </div>
+                            <span class="post-category cat-{{ c.category|lower|replace(' ', '')|replace('/', '') }}">{{ c.category }}</span>
+                        </div>
+
+                        {% if c.image_url %}
+                        <div class="post-img-wrap" 
+                             data-img="{{ url_for('static', filename=c.image_url.replace('static/', '')) }}" 
+                             data-title="{{ c.title }}" 
+                             onclick="openLightboxFromFeed(this)">
+                            <img src="{{ url_for('static', filename=c.image_url.replace('static/', '')) }}" alt="Evidence" loading="lazy">
+                            <span class="status-overlay status-{{ c.status|lower|replace(' ', '')|replace('/', '') }}">{{ c.status }}</span>
+                            <span class="img-zoom-hint"><i class="fas fa-expand"></i> View Full</span>
+                        </div>
+                        {% else %}
+                        <div class="post-img-wrap" style="cursor:default;">
+                            <div class="post-img-placeholder">
+                                <i class="fas fa-image" style="font-size: 32px; opacity: 0.6; margin-bottom: 8px;"></i>
+                                <span>No photo attached</span>
+                            </div>
+                            <span class="status-overlay status-{{ c.status|lower|replace(' ', '')|replace('/', '') }}">{{ c.status }}</span>
+                        </div>
+                        {% endif %}
+
+                        <div class="post-body">
+                            <h3 class="post-title">{{ c.title }}</h3>
+                            <p class="post-caption clamped" id="caption-{{ c.report_id }}">{{ c.description }}</p>
+                            <div class="post-location"><i class="fas fa-map-marker-alt"></i> {{ c.location }}</div>
+                        </div>
+
+                        <div class="post-footer">
+                            <button class="action-btn {% if c.report_id in user_upvoted %}upvoted{% endif %}" data-id="{{ c.report_id }}" onclick="toggleUpvote(this)">
+                                <i class="fas fa-arrow-up"></i>
+                                <span class="upvote-count">{{ upvote_counts.get(c.report_id, 0) }}</span> Upvotes
+                            </button>
+                            <button class="action-btn" data-id="{{ c.report_id }}" onclick="toggleComments(this)">
+                                <i class="fas fa-comment"></i>
+                                <span class="comment-count">{{ feedback_counts_by_report.get(c.report_id, 0) }}</span> Comments
+                            </button>
+                            {% set res_img = "" %}
+                            {% if c.profile_photo %}
+                                {% set raw_pp = (c.profile_photo|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                                {% set res_img = raw_pp.replace("static/", "", 1) if raw_pp.startswith("static/") else raw_pp %}
+                            {% endif %}
+                            <button class="action-btn" style="margin-left:auto; background:var(--primary-red); color:white; padding:7px 16px; border-radius:50px; font-weight:800; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; font-family:'Inter'; font-size:13px; transition: all 0.2s;" 
+                                    data-id="{{ c.report_id }}"
+                                    data-status="{{ c.status }}"
+                                    data-title="{{ c.title | e }}"
+                                    data-location="{{ c.location | e }}"
+                                    data-category="{{ c.category | e }}"
+                                    data-desc="{{ c.description | e }}"
+                                    data-resident="{{ c.first_name }} {{ c.last_name }}"
+                                    data-resident-img="{{ res_img }}"
+                                    data-date="{{ c.created_at.strftime('%B %d, %Y') if c.created_at else 'N/A' }}"
+                                    data-img="{% if c.image_url %}{{ c.image_url.replace('static/', '') }}{% else %}{% endif %}"
+                                    data-upvotes="{{ upvote_counts.get(c.report_id, 0) }}"
+                                    data-comments="{{ feedback_counts_by_report.get(c.report_id, 0) }}"
+                                    onclick="event.preventDefault(); opReportUpdate(this)" 
+                                    onmouseover="this.style.background='var(--primary-red-hover)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='var(--primary-red)'; this.style.transform='translateY(0)'">
+                                <i class="fas fa-edit"></i> Add Update
+                            </button>
+                        </div>
+
+
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align:center;padding:60px 20px; background: var(--bg-nav-card); border-radius: 18px; border: 1px solid var(--border-color);">
+                        <i class="fas fa-clipboard-list" style="font-size:40px; color: var(--text-muted); opacity:0.3; margin-bottom:12px;"></i>
+                        <h3 style="margin: 0 0 5px 0;">No concerns found</h3>
+                        <p style="font-size:13px; color: var(--text-muted);">Be the first to submit a report for your community.</p>
+                    </div>
+                {% endif %}
+                <div class="no-results-msg" id="no-results-msg">
+                    <i class="fas fa-search" style="font-size:32px; color: var(--text-muted); opacity:0.3; margin-bottom:12px;"></i>
+                    <h3 style="margin: 0 0 5px 0;">No results found</h3>
+                    <p style="font-size:13px; color: var(--text-muted);">Try a different search or category.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ===== COMMENT DRAWER OVERLAY ===== -->
+<div class="comment-drawer-overlay" id="comment-overlay" onclick="closeAllDrawers()"></div>
+
+<!-- ===== PER-REPORT COMMENT DRAWERS ===== -->
+{% for c in reps %}
+<div class="comment-drawer" id="drawer-{{ c.report_id }}">
+    <div class="comment-drawer-header">
+        <span class="comment-drawer-title"><i class="fas fa-comment" style="color:var(--primary-red);margin-right:8px;"></i>Comments — {{ c.title }}</span>
+        <button class="comment-drawer-close" onclick="closeDrawer('{{ c.report_id }}')"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding: 14px 22px; background: var(--bg-nav-card); border-bottom: 1px solid var(--border-color); display: flex; gap: 12px; align-items: center;">
+        {% if c.image_url %}
+        <img src="{{ c.image_url }}" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-color); flex-shrink: 0;" alt="Post Image">
+        {% else %}
+        <div style="width: 48px; height: 48px; border-radius: 8px; background: rgba(231,76,60,0.1); color: var(--primary-red); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;"><i class="fas fa-file-alt"></i></div>
+        {% endif %}
+        <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 13px; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.title }}</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">By {{ c.first_name }} {{ c.last_name }} • <span style="color: var(--primary-red); font-weight: 700;">{{ c.status or 'Pending' }}</span></div>
+            <div style="font-size: 11.5px; color: var(--text-main); margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ c.description }}</div>
+        </div>
+    </div>
+    <div class="comment-shell">
+        <div class="comment-list" id="comment-list-{{ c.report_id }}">
+            {% set fbs = feedbacks_by_report.get(c.report_id, []) %}
+            {% if fbs %}
+                {% for fb in fbs %}
+                <div class="comment-item">
+                    <div class="comment-mono">
+                        {% if fb.profile_photo %}
+                            {% set raw_path = (fb.profile_photo | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                            {% set clean_path = raw_path.replace("static/", "", 1) if raw_path.startswith("static/") else raw_path %}
+                            <img src="{{ url_for('static', filename=clean_path) }}" alt="DP" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                        {% else %}
+                            {{ (fb.fullname[0] if fb.fullname else 'U') | upper }}
+                        {% endif %}
+                    </div>
+                    <div style="display:flex;flex-direction:column;flex:1;min-width:0;">
+                        <div class="comment-bubble">
+                            <div class="comment-author">{{ fb.fullname if fb.fullname else 'User' }}</div>
+                            <div class="comment-text">{{ fb.feedback }}</div>
+                        </div>
+                        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-top:4px;margin-left:8px;">{{ fb.time_ago }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-comments">
+                    <div class="no-comments-icon"><i class="fas fa-comment-slash"></i></div>
+                    <span class="no-comments-text">No comments yet — be the first!</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div style="padding:16px 22px;border-top:1px solid var(--border-color);background:var(--bg-nav-card);">
+        <form action="/file_concern" method="POST">
+            <input type="hidden" name="report_id" value="{{ c.report_id }}">
+            <div class="comment-input-bar">
+                <input type="text" placeholder="Share your thoughts..." name="comment" autocomplete="off">
+                <button type="submit" name="fn" value="pc" class="comment-submit-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+    <!-- ===== ENHANCED LGU PROGRESS MODAL ===== -->
+    <div id="lgu-update-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:2000;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:var(--bg-nav-card);border-radius:20px;width:100%;max-width:920px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.35);">
+
+            <!-- Header -->
+            <div style="background:linear-gradient(135deg,#8b0000 0%,#c0392b 60%,#e74c3c 100%);padding:18px 26px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                <div style="display:flex;align-items:center;gap:14px;">
+                    <div style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;">📋</div>
+                    <div>
+                        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.65);margin-bottom:3px;">Document Progress Update</div>
+                        <div id="lgu-modal-header-title" style="font-size:16px;font-weight:900;color:white;letter-spacing:-0.3px;max-width:500px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Report Title</div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeLguModal()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:white;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">&times;</button>
+            </div>
+
+            <!-- Two-column body -->
+            <div style="display:grid;grid-template-columns:1.1fr 0.9fr;flex:1;overflow:hidden;min-height:0;">
+
+                <!-- LEFT: Post Preview -->
+                <div style="border-right:1px solid var(--border-color);overflow-y:auto;display:flex;flex-direction:column;background:var(--bg-main);">
+
+                    <!-- Image -->
+                    <div id="lgu-modal-img-wrap" style="width:100%;height:190px;flex-shrink:0;overflow:hidden;position:relative;background:var(--border-color);">
+                        <img id="lgu-modal-post-img" src="" style="width:100%;height:100%;object-fit:cover;display:none;">
+                        <div id="lgu-modal-img-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#607d8b,#90a4ae);color:white;flex-direction:column;gap:8px;">
+                            <i class="fas fa-image" style="font-size:30px;opacity:0.5;"></i>
+                            <span style="font-size:11px;opacity:0.7;font-weight:600;">No photo attached</span>
+                        </div>
+                        <div id="lgu-modal-cat-badge" style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.65);color:white;font-size:10px;font-weight:800;text-transform:uppercase;padding:4px 12px;border-radius:50px;letter-spacing:0.8px;"></div>
+                    </div>
+
+                    <!-- Post info -->
+                    <div style="padding:16px 18px;border-bottom:1px solid var(--border-color);background:var(--bg-nav-card);">
+                        <h4 id="lgu-modal-post-title" style="font-size:15px;font-weight:900;color:var(--text-main);margin:0 0 8px;line-height:1.3;"></h4>
+                        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;">
+                            <span style="font-size:12px;color:var(--text-muted);font-weight:600;display:flex;align-items:center;gap:5px;">
+                                <i class="fas fa-map-marker-alt" style="color:#8b0000;"></i>
+                                <span id="lgu-modal-location-text"></span>
+                            </span>
+                            <span style="font-size:12px;color:var(--text-muted);font-weight:600;display:flex;align-items:center;gap:5px;">
+                                <i class="fas fa-calendar-alt" style="color:#8b0000;"></i>
+                                <span id="lgu-modal-date-text"></span>
+                            </span>
+                        </div>
+                        <p id="lgu-modal-desc" style="font-size:13px;color:var(--text-muted);line-height:1.6;margin:0 0 12px;"></p>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div id="lgu-modal-resident-init" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#8b0000,#c0392b);color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;"></div>
+                            <img id="lgu-modal-resident-img" src="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;display:none;flex-shrink:0;">
+                            <div>
+                                <div id="lgu-modal-resident-name" style="font-size:12px;font-weight:700;color:var(--text-main);"></div>
+                                <div style="font-size:10px;color:var(--text-muted);">Filed by this resident</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats bar -->
+                    <div style="padding:12px 18px;display:flex;gap:20px;border-bottom:1px solid var(--border-color);background:var(--search-bg);flex-shrink:0;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="width:32px;height:32px;border-radius:8px;background:rgba(139,0,0,0.1);color:#8b0000;display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-arrow-up"></i>
+                            </div>
+                            <div>
+                                <div id="lgu-modal-upvotes" style="font-size:18px;font-weight:900;color:var(--text-main);line-height:1;">0</div>
+                                <div style="font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Upvotes</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="width:32px;height:32px;border-radius:8px;background:rgba(139,0,0,0.1);color:#8b0000;display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-comment"></i>
+                            </div>
+                            <div>
+                                <div id="lgu-modal-comments-count" style="font-size:18px;font-weight:900;color:var(--text-main);line-height:1;">0</div>
+                                <div style="font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Comments</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Updates List -->
+                    <div style="padding:14px 18px;border-bottom:1px solid var(--border-color);">
+                        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+                            <i class="fas fa-clipboard-check" style="color:#8b0000;"></i> Official Updates
+                        </div>
+                        <div id="lgu-modal-updates-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+                    </div>
+
+                    <!-- Comments list -->
+                    <div style="padding:14px 18px;flex:1;">
+                        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+                            <i class="fas fa-comments" style="color:#8b0000;"></i> Community Comments
+                        </div>
+                        <div id="lgu-modal-comments-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Update Form -->
+                <div style="overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:16px;">
+                    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:flex;align-items:center;gap:7px;">
+                        <i class="fas fa-edit" style="color:#8b0000;"></i> Post an Update
+                    </div>
+
+                    <!-- Current status display -->
+                    <div style="background:var(--search-bg);border-radius:12px;padding:13px 16px;border:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);margin-bottom:5px;">Current Status</div>
+                            <div id="lgu-modal-cur-status-badge" style="display:inline-block;padding:4px 10px;border-radius:50px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:white;"></div>
+                        </div>
+                    </div>
+
+                    <form id="lgu-update-form" action="/lgu" method="POST" enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:14px;">
+                        <input type="hidden" name="report_id" id="update-report-id">
+
+                        <!-- New status -->
+                        <div>
+                            <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:7px;"><i class="fas fa-sync-alt" style="color:#8b0000;margin-right:4px;"></i>Change Status To</label>
+                            <select id="update-status" name="update_status" required style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border-color);background:var(--bg-nav-card);font-family:'Inter';font-size:13px;font-weight:600;color:var(--text-main);outline:none;cursor:pointer;transition:all 0.2s;" onfocus="this.style.borderColor='#8b0000';this.style.boxShadow='0 0 0 3px rgba(139,0,0,0.1)'" onblur="this.style.borderColor='var(--border-color)';this.style.boxShadow='none'">
+                                <option value="Pending">⏳ Pending</option>
+                                <option value="In Progress">🔄 In Progress</option>
+                                <option value="Denied">❌ Denied</option>
+                            </select>
+                        </div>
+
+                        <!-- Message -->
+                        <div>
+                            <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:7px;"><i class="fas fa-align-left" style="color:#8b0000;margin-right:4px;"></i>Documentation / Message</label>
+                            <textarea id="update-text" name="update_description" required rows="5" placeholder="Describe what action was taken, current situation, or reason for denial..." style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border-color);background:var(--bg-nav-card);font-family:'Inter';font-size:13px;color:var(--text-main);resize:vertical;outline:none;line-height:1.5;transition:all 0.2s;" onfocus="this.style.borderColor='#8b0000';this.style.boxShadow='0 0 0 3px rgba(139,0,0,0.1)'" onblur="this.style.borderColor='var(--border-color)';this.style.boxShadow='none'"></textarea>
+                        </div>
+
+                        <!-- Photo upload -->
+                        <div>
+                            <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:7px;"><i class="fas fa-camera" style="color:#8b0000;margin-right:4px;"></i>Attach Photo Proof</label>
+                            <label style="display:block;border:2px dashed var(--border-color);border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:var(--search-bg);transition:all 0.2s;" onmouseover="this.style.borderColor='#8b0000'" onmouseout="this.style.borderColor='var(--border-color)'">
+                                <input type="file" id="update-photo" name="update_photo" accept="image/*" style="display:none;" onchange="lguPreviewPhoto(this)">
+                                <i id="lgu-upload-icon" class="fas fa-cloud-upload-alt" style="font-size:20px;color:var(--text-muted);display:block;margin-bottom:6px;"></i>
+                                <div id="lgu-upload-text" style="font-size:12px;color:var(--text-muted);font-weight:600;">Click to upload photo evidence</div>
+                                <div style="font-size:10px;color:var(--text-muted);opacity:0.7;margin-top:3px;">JPG, PNG, WEBP — max 10MB</div>
+                            </label>
+                            <div id="lgu-photo-preview-wrap" style="display:none;margin-top:10px;border-radius:10px;overflow:hidden;position:relative;">
+                                <img id="lgu-photo-preview" src="" style="width:100%;max-height:130px;object-fit:cover;display:block;">
+                                <button type="button" onclick="lguRemovePhoto()" style="position:absolute;top:7px;right:7px;background:rgba(0,0,0,0.6);color:white;border:none;padding:4px 10px;border-radius:50px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter';"><i class="fas fa-trash"></i> Remove</button>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div style="display:flex;gap:10px;padding-top:4px;margin-top:auto;">
+                            <button type="button" onclick="closeLguModal()" style="padding:11px 18px;border-radius:50px;border:1.5px solid var(--border-color);background:transparent;cursor:pointer;font-weight:700;font-family:'Inter';font-size:13px;color:var(--text-muted);transition:all 0.2s;" onmouseover="this.style.background='var(--search-bg)'" onmouseout="this.style.background='transparent'">Cancel</button>
+                            <button type="button" onclick="resolveReport()" style="flex:1;padding:12px;border-radius:50px;border:none;background:linear-gradient(135deg,#16a34a,#22c55e);color:white;font-weight:800;cursor:pointer;font-family:'Inter';font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+                                <i class="fas fa-check-circle"></i> Complete / Resolve
+                            </button>
+                            <button type="submit" style="flex:1;padding:12px;border-radius:50px;border:none;background:linear-gradient(135deg,#8b0000,#c0392b);color:white;font-weight:800;cursor:pointer;font-family:'Inter';font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+                                <i class="fas fa-upload"></i> Post Update
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div class="modal-backdrop" id="submit-modal">
+    <div class="modal">
+        <div class="modal-head">
+            <div class="modal-head-deco"></div>
+            <div class="modal-head-deco2"></div>
+            <div>
+                <div class="modal-head-badge">
+                    <i class="fas fa-exclamation-circle"></i> ActBayan
+                </div>
+                <h2 class="modal-head-title">File a Concern</h2>
+                <p class="modal-head-sub">Help us improve Barangay Picaleon</p>
+            </div>
+            <button class="modal-close-btn" type="button" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-step-bar" id="modal-step-bar">
+            <div class="modal-step-item">
+                <div class="modal-step-num active" id="msnum-1">1</div>
+                <div class="modal-step-lbl active" id="mslbl-1">Category</div>
+            </div>
+            <div class="modal-step-seg" id="msseg-1"></div>
+            <div class="modal-step-item">
+                <div class="modal-step-num" id="msnum-2">2</div>
+                <div class="modal-step-lbl" id="mslbl-2">Details</div>
+            </div>
+            <div class="modal-step-seg" id="msseg-2"></div>
+            <div class="modal-step-item">
+                <div class="modal-step-num" id="msnum-3">3</div>
+                <div class="modal-step-lbl" id="mslbl-3">Evidence</div>
+            </div>
+            <div class="modal-step-seg" id="msseg-3"></div>
+            <div class="modal-step-item" style="flex:0;">
+                <div class="modal-step-num" id="msnum-4">4</div>
+                <div class="modal-step-lbl" id="mslbl-4">Review</div>
+            </div>
+        </div>
+
+        <div class="modal-body">
+            
+            <div class="modal-panel active" id="mpanel-1">
+                <div class="modal-section-head">What type of concern?</div>
+                <div class="modal-cat-grid">
+                    <div class="modal-cat-tile" data-cat="Road" onclick="mSelectCat(this)">
+                        <span class="modal-cat-emoji">🛣️</span>
+                        <div class="modal-cat-name">Road</div>
+                        <div class="modal-cat-desc">Potholes, damage</div>
+                    </div>
+                    <div class="modal-cat-tile" data-cat="Sanitation" onclick="mSelectCat(this)">
+                        <span class="modal-cat-emoji">🗑️</span>
+                        <div class="modal-cat-name">Sanitation</div>
+                        <div class="modal-cat-desc">Garbage, waste</div>
+                    </div>
+                    <div class="modal-cat-tile" data-cat="Flooding" onclick="mSelectCat(this)">
+                        <span class="modal-cat-emoji">🌊</span>
+                        <div class="modal-cat-name">Flooding</div>
+                        <div class="modal-cat-desc">Drainage issues</div>
+                    </div>
+                    <div class="modal-cat-tile" data-cat="Lighting" onclick="mSelectCat(this)">
+                        <span class="modal-cat-emoji">💡</span>
+                        <div class="modal-cat-name">Lighting</div>
+                        <div class="modal-cat-desc">Broken streetlights</div>
+                    </div>
+                    <div class="modal-cat-tile" data-cat="Safety" onclick="mSelectCat(this)">
+                        <span class="modal-cat-emoji">🚨</span>
+                        <div class="modal-cat-name">Safety</div>
+                        <div class="modal-cat-desc">Hazards, risks</div>
+                    </div>
+                    <div class="modal-cat-tile" data-cat="Other" onclick="mSelectCat(this)">
+                        <span class="modal-cat-emoji">📋</span>
+                        <div class="modal-cat-name">Other</div>
+                        <div class="modal-cat-desc">Misc concerns</div>
+                    </div>
+                </div>
+                <div class="modal-action-row">
+                    <button class="modal-btn-next" id="mbtn-step1" onclick="mGoStep(2)" disabled>
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-panel" id="mpanel-2">
+                <div class="modal-section-head">Describe the issue</div>
+                <div class="modal-form-row">
+                    <label><i class="fas fa-tag"></i> Report Title</label>
+                    <input class="modal-finp" id="modal-inp-title" type="text" placeholder="e.g. Deep Pothole on Main Road" oninput="mValidateStep2()">
+                </div>
+                <div class="modal-form-row">
+                    <label><i class="fas fa-map-marker-alt"></i> Location / Purok</label>
+                    <input class="modal-finp" id="modal-inp-location" type="text" placeholder="e.g. Purok 3, Picaleon" oninput="mValidateStep2()">
+                </div>
+                <div class="modal-form-row">
+                    <label><i class="fas fa-align-left"></i> Description</label>
+                    <textarea class="modal-finp" id="modal-inp-desc" placeholder="Provide detailed information about the issue..." oninput="mValidateStep2()"></textarea>
+                </div>
+                <div class="modal-action-row">
+                    <button class="modal-btn-back" type="button" onclick="mGoStep(1)"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="modal-btn-next" id="mbtn-step2" onclick="mGoStep(3)" disabled>Continue <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <div class="modal-panel" id="mpanel-3">
+                <div class="modal-section-head">Attach evidence (optional)</div>
+                <label class="modal-upload-tile" id="modal-upload-tile">
+                    <input type="file" id="modal-photo-input" accept="image/*" onchange="mPreviewFile(this)">
+                    <i class="fas fa-camera" id="modal-upload-icon"></i>
+                    <p id="modal-upload-text">Click to upload a photo</p>
+                    <small>JPG, PNG, WEBP — max 10MB</small>
+                </label>
+                <div class="modal-preview-wrap" id="modal-preview-wrap">
+                    <img class="modal-preview-img" id="modal-preview-img" src="" alt="Preview" onclick="openLightbox(mState.imgSrc, 'Preview — Not yet submitted')" style="cursor:zoom-in;">
+                    <div class="modal-preview-actions">
+                        <button type="button" class="modal-preview-btn" onclick="openLightbox(mState.imgSrc,'Preview — Not yet submitted')"><i class="fas fa-expand"></i> Full View</button>
+                        <button type="button" class="modal-preview-btn" onclick="mRemovePhoto()"><i class="fas fa-trash"></i> Remove</button>
+                    </div>
+                </div>
+                <div class="modal-action-row">
+                    <button class="modal-btn-back" type="button" onclick="mGoStep(2)"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="modal-btn-next" type="button" onclick="mGoStep(4)"><i class="fas fa-eye"></i> Preview & Review</button>
+                </div>
+            </div>
+
+            <div class="modal-panel" id="mpanel-4">
+                <div class="modal-section-head">Review your report</div>
+                <div class="modal-disclaimer">
+                    <i class="fas fa-shield-alt"></i>
+                    <p>Your report will be submitted to Barangay Picaleon officials. False or misleading reports may be subject to action.</p>
+                </div>
+                <div class="modal-review-box">
+                    <div class="modal-review-row">
+                        <div class="modal-review-key">Category</div>
+                        <div class="modal-review-val"><span class="modal-review-cat-pill" id="mrv-cat"></span></div>
+                    </div>
+                    <div class="modal-review-row">
+                        <div class="modal-review-key">Title</div>
+                        <div class="modal-review-val" id="mrv-title"></div>
+                    </div>
+                    <div class="modal-review-row">
+                        <div class="modal-review-key">Location</div>
+                        <div class="modal-review-val" id="mrv-loc"></div>
+                    </div>
+                    <div class="modal-review-row">
+                        <div class="modal-review-key">Details</div>
+                        <div class="modal-review-val" id="mrv-desc"></div>
+                    </div>
+                    <div class="modal-review-row" id="mrv-photo-row" style="display:none;">
+                        <div class="modal-review-key">Photo</div>
+                        <div class="modal-review-val">
+                            <img id="mrv-photo" src="" alt="" style="width:100%;max-height:100px;object-fit:cover;border-radius:8px;margin-top:4px;">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-action-row">
+                    <button class="modal-btn-back" type="button" onclick="mGoStep(3)"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="modal-btn-next" type="button" onclick="mSubmitConcern()"><i class="fas fa-paper-plane"></i> Post Concern</button>
+                </div>
+            </div>
+
+            <form id="concern-real-form" action="{{ url_for('file_concern') }}" method="POST" enctype="multipart/form-data" style="display:none;">
+                <input type="hidden" name="category" id="hf-category">
+                <input type="hidden" name="title" id="hf-title">
+                <input type="hidden" name="location" id="hf-location">
+                <input type="hidden" name="description" id="hf-description">
+                <input type="file" name="concern_photo" id="hf-photo">
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightboxOnBackdrop(event)">
+    <button class="lightbox-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+    <img class="lightbox-img" id="lightbox-img" src="" alt="">
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+    // ===== THEME =====
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    const themeLabel = document.getElementById('theme-label');
+    const themeIcon = document.getElementById('theme-icon');
+
+    function applyTheme(dark) {
+        document.body.classList.toggle('dark-mode', dark);
+        if(themeLabel) themeLabel.textContent = dark ? 'Light Mode' : 'Dark Mode';
+        themeIcon.className = dark ? 'fas fa-sun' : 'fas fa-moon';
+    }
+    applyTheme(localStorage.getItem('theme') === 'dark');
+    themeBtn.addEventListener('click', () => {
+        const isDark = !document.body.classList.contains('dark-mode');
+        applyTheme(isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+
+    // ===== MULTI-STEP MODAL LOGIC =====
+    const mState = { cat: '', title: '', loc: '', desc: '', imgSrc: '', imgFile: null };
+    let mCurStep = 1;
+
+    const mCatEmojis = {
+        Road: '🛣️', Sanitation: '🗑️', Flooding: '🌊',
+        Lighting: '💡', Safety: '🚨', Other: '📋'
+    };
+
+    function openModal() {
+        document.getElementById('submit-modal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeModal() {
+        if(mCurStep === 5) return; // Block closing if currently submitting
+        document.getElementById('submit-modal').classList.remove('open');
+        document.body.style.overflow = '';
+        setTimeout(mResetModal, 300); // Reset form after transition finishes
+    }
+
+    document.getElementById('submit-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    function mGoStep(n) {
+        document.getElementById('mpanel-' + mCurStep).classList.remove('active');
+        document.getElementById('mpanel-' + n).classList.add('active');
+
+        for (let i = 1; i <= 4; i++) {
+            const num = document.getElementById('msnum-' + i);
+            const lbl = document.getElementById('mslbl-' + i);
+            if (i < n) {
+                num.className = 'modal-step-num done';
+                lbl.className = 'modal-step-lbl done';
+            } else if (i === n) {
+                num.className = 'modal-step-num active';
+                lbl.className = 'modal-step-lbl active';
+            } else {
+                num.className = 'modal-step-num';
+                lbl.className = 'modal-step-lbl';
+            }
+            if (i < 4) {
+                document.getElementById('msseg-' + i).className = 'modal-step-seg' + (i < n ? ' done' : '');
+            }
+        }
+        if (n === 4) mFillReview();
+        mCurStep = n;
+    }
+
+    function mSelectCat(el) {
+        document.querySelectorAll('.modal-cat-tile').forEach(t => t.classList.remove('selected'));
+        el.classList.add('selected');
+        mState.cat = el.dataset.cat;
+        document.getElementById('mbtn-step1').disabled = false;
+    }
+
+    function mValidateStep2() {
+        mState.title = document.getElementById('modal-inp-title').value.trim();
+        mState.loc   = document.getElementById('modal-inp-location').value.trim();
+        mState.desc  = document.getElementById('modal-inp-desc').value.trim();
+        document.getElementById('mbtn-step2').disabled = !(mState.title && mState.loc && mState.desc);
+    }
+
+    function mPreviewFile(input) {
+        if (input.files && input.files[0]) {
+            mState.imgFile = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                mState.imgSrc = e.target.result;
+                document.getElementById('modal-preview-img').src = mState.imgSrc;
+                document.getElementById('modal-preview-wrap').classList.add('visible');
+                
+                const tile = document.getElementById('modal-upload-tile');
+                tile.classList.add('has-file');
+                document.getElementById('modal-upload-icon').className = 'fas fa-check-circle';
+                document.getElementById('modal-upload-text').textContent = input.files[0].name;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function mRemovePhoto() {
+        mState.imgSrc = '';
+        mState.imgFile = null;
+        document.getElementById('modal-preview-wrap').classList.remove('visible');
+        document.getElementById('modal-preview-img').src = '';
+        
+        const tile = document.getElementById('modal-upload-tile');
+        tile.classList.remove('has-file');
+        document.getElementById('modal-upload-icon').className = 'fas fa-camera';
+        document.getElementById('modal-upload-text').textContent = 'Click to upload a photo';
+        document.getElementById('modal-photo-input').value = '';
+        showToast('Photo removed.', 'fa-trash');
+    }
+
+    function mFillReview() {
+        document.getElementById('mrv-cat').textContent = (mCatEmojis[mState.cat] || '') + ' ' + mState.cat;
+        document.getElementById('mrv-title').textContent = mState.title;
+        document.getElementById('mrv-loc').textContent   = mState.loc;
+        document.getElementById('mrv-desc').textContent  = mState.desc;
+
+        const photoRow = document.getElementById('mrv-photo-row');
+        if (mState.imgSrc) {
+            document.getElementById('mrv-photo').src = mState.imgSrc;
+            photoRow.style.display = 'flex';
+        } else {
+            photoRow.style.display = 'none';
+        }
+    }
+
+    function mSubmitConcern() {
+        // Populating the hidden form fields that interact with Flask
+        document.getElementById('hf-category').value    = mState.cat;
+        document.getElementById('hf-title').value       = mState.title;
+        document.getElementById('hf-location').value    = mState.loc;
+        document.getElementById('hf-description').value = mState.desc;
+
+        if (mState.imgFile) {
+            const dt = new DataTransfer();
+            dt.items.add(mState.imgFile);
+            document.getElementById('hf-photo').files = dt.files;
+        }
+
+        // Hide the steps indicator and show the Success panel
+        document.getElementById('modal-step-bar').style.display = 'none';
+        mGoStep(5); 
+
+        // Actual form submission to Python backend after briefly showing the success message
+        setTimeout(() => {
+            document.getElementById('concern-real-form').submit();
+        }, 1500); 
+    }
+
+    function mResetModal() {
+        Object.assign(mState, { cat:'', title:'', loc:'', desc:'', imgSrc:'', imgFile: null });
+
+        document.querySelectorAll('.modal-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('mpanel-1').classList.add('active');
+        mCurStep = 1;
+
+        document.getElementById('modal-step-bar').style.display = 'flex';
+        for (let i = 1; i <= 4; i++) {
+            document.getElementById('msnum-' + i).className = 'modal-step-num' + (i === 1 ? ' active' : '');
+            document.getElementById('mslbl-' + i).className = 'modal-step-lbl' + (i === 1 ? ' active' : '');
+            if (i < 4) document.getElementById('msseg-' + i).className = 'modal-step-seg';
+        }
+
+        document.querySelectorAll('.modal-cat-tile').forEach(t => t.classList.remove('selected'));
+        document.getElementById('mbtn-step1').disabled = true;
+        document.getElementById('mbtn-step2').disabled = true;
+        document.getElementById('modal-inp-title').value    = '';
+        document.getElementById('modal-inp-location').value = '';
+        document.getElementById('modal-inp-desc').value     = '';
+        mRemovePhoto();
+    }
+
+    // ===== LIGHTBOX =====
+    function openLightboxFromFeed(el) {
+        openLightbox(el.dataset.img, el.dataset.title);
+    }
+    function openLightbox(src, caption) {
+        const lb = document.getElementById('lightbox');
+        document.getElementById('lightbox-img').src = src;
+        document.getElementById('lightbox-caption').textContent = caption || '';
+        lb.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+        document.getElementById('lightbox').classList.remove('open');
+        if (!document.getElementById('submit-modal').classList.contains('open')) {
+            document.body.style.overflow = '';
+        }
+    }
+    function closeLightboxOnBackdrop(e) {
+        if (e.target === document.getElementById('lightbox')) closeLightbox();
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (document.getElementById('lightbox').classList.contains('open')) closeLightbox();
+            else if (document.getElementById('submit-modal').classList.contains('open')) closeModal();
+            else closeAllDrawers();
+        }
+    });
+
+    // ===== UPVOTE (real API) =====
+    function toggleUpvote(btn) {
+        const reportId = btn.dataset.id;
+        const countEl = btn.querySelector('.upvote-count');
+        fetch('/api/upvote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ report_id: reportId })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) return;
+            countEl.textContent = data.count;
+            if (data.action === 'added') {
+                btn.classList.add('upvoted');
+                showToast('Upvoted! Thanks for your support.', 'fa-arrow-up');
+            } else {
+                btn.classList.remove('upvoted');
+                showToast('Upvote removed.', 'fa-arrow-down');
+            }
+        })
+        .catch(() => showToast('Could not process upvote. Try again.', 'fa-exclamation'));
+    }
+
+    // ===== COMMENT DRAWER (real sliding panel) =====
+    function toggleComments(btn) {
+        const idx = btn.dataset.id;
+        closeAllDrawers();
+        const drawer = document.getElementById(`drawer-${idx}`);
+        drawer.classList.add('open');
+        document.getElementById('comment-overlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDrawer(idx) {
+        const drawer = document.getElementById(`drawer-${idx}`);
+        if (drawer) drawer.classList.remove('open');
+        document.getElementById('comment-overlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function closeAllDrawers() {
+        document.querySelectorAll('.comment-drawer').forEach(d => d.classList.remove('open'));
+        document.getElementById('comment-overlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function toggleCaption(btn) {
+        const idx = btn.dataset.id;
+        const cap = document.getElementById(`caption-${idx}`);
+        if (cap.classList.contains('clamped')) {
+            cap.classList.remove('clamped');
+            btn.textContent = 'Show less';
+        } else {
+            cap.classList.add('clamped');
+            btn.textContent = 'Read more';
+        }
+    }
+
+    // ===== SEARCH FILTER =====
+    const searchInput = document.getElementById('sidebar-search-input');
+    searchInput.addEventListener('input', runFilter);
+
+    let activeFilter = 'all';
+    document.getElementById('filter-chips').addEventListener('click', function(e) {
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeFilter = chip.dataset.filter;
+        runFilter();
+    });
+
+    function runFilter() {
+        const query = searchInput.value.toLowerCase().trim();
+        const posts = document.querySelectorAll('.concern-post');
+        let visibleCount = 0;
+
+        posts.forEach(post => {
+            const cat = post.dataset.category || '';
+            const title = post.dataset.title || '';
+            const location = post.dataset.location || '';
+
+            const matchesCategory = activeFilter === 'all' || cat.includes(activeFilter);
+            const matchesSearch = !query || title.includes(query) || location.includes(query) || cat.includes(query);
+
+            if (matchesCategory && matchesSearch) {
+                post.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                post.classList.add('hidden');
+            }
+        });
+        document.getElementById('no-results-msg').classList.toggle('visible', visibleCount === 0);
+    }
+
+    // ===== TOAST =====
+    function showToast(message, icon = 'fa-info-circle') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+        container.appendChild(toast);
+        requestAnimationFrame(() => { requestAnimationFrame(() => { toast.classList.add('show'); }); });
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
+        }, 2800);
+    }
+
+    function closeLguModal() {
+        document.getElementById('lgu-update-modal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function resolveReport() {
+        const sel = document.getElementById('update-status');
+        let opt = Array.from(sel.options).find(o => o.value === 'Resolved');
+        if (!opt) {
+            opt = document.createElement('option');
+            opt.value = 'Resolved';
+            opt.text = 'Resolved';
+            sel.add(opt);
+        }
+        sel.value = 'Resolved';
+        document.getElementById('lgu-update-form').submit();
+    }
+
+    function opReportUpdate(btn) {
+        const d = btn.dataset;
+        // Populate hidden field
+        document.getElementById('update-report-id').value = d.id;
+        document.getElementById('update-status').value = d.status; // Pre-select current status
+        document.getElementById('update-text').value = '';
+        document.getElementById('update-photo').value = '';
+        lguRemovePhoto();
+
+        // Header
+        document.getElementById('lgu-modal-header-title').textContent = d.title;
+
+        // Current status pill (Right column)
+        const statusColors = { 'Pending': '#fbbf24', 'In Progress': '#3b82f6', 'Resolved': '#22c55e', 'Denied': '#ef4444' };
+        const sc = statusColors[d.status] || '#5f6368';
+        const badge = document.getElementById('lgu-modal-cur-status-badge');
+        badge.textContent = d.status;
+        badge.style.backgroundColor = sc;
+
+        // Image
+        const img = document.getElementById('lgu-modal-post-img');
+        const imgPlaceholder = document.getElementById('lgu-modal-img-placeholder');
+        if (d.img) {
+            img.src = '/static/' + d.img;
+            img.style.display = 'block';
+            imgPlaceholder.style.display = 'none';
+        } else {
+            img.style.display = 'none';
+            imgPlaceholder.style.display = 'flex';
+        }
+        document.getElementById('lgu-modal-cat-badge').textContent = d.category;
+        document.getElementById('lgu-modal-cat-badge').style.backgroundColor = sc;
+
+        // Post details
+        document.getElementById('lgu-modal-post-title').textContent = d.title;
+        document.getElementById('lgu-modal-location-text').textContent = d.location;
+        document.getElementById('lgu-modal-date-text').textContent = d.date;
+        document.getElementById('lgu-modal-desc').textContent = d.desc;
+        document.getElementById('lgu-modal-resident-name').textContent = d.resident;
+
+        // Resident Profile Picture
+        const rImg = document.getElementById('lgu-modal-resident-img');
+        const rInit = document.getElementById('lgu-modal-resident-init');
+        if (d.residentImg) {
+            rImg.src = '/static/' + d.residentImg;
+            rImg.style.display = 'block';
+            rInit.style.display = 'none';
+        } else {
+            rImg.style.display = 'none';
+            rInit.style.display = 'flex';
+            rInit.textContent = d.resident.charAt(0).toUpperCase();
+        }
+
+        // Stats
+        document.getElementById('lgu-modal-upvotes').textContent = d.upvotes;
+        document.getElementById('lgu-modal-comments-count').textContent = d.comments;
+
+        // Show modal
+        document.getElementById('lgu-update-modal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        // Load comments & updates
+        loadModalUpdates(d.id);
+        loadModalComments(d.id);
+    }
+
+    async function loadModalUpdates(reportId) {
+        const list = document.getElementById('lgu-modal-updates-list');
+        list.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Loading updates...</div>';
+        try {
+            const res = await fetch(`/api/report_updates/${reportId}`);
+            const updates = await res.json();
+            if (!Array.isArray(updates) || updates.length === 0) {
+                list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:12px;background:var(--search-bg);border-radius:12px;"><i class="fas fa-clipboard" style="font-size:24px;opacity:0.3;margin-bottom:8px;display:block;"></i>No official updates posted yet.<br>You are the first to respond!</div>';
+                return;
+            }
+            list.innerHTML = '';
+            updates.forEach(u => {
+                let imgHtml = '';
+                if (u.image_url) {
+                    imgHtml = `<img src="/static/${u.image_url.replace('static/','')}" style="width:100%;border-radius:8px;margin-top:8px;max-height:120px;object-fit:cover;border:1px solid var(--border-color);">`;
+                }
+                list.innerHTML += `
+                    <div style="background:var(--bg-nav-card);border:1px solid var(--border-color);border-radius:12px;padding:12px;position:relative;">
+                        <div style="position:absolute;left:-5px;top:16px;width:10px;height:10px;border-radius:50%;background:#8b0000;"></div>
+                        <div style="font-size:10px;font-weight:800;color:var(--text-muted);margin-bottom:4px;"><i class="fas fa-clock"></i> ${u.created_at_formatted || ''}</div>
+                        <div style="font-size:12px;color:var(--text-main);line-height:1.5;">${u.update_text}</div>
+                        ${imgHtml}
+                    </div>`;
+            });
+        } catch(err) {
+            list.innerHTML = '<div style="text-align:center;padding:16px;color:#dc2626;font-size:12px;">Failed to load updates.</div>';
+        }
+    }
+
+    async function loadModalComments(reportId) {
+        const list = document.getElementById('lgu-modal-comments-list');
+        list.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Loading comments...</div>';
+        try {
+            const res = await fetch(`/api/comments/${reportId}`);
+            const comments = await res.json();
+            if (!Array.isArray(comments) || comments.length === 0) {
+                list.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px;">No comments yet.</div>';
+                return;
+            }
+            list.innerHTML = '';
+            comments.forEach(c => {
+                const initial = (c.first_name || 'U').charAt(0).toUpperCase();
+                const name = `${c.first_name || ''} ${c.last_name || ''}`.trim();
+                list.innerHTML += `
+                    <div style="display:flex;gap:9px;align-items:flex-start;">
+                        <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#8b0000,#c0392b);color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;">${initial}</div>
+                        <div style="background:var(--search-bg);border-radius:12px;padding:8px 12px;flex:1;">
+                            <div style="font-size:11px;font-weight:800;color:var(--text-main);margin-bottom:2px;">${name}</div>
+                            <div style="font-size:12px;color:var(--text-muted);line-height:1.4;">${c.comment_text}</div>
+                        </div>
+                    </div>`;
+            });
+        } catch(err) {
+            list.innerHTML = '<div style="text-align:center;padding:16px;color:#dc2626;font-size:12px;">Failed to load comments.</div>';
+        }
+    }
+
+    function lguPreviewPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('lgu-photo-preview').src = e.target.result;
+                document.getElementById('lgu-photo-preview-wrap').style.display = 'block';
+                document.getElementById('lgu-upload-icon').className = 'fas fa-check-circle';
+                document.getElementById('lgu-upload-icon').style.color = 'var(--primary-red)';
+                document.getElementById('lgu-upload-text').textContent = input.files[0].name;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function lguRemovePhoto() {
+        document.getElementById('lgu-photo-preview-wrap').style.display = 'none';
+        document.getElementById('lgu-photo-preview').src = '';
+        document.getElementById('lgu-upload-icon').className = 'fas fa-cloud-upload-alt';
+        document.getElementById('lgu-upload-icon').style.color = 'var(--text-muted)';
+        document.getElementById('lgu-upload-text').textContent = 'Click to upload photo evidence';
+        const inp = document.getElementById('update-photo');
+        if (inp) inp.value = '';
+    }
+
+    // ===== AJAX COMMENT SUBMISSION (SMOOTH & NO PAGE RESET) =====
+    document.addEventListener('submit', async function(e) {
+        const form = e.target.closest('form');
+        if (!form) return;
+        const action = form.getAttribute('action') || '';
+        const input = form.querySelector('input[name="comment"]');
+        if (!input || (!action.includes('/file_concern') && !action.includes('/lgu'))) return;
+
+        e.preventDefault();
+        const commentText = input.value.trim();
+        if (!commentText) return;
+
+        const reportIdEl = form.querySelector('input[name="report_id"]');
+        const reportId = reportIdEl ? reportIdEl.value : '';
+        const submitBtn = form.querySelector('button[type="submit"], button.comment-submit-btn');
+        if (submitBtn) submitBtn.disabled = true;
+
+        const formData = new FormData(form);
+        if (!formData.has('fn')) formData.append('fn', 'pc');
+
+        try {
+            const response = await fetch('/file_concern', { method: 'POST', body: formData });
+            input.value = '';
+
+            const list = document.getElementById('comment-list-' + reportId);
+            if (list) {
+                const noComm = list.querySelector('.no-comments');
+                if (noComm) noComm.remove();
+
+                const newComm = document.createElement('div');
+                newComm.className = 'comment-item';
+                newComm.style.animation = 'fadeIn 0.4s ease';
+                newComm.innerHTML = `
+                    <div class="comment-mono" style="background: var(--primary-red); color: white;">You</div>
+                    <div style="display:flex;flex-direction:column;flex:1;min-width:0;">
+                        <div class="comment-bubble">
+                            <div class="comment-author">You</div>
+                            <div class="comment-text">${commentText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+                        </div>
+                        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-top:4px;margin-left:8px;">Just now</div>
+                    </div>
+                `;
+                list.prepend(newComm);
+            }
+
+            const countEl = document.querySelector(`.action-btn[data-id="${reportId}"] .comment-count`);
+            if (countEl) {
+                let count = parseInt(countEl.textContent) || 0;
+                countEl.textContent = count + 1;
+            }
+
+            if (typeof loadModalComments === 'function') {
+                const curModalReportId = document.getElementById('update-report-id')?.value;
+                if (curModalReportId == reportId) {
+                    loadModalComments(reportId);
+                }
+            }
+
+            showToast('Comment sent successfully!', 'fa-check-circle');
+        } catch (err) {
+            showToast('Failed to send comment.', 'fa-exclamation-circle');
+        } finally {
+            if (submitBtn) submitBtn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

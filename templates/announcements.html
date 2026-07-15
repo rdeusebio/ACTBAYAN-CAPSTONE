@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActBayan — Announcements</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+        :root {
+            --bg-main: #f4f6f8; --bg-nav-card: #ffffff; --text-main: #202124;
+            --text-muted: #5f6368; --border-color: #e0e0e0; --icon-hover: #f1f3f4;
+            --search-bg: #f1f3f4; --primary-red: #8b0000; --primary-red-hover: #a30000;
+            --red-light: rgba(139,0,0,0.08);
+        }
+        body.dark-mode {
+            --bg-main: #121212; --bg-nav-card: #1e1e1e; --text-main: #e8eaed;
+            --text-muted: #9aa0a6; --border-color: #333333; --icon-hover: #2a2a2a;
+            --search-bg: #2a2a2a; --red-light: rgba(139,0,0,0.15);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color: var(--text-main); transition: background-color 0.3s, color 0.3s; display: flex; }
+
+        .sidebar { width: 260px; height: 100vh; position: fixed; left: 0; top: 0; background-color: var(--bg-nav-card); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 24px 20px; z-index: 1000; transition: background-color 0.3s, border-color 0.3s; }
+        .sidebar-logo { font-weight: 900; font-size: 26px; color: var(--text-main); text-decoration: none; margin-bottom: 30px; padding: 0 10px; display: inline-flex; align-items: center; gap: 10px; }
+        .sidebar-logo span { color: var(--primary-red); }
+        .sidebar-search { display: flex; align-items: center; background-color: var(--search-bg); border-radius: 12px; padding: 10px 14px; gap: 8px; margin-bottom: 24px; border: 1.5px solid transparent; transition: border-color 0.2s; }
+        .sidebar-search:focus-within { border-color: var(--primary-red); }
+        .sidebar-search i { color: var(--text-muted); font-size: 13px; }
+        .sidebar-search input { background: transparent; border: none; outline: none; font-size: 13px; color: var(--text-main); width: 100%; font-family: 'Inter'; }
+        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .sidebar-link { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 14px; transition: all 0.2s; position: relative; }
+        .sidebar-link i { font-size: 18px; width: 20px; text-align: center; }
+        .sidebar-link:hover { background-color: var(--icon-hover); color: var(--primary-red); }
+        .sidebar-link.active { background-color: var(--primary-red); color: white; }
+        .notif-badge { background-color: #cc0000; color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 50px; margin-left: auto; }
+        .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .theme-toggle-btn { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; color: var(--text-muted); cursor: pointer; font-weight: 600; font-size: 14px; background: transparent; border: none; font-family: 'Inter'; width: 100%; text-align: left; transition: all 0.2s; }
+        .theme-toggle-btn:hover { background-color: var(--icon-hover); color: var(--text-main); }
+        .user-profile-btn { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; cursor: pointer; transition: background 0.2s; border: 1px solid var(--border-color); text-decoration: none; }
+        .user-profile-btn:hover { background-color: var(--icon-hover); }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #c0392b); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; overflow: hidden;}
+        .user-info { display: flex; flex-direction: column; overflow: hidden; }
+        .user-name { font-size: 13px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 11px; color: var(--text-muted); }
+
+        .main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
+        .page-header { background-color: #8b0000; background-image: linear-gradient(135deg, rgba(139,0,0,0.88) 0%, rgba(185,28,28,0.82) 50%, rgba(139,0,0,0.88) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}"); background-size: cover; background-position: center; padding: 40px 0 32px; position: relative; overflow: hidden; }
+        .page-header::before { content: ''; position: absolute; top: -40px; right: -40px; width: 220px; height: 220px; border-radius: 50%; border: 36px solid rgba(255,255,255,0.06); pointer-events: none; }
+        .page-header-inner { width: 100%; max-width: 1300px; margin: 0 auto; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+        .page-header-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.22); border-radius: 50px; padding: 4px 14px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: white; margin-bottom: 10px; }
+        .page-header-title { font-size: 34px; font-weight: 900; color: white; letter-spacing: -0.5px; margin: 0 0 6px; }
+        .page-header-sub { font-size: 13px; color: rgba(255,255,255,0.72); font-weight: 500; margin: 0; }
+
+        .filter-bar { background-color: var(--bg-nav-card); border-bottom: 1px solid var(--border-color); padding: 14px 0; position: sticky; top: 0; z-index: 100; }
+        .filter-inner { width: 100%; max-width: 1300px; margin: 0 auto; padding: 0 40px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .filter-chip { padding: 7px 16px; border-radius: 50px; border: 1.5px solid var(--border-color); background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Inter'; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .filter-chip:hover { border-color: var(--primary-red); color: var(--primary-red); }
+        .filter-chip.active { background: var(--primary-red); border-color: var(--primary-red); color: white; }
+        .filter-search { margin-left: auto; display: flex; align-items: center; background: var(--search-bg); border-radius: 10px; padding: 8px 14px; gap: 8px; border: 1.5px solid transparent; transition: border-color 0.2s; }
+        .filter-search:focus-within { border-color: var(--primary-red); }
+        .filter-search input { background: transparent; border: none; outline: none; font-size: 13px; color: var(--text-main); font-family: 'Inter'; width: 180px; }
+
+        .container { width: 100%; max-width: 1300px; margin: 0 auto; padding: 36px 40px; }
+
+        .featured-card { background: var(--bg-nav-card); border-radius: 20px; overflow: hidden; border: 1px solid var(--border-color); display: grid; grid-template-columns: 1fr 340px; margin-bottom: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; }
+        .featured-card:hover { transform: translateY(-4px); box-shadow: 0 12px 35px rgba(0,0,0,0.1); }
+        .featured-body { padding: 32px; display: flex; flex-direction: column; justify-content: space-between; }
+        .featured-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--red-light); color: var(--primary-red); padding: 5px 12px; border-radius: 50px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 14px; width: fit-content; }
+        .featured-title { font-size: 24px; font-weight: 900; color: var(--text-main); line-height: 1.25; margin: 0 0 12px; letter-spacing: -0.3px; }
+        .featured-excerpt { font-size: 14px; color: var(--text-muted); line-height: 1.65; margin: 0 0 20px; }
+        .featured-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+        .meta-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+        .meta-item i { color: var(--primary-red); font-size: 11px; }
+        .featured-img { background: linear-gradient(135deg, #8b0000, #c0392b); display: flex; align-items: center; justify-content: center; font-size: 80px; min-height: 240px; }
+
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; width: 100%; }
+        .section-title { font-size: 18px; font-weight: 800; color: var(--text-main); margin: 0; }
+        .section-count { font-size: 11px; font-weight: 800; color: var(--text-muted); background: var(--search-bg); padding: 4px 12px; border-radius: 50px; }
+        .announcements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; width: 100%; }
+        .ann-card { background: var(--bg-nav-card); border-radius: 16px; border: 1px solid var(--border-color); overflow: hidden; cursor: pointer; transition: transform 0.25s, box-shadow 0.25s; }
+        .ann-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,0.08); }
+        .ann-card-img { height: 130px; display: flex; align-items: center; justify-content: center; font-size: 44px; }
+        .ann-card-body { padding: 16px; }
+        .ann-card-tag { display: inline-flex; align-items: center; gap: 5px; background: var(--red-light); color: var(--primary-red); padding: 3px 10px; border-radius: 50px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .ann-card-title { font-size: 14px; font-weight: 800; color: var(--text-main); margin: 0 0 8px; line-height: 1.4; }
+        .ann-card-excerpt { font-size: 12px; color: var(--text-muted); line-height: 1.55; margin: 0 0 14px; }
+        .ann-card-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .ann-card-meta span { font-size: 11px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 5px; }
+        .ann-card-meta i { color: var(--primary-red); font-size: 10px; }
+
+        /* MODAL */
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 2000; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .modal-backdrop.open { opacity: 1; visibility: visible; }
+        .modal { background: var(--bg-nav-card); border-radius: 20px; max-width: 560px; width: 100%; transform: translateY(20px) scale(0.97); transition: transform 0.35s cubic-bezier(0.16,1,0.3,1); box-shadow: 0 28px 80px rgba(0,0,0,0.28); max-height: 92vh; overflow-y: auto; }
+        .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
+        .modal-head { background: linear-gradient(135deg, #5a0000 0%, #8b0000 55%, #b91c1c 100%); padding: 22px 24px 20px; position: relative; overflow: hidden; display: flex; align-items: flex-start; justify-content: space-between; border-radius: 20px 20px 0 0; }
+        .modal-close-btn { background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.2); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; flex-shrink: 0; transition: background 0.2s; }
+        .modal-head-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.22); border-radius: 50px; padding: 4px 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: white; margin-bottom: 8px; }
+        .modal-head-title { font-size: 20px; font-weight: 900; color: white; letter-spacing: -0.3px; line-height: 1.2; margin: 0; }
+        .modal-body { padding: 24px; }
+        .modal-meta-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
+        .modal-meta-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+        .modal-meta-item i { color: var(--primary-red); font-size: 11px; }
+        .modal-content-text { font-size: 14px; color: var(--text-main); line-height: 1.75; }
+        .modal-content-text p { margin: 0 0 14px; }
+
+        .mobile-topbar { display: none; }
+        @media (max-width: 900px) { .announcements-grid { grid-template-columns: 1fr 1fr; } .featured-card { grid-template-columns: 1fr; } .featured-img { min-height: 160px; } }
+        @media (max-width: 768px) {
+            .mobile-topbar {
+                display: flex; align-items: center; justify-content: space-between;
+                position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+                background: var(--bg-nav-card); border-bottom: 1px solid var(--border-color);
+                z-index: 2000; padding: 0 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            }
+            .mobile-logo { font-size: 20px; font-weight: 900; color: var(--text-main); text-decoration: none; }
+            .mobile-logo span { color: var(--primary-red); }
+            .mobile-top-actions { display: flex; align-items: center; gap: 10px; }
+            .mobile-action-btn {
+                width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-color);
+                background: var(--search-bg); color: var(--text-muted); display: flex; align-items: center;
+                justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s;
+            }
+            .mobile-action-btn.logout { color: #dc2626; }
+            .mobile-avatar {
+                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #b91c1c);
+                color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; overflow: hidden;
+            }
+            .mobile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+            
+            .sidebar {
+                display: flex !important; width: calc(100% - 32px) !important; max-width: 440px !important; height: 64px !important;
+                top: auto !important; bottom: 16px !important; left: 50% !important; transform: translateX(-50%) !important;
+                flex-direction: row !important; justify-content: space-between !important; align-items: center !important;
+                padding: 0 10px !important; border-right: none !important; border-top: none !important;
+                border: 1.5px solid var(--border-color) !important; border-radius: 50px !important;
+                background: var(--bg-nav-card) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important;
+                box-shadow: 0 14px 38px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.08) !important; z-index: 2000 !important; position: fixed !important;
+            }
+            .sidebar-logo, .sidebar-search, .sidebar-footer { display: none !important; }
+            .sidebar-menu { display: flex !important; flex-direction: row !important; justify-content: space-around !important; align-items: center !important; width: 100% !important; gap: 4px !important; margin: 0 !important; padding: 0 !important; }
+            .sidebar-link {
+                flex: 1 !important; display: flex !important; flex-direction: row !important; justify-content: center !important; align-items: center !important;
+                padding: 12px 0 !important; border-radius: 50px !important; color: var(--text-muted) !important; font-size: 13px !important;
+                font-weight: 800 !important; transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important; height: 44px !important; max-width: none !important; width: auto !important; position: relative !important;
+            }
+            .sidebar-link i { font-size: 20px !important; width: auto !important; margin: 0 !important; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important; }
+            .sidebar-link:not(.active) span:not(.notif-badge) { display: none !important; opacity: 0 !important; width: 0 !important; overflow: hidden !important; }
+            .sidebar-link:not(.active) .notif-badge { position: absolute !important; top: 3px !important; right: calc(50% - 16px) !important; z-index: 5 !important; }
+            .sidebar-link:not(.active):hover i { color: var(--primary-red) !important; transform: scale(1.15) !important; }
+            .sidebar-link.active {
+                flex: 0 1 auto !important; max-width: calc(100% - 140px) !important; background: var(--primary-red) !important; color: #ffffff !important; padding: 0 14px !important;
+                gap: 6px !important; box-shadow: 0 6px 20px rgba(185, 28, 28, 0.42) !important; transform: translateY(-2px) !important; overflow: hidden !important;
+            }
+            .sidebar-link.active i { color: #ffffff !important; font-size: 18px !important; flex-shrink: 0 !important; }
+            .sidebar-link.active span:not(.notif-badge) {
+                display: inline-block !important; opacity: 1 !important; width: auto !important; max-width: 105px !important;
+                overflow: hidden !important; text-overflow: ellipsis !important; font-size: 12px !important; font-weight: 800 !important;
+                letter-spacing: 0.2px !important; white-space: nowrap !important;
+            }
+            .sidebar-link.active .notif-badge {
+                position: static !important; display: inline-flex !important; align-items: center !important; justify-content: center !important;
+                margin-left: 2px !important; background: #ffffff !important; color: var(--primary-red) !important; box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+                padding: 1px 6px !important; border-radius: 50px !important; font-size: 10px !important; font-weight: 800 !important; flex-shrink: 0 !important;
+            }
+            .main-content { margin-left: 0; margin-top: 60px; margin-bottom: 96px; width: 100%; max-width: 100vw; overflow-x: hidden; box-sizing: border-box !important; }
+            .page-header-inner, .filter-inner, .container, .announcements-grid, .featured-card { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; padding-left: 14px; padding-right: 14px; }
+            .ann-card { width: 100% !important; box-sizing: border-box !important; }
+            .announcements-grid { grid-template-columns: 1fr; gap: 14px; }
+            .modal { max-width: 92%; width: 92% !important; padding: 0; box-sizing: border-box !important; }
+        }
+        @media (max-width: 480px) {
+            .filter-tabs { width: 100%; overflow-x: auto; padding-bottom: 4px; }
+            .filter-btn { white-space: nowrap; flex-shrink: 0; }
+            .ann-card-body { padding: 14px !important; box-sizing: border-box !important; }
+        }
+    </style>
+</head>
+<body>
+
+{% set fname = (user.first_name | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.first_name else 'User' %}
+{% set lname = (user.last_name | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.last_name else '' %}
+{% set addr = 'Picaleon' %}
+
+<!-- Mobile Topbar Header -->
+<header class="mobile-topbar">
+    <a href="{{ url_for('dashboard') }}" class="mobile-logo" style="display: inline-flex !important; align-items: center !important; gap: 8px !important; text-decoration: none !important;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 34px; height: 34px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+    <div class="mobile-top-actions">
+        <button class="mobile-action-btn" onclick="toggleDark()" title="Toggle Dark Mode"><i class="fas fa-moon" id="mobile-theme-icon"></i></button>
+        <a href="{{ url_for('logout') }}" class="mobile-action-btn logout" title="Logout"><i class="fas fa-right-from-bracket"></i></a>
+        <div class="mobile-avatar">
+            {% if user and user.profile_photo %}
+            {% set ann_raw = (user.profile_photo | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+            {% set ann_path = ann_raw.replace("static/", "", 1) if ann_raw.startswith("static/") else ann_raw %}
+            <img src="{{ url_for('static', filename=ann_path) }}" alt="DP">
+            {% else %}
+            {{ fname[:1] | upper }}
+            {% endif %}
+        </div>
+    </div>
+</header>
+
+<div class="modal-backdrop" id="ann-modal">
+    <div class="modal">
+        <div class="modal-head">
+            <div class="modal-head-deco"></div>
+            <div>
+                <div class="modal-head-badge" id="modal-tag">📢 General</div>
+                <div class="modal-head-title" id="modal-title">Announcement Title</div>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-meta-row">
+                <div class="modal-meta-item"><i class="fas fa-calendar-alt"></i> <span id="modal-date">—</span></div>
+                <div class="modal-meta-item"><i class="fas fa-user"></i> <span id="modal-author">Barangay Picaleon</span></div>
+                <div class="modal-meta-item"><i class="fas fa-eye"></i> <span id="modal-views">—</span></div>
+            </div>
+            <div class="modal-content-text" id="modal-content"></div>
+        </div>
+    </div>
+</div>
+
+<aside class="sidebar">
+    <a href="#" class="sidebar-logo" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 38px; height: 38px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+    <div class="sidebar-search">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Search concerns...">
+    </div>
+   <nav class="sidebar-menu">
+        <a href="{{ url_for('dashboard') }}" class="sidebar-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            <i class="fas fa-home"></i> <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('file_concern') }}" class="sidebar-link {% if request.endpoint == 'file_concern' %}active{% endif %}">
+            <i class="fas fa-exclamation-circle"></i> <span>Concerns</span>
+        </a>
+        <a href="{{ url_for('announcements') }}" class="sidebar-link {% if request.endpoint == 'announcements' %}active{% endif %}">
+            <i class="fas fa-bullhorn"></i> <span>Announcements</span>
+            <span class="notif-badge">3</span>
+        </a>
+        <a href="{{ url_for('barangay_map') }}" class="sidebar-link {% if request.endpoint == 'barangay_map' %}active{% endif %}">
+            <i class="fas fa-map"></i> <span>Map</span>
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <button class="theme-toggle-btn" onclick="toggleDark()">
+            <i class="fas fa-moon" id="theme-icon"></i> <span id="theme-label">Dark Mode</span>
+        </button>
+
+        <a href="{{ url_for('logout') }}" class="theme-toggle-btn" style="text-decoration:none; color:#dc2626; display:flex; align-items:center; gap:14px; padding:12px 16px;">
+            <i class="fas fa-right-from-bracket" style="font-size:18px; width:20px; text-align:center;"></i>
+            <span>Logout</span>
+        </a>
+
+        <a href="#" class="user-profile-btn" style="text-decoration: none;">
+            <div class="user-avatar" style="overflow:hidden;">
+                {% if user and user.profile_photo %}
+                    {% set raw_path = (user.profile_photo | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                    {% set clean_path = raw_path.replace("static/", "", 1) if raw_path.startswith("static/") else raw_path %}
+                    <img src="{{ url_for('static', filename=clean_path) }}" alt="DP" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                {% else %}
+                    {{ fname[:1] | upper }}
+                {% endif %}
+            </div>
+            <div class="user-info">
+                <span class="user-name">{{ fname }} {{ lname }}</span>
+                <span class="user-role">Resident • {{ addr }}</span>
+            </div>
+        </a>
+    </div>
+</aside>
+
+<main class="main-content">
+    <div class="page-header">
+        <div class="page-header-inner">
+            <div class="page-header-left">
+                <div class="page-header-badge"><i class="fas fa-bullhorn"></i> Official Announcements</div>
+                <h1 class="page-header-title">Announcements</h1>
+                <p class="page-header-sub">Stay updated with the latest news from Barangay Picaleon</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <div class="filter-inner">
+            <button class="filter-chip active" onclick="filterAnn('all', this)"><i class="fas fa-th"></i> All</button>
+            <button class="filter-chip" onclick="filterAnn('health', this)"><i class="fas fa-heart"></i> Health</button>
+            <button class="filter-chip" onclick="filterAnn('infrastructure', this)"><i class="fas fa-hard-hat"></i> Infrastructure</button>
+            <button class="filter-chip" onclick="filterAnn('events', this)"><i class="fas fa-calendar"></i> Events</button>
+            <button class="filter-chip" onclick="filterAnn('safety', this)"><i class="fas fa-shield-alt"></i> Safety</button>
+            <div class="filter-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search announcements..." id="search-input" oninput="searchAnn()">
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">All Announcements</h2>
+            <span class="section-count" id="ann-count">0 Posts</span>
+        </div>
+
+        <div class="announcements-grid" id="ann-grid">
+            </div>
+    </div>
+</main>
+
+<script>
+const announcements = {{ announcements_json | safe }};
+
+let currentFilter = 'all';
+let currentRenderedData = [];
+
+function renderCards(data) {
+    currentRenderedData = data;
+    const grid = document.getElementById('ann-grid');
+    document.getElementById('ann-count').textContent = data.length + ' Posts';
+    if (data.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);font-weight:600;">No announcements found.</div>';
+        return;
+    }
+    grid.innerHTML = data.map((a, index) => `
+        <div class="ann-card" onclick="openModalByIndex(${index})">
+            <div class="ann-card-img" style="background: linear-gradient(135deg, #8b0000, #c0392b);">${a.emoji}</div>
+            <div class="ann-card-body">
+                <div class="ann-card-tag">${a.tag}</div>
+                <div class="ann-card-title">${a.title}</div>
+                <div class="ann-card-excerpt">${a.excerpt}</div>
+                <div class="ann-card-meta">
+                    <span><i class="fas fa-calendar-alt"></i>${a.date}</span>
+                    <span><i class="fas fa-eye"></i>${a.views}</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function filterAnn(cat, el) {
+    currentFilter = cat;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    applyFilters();
+}
+
+function searchAnn() { applyFilters(); }
+
+function applyFilters() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    let filtered = announcements;
+    if (currentFilter !== 'all') filtered = filtered.filter(a => a.cat === currentFilter);
+    if (q) filtered = filtered.filter(a => a.title.toLowerCase().includes(q) || a.excerpt.toLowerCase().includes(q));
+    renderCards(filtered);
+}
+
+function openModalByIndex(index) {
+    const a = currentRenderedData[index];
+    const contentHtml = a.content ? a.content.replace(/\n/g, '<br>') : '';
+    openModal(a.tag, a.title, a.date, a.author, a.views, contentHtml);
+}
+
+function openModal(tag, title, date, author, views, content) {
+    document.getElementById('modal-tag').textContent = tag;
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-date').textContent = date;
+    document.getElementById('modal-author').textContent = author;
+    document.getElementById('modal-views').textContent = views;
+    document.getElementById('modal-content').innerHTML = content;
+    document.getElementById('ann-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+    document.getElementById('ann-modal').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+document.getElementById('ann-modal').addEventListener('click', function(e) { if(e.target === this) closeModal(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+function toggleDark() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    document.getElementById('theme-icon').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    document.getElementById('theme-label').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+}
+if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+renderCards(announcements);
+</script>
+</body>
+</html>

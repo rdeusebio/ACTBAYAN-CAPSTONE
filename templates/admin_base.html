@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActBayan — Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        :root {
+            --bg:       #f0f2f5;
+            --card:     #ffffff;
+            --border:   #e5e7eb;
+            --muted:    #6b7280;
+            --main:     #111827;
+            --hover-bg: #f9fafb;
+            --search:   #f3f4f6;
+            --red:      #8b0000;
+            --red-h:    #a30000;
+            --red-lt:   rgba(139,0,0,0.07);
+            --red-md:   rgba(139,0,0,0.15);
+            --sh-sm:    0 1px 3px rgba(0,0,0,0.06);
+            --sh-md:    0 4px 18px rgba(0,0,0,0.08);
+            --sh-lg:    0 12px 40px rgba(0,0,0,0.11);
+        }
+        body.dark {
+            --bg:       #0d0f14;
+            --card:     #161a24;
+            --border:   #272d3d;
+            --muted:    #8b95a7;
+            --main:     #e8eaed;
+            --hover-bg: #1d2130;
+            --search:   #1d2130;
+            --red-lt:   rgba(139,0,0,0.18);
+            --red-md:   rgba(139,0,0,0.30);
+            --sh-sm:    0 1px 3px rgba(0,0,0,0.4);
+            --sh-md:    0 4px 18px rgba(0,0,0,0.5);
+            --sh-lg:    0 12px 40px rgba(0,0,0,0.6);
+        }
+
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--main);display:flex;min-height:100vh;transition:background .3s,color .3s;}
+
+        /* ── SIDEBAR ── */
+        .sidebar{width:256px;height:100vh;position:fixed;left:0;top:0;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:22px 18px;z-index:1000;transition:background .3s,border-color .3s;}
+        .logo{font-weight:900;font-size:24px;color:var(--main);text-decoration:none;margin-bottom:28px;padding:0 8px;display:inline-flex;align-items:center;gap:10px;}
+        .logo span{color:var(--red);}
+        .search-box{display:flex;align-items:center;background:var(--search);border-radius:10px;padding:9px 13px;gap:8px;margin-bottom:22px;border:1.5px solid transparent;transition:border-color .2s;}
+        .search-box:focus-within{border-color:var(--red);}
+        .search-box i{color:var(--muted);font-size:12px;}
+        .search-box input{background:transparent;border:none;outline:none;font-size:13px;color:var(--main);width:100%;font-family:'Inter';}
+        .nav{display:flex;flex-direction:column;gap:3px;flex:1;}
+        .nav-link{display:flex;align-items:center;gap:13px;padding:10px 14px;border-radius:10px;color:var(--muted);text-decoration:none;font-weight:600;font-size:13.5px;transition:all .2s;}
+        .nav-link i{font-size:16px;width:18px;text-align:center;}
+        .nav-link:hover{background:var(--hover-bg);color:var(--red);}
+        .nav-link.active{background:var(--red);color:#fff;}
+        .nav-link.active i{color:#fff;}
+        
+        .sidebar-foot{margin-top:auto;border-top:1px solid var(--border);padding-top:16px;display:flex;flex-direction:column;gap:8px;}
+        .foot-btn{display:flex;align-items:center;gap:13px;padding:10px 14px;border-radius:10px;color:var(--muted);font-weight:600;font-size:13.5px;background:transparent;border:none;font-family:'Inter';width:100%;cursor:pointer;text-align:left;transition:all .2s;text-decoration:none;}
+        .foot-btn:hover{background:var(--hover-bg);color:var(--main);}
+        
+        .user-card{display:flex;align-items:center;gap:10px;padding:9px;border-radius:10px;border:1px solid var(--border);margin-top:2px;}
+        .u-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+        .u-name{font-size:12.5px;font-weight:700;color:var(--main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .u-role{font-size:10.5px;color:var(--muted);}
+
+        /* ── MAIN ── */
+        .main{flex:1;margin-left:256px;display:flex;flex-direction:column;min-height:100vh;}
+        .body{padding:28px 36px;display:flex;flex-direction:column;gap:24px;}
+        
+        .mobile-topbar { display: none; }
+        @media(max-width:768px){
+            body { flex-direction: column; }
+            .mobile-topbar {
+                display: flex; align-items: center; justify-content: space-between;
+                position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+                background: var(--card); border-bottom: 1px solid var(--border);
+                z-index: 2000; padding: 0 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            }
+            .mobile-logo { font-size: 20px; font-weight: 900; color: var(--main); text-decoration: none; }
+            .mobile-logo span { color: var(--red); }
+            .mobile-top-actions { display: flex; align-items: center; gap: 10px; }
+            .mobile-action-btn {
+                width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border);
+                background: var(--bg); color: var(--muted); display: flex; align-items: center;
+                justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s;
+            }
+            .mobile-action-btn.logout { color: #dc2626; }
+            .mobile-avatar {
+                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--red), #b91c1c);
+                color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; overflow: hidden;
+            }
+            
+            .sidebar {
+                display: flex !important; width: calc(100% - 32px) !important; max-width: 440px !important; height: 64px !important;
+                top: auto !important; bottom: 16px !important; left: 50% !important; transform: translateX(-50%) !important;
+                flex-direction: row !important; justify-content: space-between !important; align-items: center !important;
+                padding: 0 10px !important; border-right: none !important; border-top: none !important;
+                border: 1.5px solid var(--border) !important; border-radius: 50px !important;
+                background: var(--card) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important;
+                box-shadow: 0 14px 38px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.08) !important; z-index: 2000 !important; position: fixed !important;
+            }
+            .sidebar .logo, .sidebar .search-box, .sidebar .sidebar-foot { display: none !important; }
+            .sidebar .nav { display: flex !important; flex-direction: row !important; justify-content: space-around !important; align-items: center !important; width: 100% !important; gap: 4px !important; margin: 0 !important; padding: 0 !important; }
+            .sidebar .nav-link {
+                flex: 1 !important; display: flex !important; flex-direction: row !important; justify-content: center !important; align-items: center !important;
+                padding: 12px 0 !important; border-radius: 50px !important; color: var(--muted) !important; font-size: 13px !important;
+                font-weight: 800 !important; transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important; height: 44px !important; max-width: none !important; width: auto !important; position: relative !important;
+            }
+            .sidebar .nav-link i { font-size: 20px !important; width: auto !important; margin: 0 !important; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important; }
+            .sidebar .nav-link:not(.active) span:not(.notif-badge) { display: none !important; opacity: 0 !important; width: 0 !important; overflow: hidden !important; }
+            .sidebar .nav-link:not(.active) .notif-badge { position: absolute !important; top: 3px !important; right: calc(50% - 16px) !important; z-index: 5 !important; }
+            .sidebar .nav-link:not(.active):hover i { color: var(--red) !important; transform: scale(1.15) !important; }
+            .sidebar .nav-link.active {
+                flex: 0 1 auto !important; max-width: calc(100% - 140px) !important; background: var(--red) !important; color: #ffffff !important; padding: 0 14px !important;
+                gap: 6px !important; box-shadow: 0 6px 20px rgba(185, 28, 28, 0.42) !important; transform: translateY(-2px) !important; overflow: hidden !important;
+            }
+            .sidebar .nav-link.active i { color: #ffffff !important; font-size: 18px !important; flex-shrink: 0 !important; }
+            .sidebar .nav-link.active span:not(.notif-badge) {
+                display: inline-block !important; opacity: 1 !important; width: auto !important; max-width: 105px !important;
+                overflow: hidden !important; text-overflow: ellipsis !important; font-size: 12px !important; font-weight: 800 !important;
+                letter-spacing: 0.2px !important; white-space: nowrap !important;
+            }
+            .sidebar .nav-link.active .notif-badge {
+                position: static !important; display: inline-flex !important; align-items: center !important; justify-content: center !important;
+                margin-left: 2px !important; background: #ffffff !important; color: var(--red) !important; box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+                padding: 1px 6px !important; border-radius: 50px !important; font-size: 10px !important; font-weight: 800 !important; flex-shrink: 0 !important;
+            }
+            .main { margin-left: 0; margin-top: 60px; margin-bottom: 96px; width: 100%; max-width: 100vw; overflow-x: hidden; box-sizing: border-box !important; }
+            .body { padding: 18px 14px; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
+        }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+
+<!-- Mobile Topbar Header -->
+<header class="mobile-topbar">
+    <a href="/activities" class="mobile-logo" style="display: inline-flex !important; align-items: center !important; gap: 8px !important; text-decoration: none !important;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 34px; height: 34px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+    <div class="mobile-top-actions">
+        <button class="mobile-action-btn" onclick="document.getElementById('theme-btn')?.click()" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
+        <a href="{{ url_for('logout') }}" class="mobile-action-btn logout" title="Logout"><i class="fas fa-right-from-bracket"></i></a>
+        <div class="mobile-avatar">A</div>
+    </div>
+</header>
+
+<aside class="sidebar">
+    <a href="/admin" class="logo" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 38px; height: 38px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+    
+    <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="sidebar-search-input" placeholder="Search...">
+    </div>
+    
+    <nav class="nav">
+        <a href="/activities" class="nav-link {% if active_page == 'activities' %}active{% endif %}">
+            <i class="fas fa-chart-line"></i> <span>User Activities</span>
+        </a>
+        <a href="/users" class="nav-link {% if active_page == 'users' %}active{% endif %}">
+            <i class="fas fa-users"></i> <span>User Accounts</span>
+        </a>
+        <a href="{{ url_for('admin_login_attempts') }}" class="nav-link {% if active_page == 'login_attempts' %}active{% endif %}">
+            <i class="fas fa-right-to-bracket"></i> <span>Login Attempts</span>
+        </a>
+        <a href="{{ url_for('admin_reports') }}" class="nav-link {% if active_page == 'reports' %}active{% endif %}">
+            <i class="fas fa-clipboard-list"></i> <span>Reports / Concerns</span>
+        </a>
+        <a href="{{ url_for('admin_settings') }}" class="nav-link {% if active_page == 'settings' %}active{% endif %}">
+            <i class="fas fa-gear"></i> <span>Admin Settings</span>
+        </a>
+    </nav>
+    
+    <div class="sidebar-foot">
+        <button class="foot-btn" id="theme-btn">
+            <i class="fas fa-moon" id="theme-ico"></i><span id="theme-lbl">Dark Mode</span>
+        </button>
+        <a href="{{ url_for('logout') }}" class="foot-btn" style="color:#dc2626;">
+            <i class="fas fa-right-from-bracket"></i><span>Logout</span>
+        </a>
+        <div class="user-card">
+            <div class="u-avatar">A</div>
+            <div>
+                <div class="u-name">Admin Profile</div>
+                <div class="u-role">Administrator</div>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="body">
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<script>
+    // ── DARK MODE ──
+    const themeBtn = document.getElementById('theme-btn');
+    const themeIco = document.getElementById('theme-ico');
+    const themeLbl = document.getElementById('theme-lbl');
+
+    const isDark = () => document.body.classList.contains('dark');
+
+    function applyTheme(dark) {
+        document.body.classList.toggle('dark', dark);
+        themeIco.className = dark ? 'fas fa-sun' : 'fas fa-moon';
+        themeLbl.textContent = dark ? 'Light Mode' : 'Dark Mode';
+        localStorage.setItem('theme', dark ? 'dark' : 'light');
+    }
+    
+    themeBtn.addEventListener('click', () => applyTheme(!isDark()));
+    if (localStorage.getItem('theme') === 'dark') applyTheme(true);
+
+    // ── GLOBAL SEARCH FOR SIDEBAR ──
+    document.getElementById('sidebar-search-input').addEventListener('input', function(e) {
+        const q = e.target.value.toLowerCase().trim();
+        const trs = document.querySelectorAll('tbody tr');
+        trs.forEach(tr => {
+            if (tr.innerText.toLowerCase().includes(q)) {
+                tr.style.display = '';
+            } else {
+                tr.style.display = 'none';
+            }
+        });
+    });
+    
+    {% block extra_js %}{% endblock %}
+</script>
+</body>
+</html>

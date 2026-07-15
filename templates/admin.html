@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActBayan — Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+        :root {
+            --bg-main: #f4f6f8;
+            --bg-nav-card: #ffffff;
+            --text-main: #202124;
+            --text-muted: #5f6368;
+            --border-color: #e0e0e0;
+            --icon-hover: #f1f3f4;
+            --search-bg: #f1f3f4;
+            --primary-red: #8b0000;
+            --primary-red-hover: #a30000;
+            --red-light: rgba(139,0,0,0.08);
+        }
+
+        body.dark-mode {
+            --bg-main: #121212;
+            --bg-nav-card: #1e1e1e;
+            --text-main: #e8eaed;
+            --text-muted: #9aa0a6;
+            --border-color: #333333;
+            --icon-hover: #2a2a2a;
+            --search-bg: #2a2a2a;
+            --red-light: rgba(139,0,0,0.15);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* ===== SIDEBAR (ONLY) ===== */
+        /* content container (starts after fixed sidebar) */
+        .content-area {
+            margin-left: 260px;
+            padding: 0;
+            width: calc(100% - 260px);
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .sidebar {
+        position: fixed; left: 0; top: 0; max-height: 100vh; overflow: hidden;
+            background-color: var(--bg-nav-card); border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column; padding: 24px 20px;
+            z-index: 1000; transition: background-color 0.3s, border-color 0.3s;
+        }
+        .sidebar-logo {
+            font-weight: 900; font-size: 26px; color: var(--text-main);
+            text-decoration: none; margin-bottom: 30px; padding: 0 10px;
+            display: inline-flex; align-items: center; gap: 10px;
+        }
+        .sidebar-logo span { color: var(--primary-red); }
+
+        .sidebar-search {
+            display: flex; align-items: center; background-color: var(--search-bg);
+            border-radius: 12px; padding: 10px 14px; gap: 8px; margin-bottom: 24px;
+            border: 1.5px solid transparent; transition: border-color 0.2s;
+        }
+        .sidebar-search:focus-within { border-color: var(--primary-red); }
+        .sidebar-search i { color: var(--text-muted); font-size: 13px; }
+        .sidebar-search input {
+            background: transparent; border: none; outline: none;
+            font-size: 13px; color: var(--text-main); width: 100%; font-family: 'Inter';
+        }
+
+        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .sidebar-link {
+            display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+            border-radius: 12px; color: var(--text-muted); text-decoration: none;
+            font-weight: 600; font-size: 14px; transition: all 0.2s;
+        }
+        .sidebar-link i { font-size: 18px; width: 20px; text-align: center; }
+        .sidebar-link:hover { background-color: var(--icon-hover); color: var(--primary-red); }
+        .sidebar-link.active { background-color: var(--primary-red); color: white; }
+        .notif-badge { background-color: #cc0000; color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 50px; margin-left: auto; }
+
+        .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .theme-toggle-btn {
+            display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; color: var(--text-muted);
+            cursor: pointer; font-weight: 600; font-size: 14px; background: transparent; border: none; font-family: 'Inter';
+            width: 100%; text-align: left;
+        }
+        .theme-toggle-btn:hover { background-color: var(--icon-hover); color: var(--text-main); }
+
+        .user-profile-btn { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #c0392b); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+        .user-info { display: flex; flex-direction: column; overflow: hidden; }
+        .user-name { font-size: 13px; font-weight: 700; color: var(--text-main); }
+        .user-role { font-size: 11px; color: var(--text-muted); }
+
+        .mobile-topbar { display: none; }
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .mobile-topbar {
+                display: flex; align-items: center; justify-content: space-between;
+                position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+                background: var(--bg-nav-card); border-bottom: 1px solid var(--border-color);
+                z-index: 2000; padding: 0 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            }
+            .mobile-logo { font-size: 20px; font-weight: 900; color: var(--text-main); text-decoration: none; }
+            .mobile-logo span { color: var(--primary-red); }
+            .mobile-top-actions { display: flex; align-items: center; gap: 10px; }
+            .mobile-action-btn {
+                width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-color);
+                background: var(--search-bg); color: var(--text-muted); display: flex; align-items: center;
+                justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s;
+            }
+            .mobile-action-btn.logout { color: #dc2626; }
+            .mobile-avatar {
+                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #c0392b);
+                color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; overflow: hidden;
+            }
+            
+            .sidebar {
+                display: flex !important; width: calc(100% - 32px) !important; max-width: 440px !important; height: 64px !important;
+                top: auto !important; bottom: 16px !important; left: 50% !important; transform: translateX(-50%) !important;
+                flex-direction: row !important; justify-content: space-between !important; align-items: center !important;
+                padding: 0 10px !important; border-right: none !important; border-top: none !important;
+                border: 1.5px solid var(--border-color) !important; border-radius: 50px !important;
+                background: var(--bg-nav-card) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important;
+                box-shadow: 0 14px 38px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.08) !important; z-index: 2000 !important; position: fixed !important;
+            }
+            .sidebar-logo, .sidebar-search, .sidebar-footer { display: none !important; }
+            .sidebar-menu { display: flex !important; flex-direction: row !important; justify-content: space-around !important; align-items: center !important; width: 100% !important; gap: 4px !important; margin: 0 !important; padding: 0 !important; }
+            .sidebar-link {
+                flex: 1 !important; display: flex !important; flex-direction: row !important; justify-content: center !important; align-items: center !important;
+                padding: 12px 0 !important; border-radius: 50px !important; color: var(--text-muted) !important; font-size: 13px !important;
+                font-weight: 800 !important; transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important; height: 44px !important; max-width: none !important; width: auto !important; position: relative !important;
+            }
+            .sidebar-link i { font-size: 20px !important; width: auto !important; margin: 0 !important; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important; }
+            .sidebar-link:not(.active) span:not(.notif-badge) { display: none !important; opacity: 0 !important; width: 0 !important; overflow: hidden !important; }
+            .sidebar-link:not(.active) .notif-badge { position: absolute !important; top: 3px !important; right: calc(50% - 16px) !important; z-index: 5 !important; }
+            .sidebar-link:not(.active):hover i { color: var(--primary-red) !important; transform: scale(1.15) !important; }
+            .sidebar-link.active {
+                flex: 0 1 auto !important; max-width: calc(100% - 140px) !important; background: var(--primary-red) !important; color: #ffffff !important; padding: 0 14px !important;
+                gap: 6px !important; box-shadow: 0 6px 20px rgba(185, 28, 28, 0.42) !important; transform: translateY(-2px) !important; overflow: hidden !important;
+            }
+            .sidebar-link.active i { color: #ffffff !important; font-size: 18px !important; flex-shrink: 0 !important; }
+            .sidebar-link.active span:not(.notif-badge) {
+                display: inline-block !important; opacity: 1 !important; width: auto !important; max-width: 105px !important;
+                overflow: hidden !important; text-overflow: ellipsis !important; font-size: 12px !important; font-weight: 800 !important;
+                letter-spacing: 0.2px !important; white-space: nowrap !important;
+            }
+            .sidebar-link.active .notif-badge {
+                position: static !important; display: inline-flex !important; align-items: center !important; justify-content: center !important;
+                margin-left: 2px !important; background: #ffffff !important; color: var(--primary-red) !important; box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+                padding: 1px 6px !important; border-radius: 50px !important; font-size: 10px !important; font-weight: 800 !important; flex-shrink: 0 !important;
+            }
+            .content-area { margin-left: 0; width: 100%; margin-top: 60px; margin-bottom: 96px; }
+            .user-profile-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Mobile Topbar Header -->
+<header class="mobile-topbar">
+    <a href="#" class="mobile-logo" onclick="loadPage('/activities'); return false;" style="display: inline-flex !important; align-items: center !important; gap: 8px !important; text-decoration: none !important;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 34px; height: 34px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+    <div class="mobile-top-actions">
+        <button class="mobile-action-btn" onclick="document.getElementById('theme-toggle-btn')?.click()" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
+        <a href="{{ url_for('logout') }}" class="mobile-action-btn logout" title="Logout"><i class="fas fa-right-from-bracket"></i></a>
+        <div class="mobile-avatar">A</div>
+    </div>
+</header>
+
+<aside class="sidebar">
+    <a href="#" class="sidebar-logo" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 38px; height: 38px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+
+    <div class="sidebar-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="sidebar-search-input" placeholder="Search...">
+    </div>
+
+    <nav class="sidebar-menu">
+        <a href="#" class="sidebar-link active" onclick="loadPage('/activities')" return false;">
+            <i class="fas fa-chart-line"></i> <span>User Activities</span>
+        </a>
+<a href="#" class="sidebar-link" onclick="loadPage('/users'); return false;">
+            <i class="fas fa-users"></i> <span>User Accounts</span>
+        </a>
+        <a href="#" class="sidebar-link">
+            <i class="fas fa-right-to-bracket"></i> <span>Login Attempts</span>
+        </a>
+        <a href="#" class="sidebar-link">
+            <i class="fas fa-clipboard-list"></i> <span>Reports / Concerns</span>
+        </a>
+        <a href="#" class="sidebar-link">
+            <i class="fas fa-gear"></i> <span>Admin Settings</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <button class="theme-toggle-btn" id="theme-toggle-btn" type="button">
+            <i class="fas fa-moon" id="theme-icon"></i> <span id="theme-label">Dark Mode</span>
+        </button>
+
+        <a href="{{ url_for('logout') }}" class="theme-toggle-btn" style="text-decoration:none;color:var(--text-muted); display:flex; align-items:center; gap:14px; padding:12px 16px;">
+            <i class="fas fa-sign-out-alt" style="font-size:18px;"></i>
+            <span>Logout</span>
+        </a>
+
+        <div class="user-profile-btn">
+            <div class="user-avatar">A</div>
+            <div class="user-info">
+                <span class="user-name">Admin Profile</span>
+                <span class="user-role">Administrator</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<div id="content-area" class="content-area" style="margin-top:0;">
+    <script>
+        // Load default tab when admin page opens.
+        // This ensures the first content shown is the activities list.
+        window.addEventListener('DOMContentLoaded', function(){
+            loadPage('/activities');
+        });
+    </script>
+</div>
+
+
+<script>
+    // ===== THEME (SIDEBAR ONLY) =====
+
+    // ===== ADMIN LIVE SEARCH (users template) =====
+    document.addEventListener("input", function (e) {
+        if (e.target && e.target.id === "userSearch") {
+            const q = (e.target.value || "").toLowerCase().trim();
+
+            document.querySelectorAll("#content-area tbody tr").forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(q) ? "" : "none";
+            });
+        }
+    });
+
+
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    const themeLabel = document.getElementById('theme-label');
+    const themeIcon = document.getElementById('theme-icon');
+
+    function applyTheme(dark) {
+        document.body.classList.toggle('dark-mode', dark);
+        if (themeLabel) themeLabel.textContent = dark ? 'Light Mode' : 'Dark Mode';
+        if (themeIcon) themeIcon.className = dark ? 'fas fa-sun' : 'fas fa-moon';
+    }
+
+    applyTheme(localStorage.getItem('theme') === 'dark');
+
+    if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+            const isDark = !document.body.classList.contains('dark-mode');
+            applyTheme(isDark);
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+    }
+
+
+function loadPage(page) {
+    fetch(page)
+        .then(response => response.text())
+        .then(data => {
+            const contentArea = document.getElementById("content-area");
+            contentArea.innerHTML = data;
+
+            // Re-run any scripts from the fetched HTML.
+            const scripts = contentArea.querySelectorAll('script');
+            scripts.forEach(oldScript => {
+                const src = oldScript.getAttribute('src');
+                const script = document.createElement('script');
+                if (src) script.src = src;
+                if (oldScript.textContent) script.textContent = oldScript.textContent;
+                script.async = false;
+                oldScript.parentNode.replaceChild(script, oldScript);
+            });
+        })
+        .catch(error => {
+            console.error("Error loading page:", error);
+        });
+}
+
+// If a template inside the content-area uses normal form submit,
+// turn it into a fetch-based redirect (works with javascript:void sidebar navigation).
+document.addEventListener('submit', function (e) {
+    const form = e.target;
+    if (!form) return;
+
+    const action = form.getAttribute('action') || '';
+    const method = (form.getAttribute('method') || 'GET').toUpperCase();
+
+// Only intercept GET forms that go to /activities (filtering UI).
+    if (method === 'GET' && action === '/activities' && form.getAttribute('data-intercept') !== 'false') {
+
+        e.preventDefault();
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        for (const [k, v] of formData.entries()) {
+            if (v !== null && String(v).trim() !== '') params.append(k, v);
+        }
+        const qs = params.toString();
+        loadPage('/activities' + (qs ? ('?' + qs) : ''));
+    }
+});
+
+
+</script>
+</body>
+</html>
+

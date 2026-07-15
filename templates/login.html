@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActBayan — Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    {% if error %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            showToast("{{ error }}", "error");
+        });
+    </script>
+    {% endif %}
+
+    <div class="mini-modal-backdrop" id="forgot-modal">
+        <div class="mini-modal">
+            <button class="mini-modal-close" onclick="closeForgot()"><i class="fas fa-times"></i></button>
+            <h3>Reset Password</h3>
+            <p>Enter your registered email or phone number and we'll send you a reset link.</p>
+            <div class="form-group">
+                <label>Email or Phone</label>
+                <div class="input-wrap">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="text" placeholder="email@example.com">
+                </div>
+            </div>
+            <button class="submit-btn" onclick="sendReset()" style="margin-top:6px;">
+                <i class="fas fa-paper-plane"></i> Send Reset Link
+            </button>
+        </div>
+    </div>
+
+    <div class="auth-wrapper">
+
+        <div class="left-panel">
+            <div class="left-deco-dot"></div>
+            <a href="/" class="left-logo" style="display: inline-flex !important; align-items: center !important; gap: 10px !important; text-decoration: none !important;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 40px; height: 40px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+
+            <div class="left-hero">
+                <div class="left-badge">
+                    <i class="fas fa-shield-alt"></i> Secure Community Portal
+                </div>
+                <div class="left-headline">
+                    Your Voice,<br><em>Heard</em> Here.
+                </div>
+                <p class="left-sub">
+                    Login to submit concerns, view resolutions,
+                    and stay updated on all news from Barangay Picaleon.
+                </p>
+            </div>
+
+            <div class="left-footer-text">
+                © 2026 ActBayan — Barangay Picaleon, General Mamerto Natividad, Nueva Ecija
+            </div>
+        </div>
+
+        <div class="right-panel">
+
+            <div class="auth-box">
+                <div class="form-panel active" id="panel-login">
+
+                    <form method="POST" action="/login">
+                        <div class="form-title">Welcome Back 👋</div>
+
+                        <p class="form-subtitle">Don't have an account? <a href="/register">Register here</a></p>
+
+                        <div class="form-group">
+                            <label>Email or Phone Number</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" name="e" id="login-email" placeholder="Enter Email or Phone"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Password</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-lock input-icon"></i>
+                                <input type="password" name="pass" id="login-pw" placeholder="••••••••" required>
+                                <i class="fas fa-eye toggle-pw" onclick="togglePw('login-pw', this)"></i>
+                            </div>
+                        </div>
+
+                        <div class="options-row">
+                            <label class="remember-wrap">
+                                <input type="checkbox" name="remember"> Remember me
+                            </label>
+                            <a href="#" class="forgot-link" onclick="openForgot(); return false;">Forgot password?</a>
+                        </div>
+
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-sign-in-alt"></i> Login to ActBayan
+                        </button>
+                    </form>
+
+                    <div class="divider">or continue with</div>
+
+                    <div class="social-row">
+                        <button class="social-btn"
+                            onclick="showToast('Google login coming soon', 'info'); return false;">
+                            <i class="fab fa-google" style="color:#EA4335;"></i> Google
+                        </button>
+                        <button class="social-btn"
+                            onclick="showToast('Facebook login coming soon', 'info'); return false;">
+                            <i class="fab fa-facebook-f" style="color:#1877F2;"></i> Facebook
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+
+        // ===== TOGGLE PASSWORD =====
+        function togglePw(id, icon) {
+            const input = document.getElementById(id);
+            const isText = input.type === 'text';
+            input.type = isText ? 'password' : 'text';
+            icon.className = 'fas toggle-pw ' + (isText ? 'fa-eye' : 'fa-eye-slash');
+        }
+
+        // ===== TOAST NOTIFICATIONS =====
+        function showToast(msg, type = 'info') {
+            const iconMap = { success: 'fa-check-circle', info: 'fa-info-circle', error: 'fa-exclamation-circle' };
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.innerHTML = '<i class="fas ' + (iconMap[type] || 'fa-info-circle') + '"></i> ' + msg;
+            container.appendChild(toast);
+            requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 3500);
+        }
+
+        // ===== FORGOT PASSWORD =====
+        function openForgot() { document.getElementById('forgot-modal').classList.add('open'); }
+        function closeForgot() { document.getElementById('forgot-modal').classList.remove('open'); }
+        function sendReset() {
+            closeForgot();
+            showToast('Reset link sent! Check your email.', 'success');
+        }
+
+        document.getElementById('forgot-modal').addEventListener('click', function (e) {
+            if (e.target === this) closeForgot();
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeForgot();
+        });
+    </script>
+</body>
+
+</html>

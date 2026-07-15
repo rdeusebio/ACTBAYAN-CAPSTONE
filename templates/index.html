@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACTBAYAN — A Participatory Public Works Monitoring System for General Mamerto Natividad</title>
+    <meta name="description"
+        content="ACTBAYAN is a participatory public works monitoring system designed to connect residents of General Mamerto Natividad, Nueva Ecija with their local government units through real-time infrastructure reporting and analytics.">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet GIS Map Library CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Landing Page Light Mode CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+    <style>
+        /* Index Background Photo Override */
+        body::before {
+            background-image: url("{{ url_for('static', filename='img/indexbg.png') }}") !important;
+        }
+
+        /* Modern Premium Highlight Cards - Background Study Split Section */
+        .study-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+            gap: 32px;
+            margin-top: 28px;
+        }
+
+        @media (max-width: 991px) {
+            .study-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .study-card {
+            position: relative;
+            border-radius: 24px;
+            padding: 40px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 1;
+        }
+
+        .study-card:hover {
+            transform: translateY(-6px);
+        }
+
+        /* Problem Card Theme - Premium Rose & Crimson */
+        .study-card.problem-card {
+            background: linear-gradient(145deg, #fffcfd 0%, #ffffff 45%, #fff1f2 100%);
+            border: 1px solid rgba(244, 63, 94, 0.22);
+            box-shadow: 0 20px 40px -15px rgba(244, 63, 94, 0.1), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+        }
+
+        .study-card.problem-card:hover {
+            border-color: rgba(244, 63, 94, 0.45);
+            box-shadow: 0 28px 50px -12px rgba(244, 63, 94, 0.18), 0 8px 24px -4px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Solution Card Theme - Premium Emerald & Teal */
+        .study-card.solution-card {
+            background: linear-gradient(145deg, #f2fcf7 0%, #ffffff 45%, #ecfdf5 100%);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            box-shadow: 0 20px 40px -15px rgba(16, 185, 129, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+        }
+
+        .study-card.solution-card:hover {
+            border-color: rgba(16, 185, 129, 0.5);
+            box-shadow: 0 28px 50px -12px rgba(16, 185, 129, 0.22), 0 8px 24px -4px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Decorative Ambient Glow inside Cards */
+        .study-card::after {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            filter: blur(55px);
+            z-index: -1;
+            opacity: 0.65;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .study-card.problem-card::after {
+            background: radial-gradient(circle, rgba(244, 63, 94, 0.35) 0%, transparent 70%);
+        }
+
+        .study-card.solution-card::after {
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, transparent 70%);
+        }
+
+        .study-card:hover::after {
+            opacity: 1;
+            transform: scale(1.15);
+        }
+
+        /* Card Header & Badges */
+        .study-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .study-icon-wrapper {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .study-card:hover .study-icon-wrapper {
+            transform: scale(1.12) rotate(6deg);
+        }
+
+        .problem-card .study-icon-wrapper {
+            background: linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%);
+            color: #e11d48;
+            border: 1px solid rgba(225, 29, 72, 0.25);
+            box-shadow: 0 8px 20px -4px rgba(225, 29, 72, 0.25);
+        }
+
+        .solution-card .study-icon-wrapper {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #059669;
+            border: 1px solid rgba(5, 150, 105, 0.25);
+            box-shadow: 0 8px 20px -4px rgba(5, 150, 105, 0.25);
+        }
+
+        .study-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+        }
+
+        .problem-card .study-badge {
+            background: #fff1f2;
+            color: #be123c;
+            border: 1px solid rgba(244, 63, 94, 0.2);
+        }
+
+        .solution-card .study-badge {
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .badge-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .problem-card .badge-dot {
+            background: #f43f5e;
+            box-shadow: 0 0 8px #f43f5e;
+        }
+
+        .solution-card .badge-dot {
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        /* Content & Typography */
+        .study-card h3 {
+            font-size: 23px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 16px;
+            line-height: 1.35;
+            letter-spacing: -0.4px;
+        }
+
+        .study-card p {
+            font-size: 15.5px;
+            color: #475569;
+            line-height: 1.75;
+            margin-bottom: 28px;
+            flex-grow: 1;
+        }
+
+        .study-card p strong {
+            color: #1e293b;
+            font-weight: 700;
+        }
+
+        /* Footer Chips / Feature Pills */
+        .study-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding-top: 22px;
+            border-top: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .problem-card .study-chips {
+            border-top-color: rgba(254, 205, 211, 0.5);
+        }
+
+        .solution-card .study-chips {
+            border-top-color: rgba(167, 243, 208, 0.5);
+        }
+
+        .study-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 14px;
+            border-radius: 12px;
+            font-size: 12.5px;
+            font-weight: 600;
+            transition: all 0.25s ease;
+        }
+
+        .problem-card .study-chip {
+            background: rgba(255, 255, 255, 0.85);
+            color: #9f1239;
+            border: 1px solid rgba(244, 63, 94, 0.18);
+        }
+
+        .problem-card .study-chip:hover {
+            background: #ffe4e6;
+            border-color: rgba(244, 63, 94, 0.35);
+            transform: translateY(-2px);
+        }
+
+        .solution-card .study-chip {
+            background: rgba(255, 255, 255, 0.85);
+            color: #065f46;
+            border: 1px solid rgba(16, 185, 129, 0.18);
+        }
+
+        .solution-card .study-chip:hover {
+            background: #d1fae5;
+            border-color: rgba(16, 185, 129, 0.35);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Top Government Banner Above Navbar (Scrolls away while navbar sticks!) -->
+    <!-- INSTRUCTIONS:
+         1. For background image: drop "headeri.png" into "static/img/" (or "static/").
+         2. For logo seal: drop "logo.png" into "static/img/" (or "static/"). -->
+    <div class="top-gov-banner" id="topGovBanner" 
+         style="background-image: url('{{ url_for('static', filename='img/headeri.png') }}'), url('{{ url_for('static', filename='headeri.png') }}'), linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+        
+        <div class="top-gov-content">
+            <div class="gov-left">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" 
+                     onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logo.png') }}'; } else { this.src='{{ url_for('static', filename='img/mamerta.png') }}'; }" 
+                     class="gov-logo" alt="Seal">
+                <div class="gov-titles">
+                    <span class="gov-rep">Republic of the Philippines</span>
+                    <h2 class="gov-muni">Municipality of Gen. Mamerto Natividad</h2>
+                    <span class="gov-prov">Province of Nueva Ecija</span>
+                </div>
+            </div>
+            <div class="gov-right">
+                <div class="time-label">Philippine Standard Time</div>
+                <div class="time-val" id="pstTimeDisplay">Loading time...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Light Mode Header -->
+    <header class="landing-header" id="navbar">
+        <a href="/" class="logo-container" style="display: inline-flex !important; align-items: center !important; gap: 10px !important; text-decoration: none !important;">
+            <img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 42px; height: 42px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo">
+            <div>
+                <div class="logo-text" style="font-size: 26px;">ActBayan<span>.</span></div>
+                <span class="logo-subtext">Gen. Mamerto Natividad Portal</span>
+            </div>
+        </a>
+
+        <nav class="nav-links">
+            <a href="#about-study" class="nav-link">The Study & Objectives</a>
+            <a href="#preview" class="nav-link">Live System Simulation</a>
+            <a href="#features" class="nav-link">Core Features</a>
+            <a href="#how-it-works" class="nav-link">How It Works</a>
+            <a href="#footer" class="nav-link">Contact LGU</a>
+        </nav>
+
+        <div class="header-actions">
+            {% if user %}
+            <a href="/dashboard" class="btn btn-outline">
+                <i class="fas fa-user-circle"></i> {{ user.first_name }}
+            </a>
+            <a href="/activities" class="btn btn-primary">
+                <i class="fas fa-columns"></i> Citizen Portal
+            </a>
+            {% else %}
+            <a href="/login" class="btn btn-ghost">Sign In</a>
+            <a href="/register" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Get Started
+            </a>
+            {% endif %}
+        </div>
+
+        <button class="mobile-toggle" onclick="toggleMobileMenu()">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Hero Section with Dynamic Background Slideshow (Modeled after GovPH Portal) -->
+    <!-- INSTRUCTION: Simply drop your photos named "bg1.png" (or .jpg), "bg2.png", "bg3.png", "bg4.png" into "static/img/" (or "static/"). -->
+    <section class="hero-section" id="heroSection">
+        <!-- Background Slideshow Container -->
+        <div class="hero-bg-slider">
+            <div class="hero-slide active" style="background-image: url('{{ url_for('static', filename='img/bg1.png') }}'), url('{{ url_for('static', filename='img/bg1.jpg') }}'), url('{{ url_for('static', filename='bg1.png') }}'), url('{{ url_for('static', filename='bg1.jpg') }}'), url('{{ url_for('static', filename='img/mamerta.png') }}');"></div>
+            <div class="hero-slide" style="background-image: url('{{ url_for('static', filename='img/bg2.png') }}'), url('{{ url_for('static', filename='img/bg2.jpg') }}'), url('{{ url_for('static', filename='bg2.png') }}'), url('{{ url_for('static', filename='bg2.jpg') }}'), url('{{ url_for('static', filename='img/indexbg.png') }}');"></div>
+            <div class="hero-slide" style="background-image: url('{{ url_for('static', filename='img/bg3.png') }}'), url('{{ url_for('static', filename='img/bg3.jpg') }}'), url('{{ url_for('static', filename='bg3.png') }}'), url('{{ url_for('static', filename='bg3.jpg') }}'), url('{{ url_for('static', filename='img/mamerta.png') }}');"></div>
+            <div class="hero-slide" style="background-image: url('{{ url_for('static', filename='img/bg4.png') }}'), url('{{ url_for('static', filename='img/bg4.jpg') }}'), url('{{ url_for('static', filename='bg4.png') }}'), url('{{ url_for('static', filename='bg4.jpg') }}'), url('{{ url_for('static', filename='img/indexbg.png') }}');"></div>
+            
+            <!-- Soft Overlay: Keeps "current bg for general" text legibility while showcasing dynamic changing photos! -->
+            <div class="hero-slide-overlay"></div>
+        </div>
+
+        <!-- Horizontal Slide Indicator Bars (Modeled after Photo 2) -->
+        <div class="hero-slider-indicators" id="heroIndicators">
+            <span class="indicator active" onclick="jumpToHeroSlide(0)" title="Slide 1"></span>
+            <span class="indicator" onclick="jumpToHeroSlide(1)" title="Slide 2"></span>
+            <span class="indicator" onclick="jumpToHeroSlide(2)" title="Slide 3"></span>
+            <span class="indicator" onclick="jumpToHeroSlide(3)" title="Slide 4"></span>
+        </div>
+
+        <!-- Hero Content Wrapper (kept in front of slider) -->
+        <div class="hero-content-wrapper">
+            <div class="hero-badge">
+                <i class="fas fa-shield-alt"></i> Participatory Governance & Public Works
+            </div>
+
+            <h1 class="hero-title">
+                Empowering Citizens.<br>
+                <span>Monitoring Public Works in Gen. Mamerto Natividad.</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                ACTBAYAN connects residents of General Mamerto Natividad with their local government. Report infrastructure
+                issues in real-time, track repair progress with precision GPS mapping, and support data-driven municipal
+                development.
+            </p>
+
+            <div class="hero-cta-group">
+                {% if user %}
+                <a href="/activities" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket"></i> Open Resident Portal
+                </a>
+                {% else %}
+                <a href="/register" class="btn btn-primary btn-lg">
+                    <i class="fas fa-user-plus"></i> Join ACTBAYAN Today
+                </a>
+                <a href="/login" class="btn btn-outline btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Resident & LGU Login
+                </a>
+                {% endif %}
+                <a href="#preview" class="btn btn-ghost btn-lg" style="border-color: #d1d5db;">
+                    <i class="fas fa-laptop"></i> Try Interactive System
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================
+         BACKGROUND OF THE STUDY & OBJECTIVES SECTION
+         ======================================================== -->
+    <section class="section-padding" id="about-study"
+        style="background: #ffffff; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div class="section-header">
+            <span class="section-tag"><i class="fas fa-book-open"></i> Background of the Study</span>
+            <h2 class="section-title">Why General Mamerto Natividad Needs ACTBAYAN</h2>
+            <p class="section-desc">
+                Transforming unstructured, manual inspection procedures into an integrated digital framework for
+                efficient municipal governance.
+            </p>
+        </div>
+
+        <div style="max-width: 1150px; margin: 0 auto;">
+            <div class="study-grid">
+                <!-- Problem Card -->
+                <div class="study-card problem-card">
+                    <div>
+                        <div class="study-card-header">
+                            <div class="study-icon-wrapper">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <span class="study-badge">
+                                <span class="badge-dot"></span> Legacy Challenge
+                            </span>
+                        </div>
+                        <h3>The Problem: Unstructured & Manual Monitoring</h3>
+                        <p>
+                            Historically, the monitoring of infrastructure in General Mamerto Natividad Municipality
+                            utilized
+                            unstructured procedures and processes carried out manually. Notes were taken arbitrarily
+                            during
+                            inspection rounds, making it difficult for local officials to follow up on changes and
+                            ensure
+                            information remained updated. While community residents are often the very first to identify
+                            infrastructure hazards—such as potholes, broken streetlights, or clogged drains—the lack of
+                            a
+                            structured reporting channel caused repair workflows to suffer from severe delays and
+                            backlogs.
+                        </p>
+                    </div>
+                    <div class="study-chips">
+                        <span class="study-chip"><i class="fas fa-file-alt"></i> Arbitrary Notes</span>
+                        <span class="study-chip"><i class="fas fa-history"></i> Severe Delays</span>
+                        <span class="study-chip"><i class="fas fa-unlink"></i> Unstructured Channel</span>
+                    </div>
+                </div>
+
+                <!-- Solution Card -->
+                <div class="study-card solution-card">
+                    <div>
+                        <div class="study-card-header">
+                            <div class="study-icon-wrapper">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <span class="study-badge">
+                                <span class="badge-dot"></span> ACTBAYAN Innovation
+                            </span>
+                        </div>
+                        <h3>Our Solution: An Integrated Participatory Framework</h3>
+                        <p>
+                            <strong>ACTBAYAN</strong> bridges this gap by serving as a dedicated participatory public
+                            works
+                            monitoring system. By connecting community residents directly with the centralized municipal
+                            administration, paper-based practices are replaced with digital communication channels. The
+                            platform
+                            incorporates real-time reporting, automated duplicate consolidation, GPS coordinate tagging,
+                            and
+                            data-driven analytical tools to ensure evidence-based decision-making and rapid LGU response
+                            times
+                            across all 20 barangays.
+                        </p>
+                    </div>
+                    <div class="study-chips">
+                        <span class="study-chip"><i class="fas fa-map-marked-alt"></i> GPS Tagging</span>
+                        <span class="study-chip"><i class="fas fa-layer-group"></i> Auto-Consolidation</span>
+                        <span class="study-chip"><i class="fas fa-chart-line"></i> Analytics Dashboard</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================
+         INTERACTIVE LIVE PREVIEW SECTION
+         ======================================================== -->
+    <section class="section-padding" id="preview">
+        <div class="section-header">
+            <span class="section-tag"><i class="fas fa-eye"></i> Interactive Simulation</span>
+            <h2 class="section-title">Preview the ACTBAYAN System</h2>
+            <p class="section-desc">
+                Explore how residents report public works concerns, view municipal bulletins, track infrastructure
+                analytics, and utilize automated geolocation across General Mamerto Natividad.
+            </p>
+        </div>
+
+        <div class="preview-showcase-container">
+            <!-- Window Title Bar -->
+            <div class="preview-window-top">
+                <div class="window-title">
+                    <i class="fas fa-desktop"></i>
+                    <span>ACTBAYAN Municipal Portal — Live System Simulation</span>
+                </div>
+                <div class="window-url-bar">
+                    <i class="fas fa-lock"></i>
+                    <span>https://actbayan.gennatividad.gov.ph/public-works</span>
+                </div>
+                <div class="preview-status-badge">
+                    <div class="live-dot"></div>
+                    <span>Live Simulation</span>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="preview-tabs-nav">
+                <button class="preview-tab-btn active" onclick="switchPreviewTab('gis', this)">
+                    <i class="fas fa-map-marked-alt"></i> Geolocation Mapping
+                </button>
+                <button class="preview-tab-btn" onclick="switchPreviewTab('bulletins', this)">
+                    <i class="fas fa-bullhorn"></i> Municipal Bulletins
+                </button>
+                <button class="preview-tab-btn" onclick="switchPreviewTab('analytics', this)">
+                    <i class="fas fa-chart-line"></i> Centralized Analytics
+                </button>
+                <button class="preview-tab-btn" onclick="switchPreviewTab('verification', this)">
+                    <i class="fas fa-layer-group"></i> Report Consolidation
+                </button>
+            </div>
+
+            <!-- Preview Content Panels -->
+            <div class="preview-body">
+                <!-- Panel 1: Geolocation Mapping -->
+                <div class="preview-panel active" id="panel-gis">
+                    <div class="gis-mockup-grid">
+                        <div class="gis-sidebar">
+                            <div class="sidebar-title">
+                                <span>Recent Municipal Reports</span>
+                                <span class="badge-count">Live GPS Feed</span>
+                            </div>
+
+                            <div class="incident-card selected" onclick="selectPin('sampaloc', this)">
+                                <div class="incident-header">
+                                    <span class="incident-tag tag-infra">🛣️ Road Hazard</span>
+                                    <span class="incident-time">15 mins ago</span>
+                                </div>
+                                <div class="incident-title">Damaged Asphalt & Pothole</div>
+                                <div class="incident-loc"><i class="fas fa-map-marker-alt"></i> Brgy. Mag-asawang
+                                    Sampaloc</div>
+                                <div class="incident-footer">
+                                    <span style="color: #d97706; font-weight: 700;">● Under Assessment</span>
+                                    <span class="upvote-badge"><i class="fas fa-thumbs-up"></i> 18 Upvotes</span>
+                                </div>
+                            </div>
+
+                            <div class="incident-card" onclick="selectPin('poblacion', this)">
+                                <div class="incident-header">
+                                    <span class="incident-tag tag-safety">💡 Public Lighting</span>
+                                    <span class="incident-time">1 hr ago</span>
+                                </div>
+                                <div class="incident-title">Broken Solar Streetlight</div>
+                                <div class="incident-loc"><i class="fas fa-map-marker-alt"></i> Brgy. Poblacion Central
+                                </div>
+                                <div class="incident-footer">
+                                    <span style="color: #059669; font-weight: 700;">● Resolved ✅</span>
+                                    <span class="upvote-badge"><i class="fas fa-thumbs-up"></i> 32 Upvotes</span>
+                                </div>
+                            </div>
+
+                            <div class="incident-card" onclick="selectPin('platero', this)">
+                                <div class="incident-header">
+                                    <span class="incident-tag tag-env">🌾 Drainage System</span>
+                                    <span class="incident-time">3 hrs ago</span>
+                                </div>
+                                <div class="incident-title">Clogged Agricultural Drain</div>
+                                <div class="incident-loc"><i class="fas fa-map-marker-alt"></i> Brgy. Platero Sector 2
+                                </div>
+                                <div class="incident-footer">
+                                    <span style="color: #2563eb; font-weight: 700;">● Engineering Dispatched</span>
+                                    <span class="upvote-badge"><i class="fas fa-thumbs-up"></i> 24 Upvotes</span>
+                                </div>
+                            </div>
+
+                            <div class="incident-card" onclick="selectPin('balangkare', this)">
+                                <div class="incident-header">
+                                    <span class="incident-tag tag-infra">🚧 Bridge Approach</span>
+                                    <span class="incident-time">5 hrs ago</span>
+                                </div>
+                                <div class="incident-title">Shoulder Erosion Repair</div>
+                                <div class="incident-loc"><i class="fas fa-map-marker-alt"></i> Brgy. Balangkare Sur
+                                </div>
+                                <div class="incident-footer">
+                                    <span style="color: #6b7280; font-weight: 700;">● Pending Review</span>
+                                    <span class="upvote-badge"><i class="fas fa-thumbs-up"></i> 14 Upvotes</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Real GIS Interactive Map Container -->
+                        <div class="gis-map-container">
+                            <div class="gis-map-header">
+                                <div class="map-badge"><i class="fas fa-satellite"></i> Live LGU Cartography Feed • Gen.
+                                    Mamerto Natividad</div>
+                                <div class="map-coords" id="live-coords"><i class="fas fa-crosshairs"
+                                        style="color: #8b0000;"></i> 15.6015° N, 121.0503° E</div>
+                            </div>
+                            <div id="real-gis-map" style="width: 100%; flex: 1; min-height: 400px; z-index: 1;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 2: Municipal Bulletins -->
+                <div class="preview-panel" id="panel-bulletins">
+                    <div class="bulletins-mockup">
+                        <div class="bulletin-filters">
+                            <span class="filter-pill active" onclick="filterBulletins('all', this)">All Advisories
+                                📢</span>
+                            <span class="filter-pill" onclick="filterBulletins('health', this)">Public Health 🏥</span>
+                            <span class="filter-pill" onclick="filterBulletins('infra', this)">Public Works 🛣️</span>
+                            <span class="filter-pill" onclick="filterBulletins('safety', this)">MDRRMO Safety 🚨</span>
+                        </div>
+
+                        <div class="bulletins-grid" id="bulletins-container">
+                            <div class="bulletin-card" data-cat="infra">
+                                <div>
+                                    <div class="bulletin-top">
+                                        <div class="bulletin-emoji">🛣️</div>
+                                        <span class="bulletin-date">July 1, 2026</span>
+                                    </div>
+                                    <h3 class="bulletin-h3">Municipal Road Reblocking & Maintenance Notice</h3>
+                                    <p class="bulletin-p">The Municipal Engineering Office will conduct scheduled
+                                        asphalt overlaying along arterial corridors connecting Balangkare and Poblacion.
+                                    </p>
+                                </div>
+                                <div class="bulletin-author">
+                                    <div class="author-avatar">LGU</div>
+                                    <div class="author-info">
+                                        <h5>Engineering Department</h5>
+                                        <span>Public Works Bulletin</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bulletin-card" data-cat="health">
+                                <div>
+                                    <div class="bulletin-top">
+                                        <div class="bulletin-emoji">🏥</div>
+                                        <span class="bulletin-date">June 28, 2026</span>
+                                    </div>
+                                    <h3 class="bulletin-h3">Rural Health Center Renovation Update</h3>
+                                    <p class="bulletin-p">Upgrades to the primary health facilities in Talabutab and
+                                        Manarog are now 85% completed, providing better healthcare access.</p>
+                                </div>
+                                <div class="bulletin-author">
+                                    <div class="author-avatar">RHU</div>
+                                    <div class="author-info">
+                                        <h5>Gen. Natividad RHU</h5>
+                                        <span>Facility Advisory</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bulletin-card" data-cat="safety">
+                                <div>
+                                    <div class="bulletin-top">
+                                        <div class="bulletin-emoji">🚨</div>
+                                        <span class="bulletin-date">June 25, 2026</span>
+                                    </div>
+                                    <h3 class="bulletin-h3">MDRRMO Flood Control & Clearing Operations</h3>
+                                    <p class="bulletin-p">In preparation for the rainy season, municipal disaster
+                                        response teams are actively clearing drainage networks across low-lying
+                                        barangays.</p>
+                                </div>
+                                <div class="bulletin-author">
+                                    <div class="author-avatar">DRRM</div>
+                                    <div class="author-info">
+                                        <h5>MDRRMO Gen. Natividad</h5>
+                                        <span>Disaster Preparedness</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 3: Centralized Analytics -->
+                <div class="preview-panel" id="panel-analytics">
+                    <div class="analytics-mockup">
+                        <div class="analytics-card">
+                            <div class="analytics-title">
+                                <span>Total Public Works Solved</span>
+                                <i class="fas fa-check-circle" style="color: #059669; font-size: 16px;"></i>
+                            </div>
+                            <div class="analytics-big-val">1,248</div>
+                            <div class="analytics-trend">
+                                <i class="fas fa-arrow-up"></i> Data-driven repair prioritization
+                            </div>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-fill" style="width: 95%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="analytics-card">
+                            <div class="analytics-title">
+                                <span>Average Inspection Response</span>
+                                <i class="fas fa-clock" style="color: #d97706; font-size: 16px;"></i>
+                            </div>
+                            <div class="analytics-big-val">2.4 <span
+                                    style="font-size: 18px; font-weight: 600;">Hours</span></div>
+                            <div class="analytics-trend" style="color: #2563eb;">
+                                <i class="fas fa-bolt"></i> Structured LGU dispatch
+                            </div>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-fill"
+                                    style="width: 88%; background: linear-gradient(90deg, #2563eb, #3b82f6);"></div>
+                            </div>
+                        </div>
+
+                        <div class="analytics-card">
+                            <div class="analytics-title">
+                                <span>Participatory Upvotes</span>
+                                <i class="fas fa-users" style="color: #8b0000; font-size: 16px;"></i>
+                            </div>
+                            <div class="analytics-big-val">8,920</div>
+                            <div class="analytics-trend" style="color: #8b0000;">
+                                <i class="fas fa-heart"></i> Strong resident engagement
+                            </div>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-fill"
+                                    style="width: 90%; background: linear-gradient(90deg, #8b0000, #dc2626);"></div>
+                            </div>
+                        </div>
+
+                        <div class="analytics-card span-3">
+                            <div class="analytics-title" style="margin-bottom: 0;">
+                                <span>Monthly Infrastructure Repairs Completed across General Mamerto Natividad</span>
+                                <span style="color: #8b0000; font-weight: 800; font-size: 12px;">EVIDENCE-BASED
+                                    ANALYTICS</span>
+                            </div>
+                            <div class="chart-bars-container">
+                                <div class="chart-bar-col">
+                                    <div class="chart-bar" style="height: 40%;" title="Jan: 95 Resolved"></div>
+                                    <span class="chart-label">JAN</span>
+                                </div>
+                                <div class="chart-bar-col">
+                                    <div class="chart-bar" style="height: 52%;" title="Feb: 120 Resolved"></div>
+                                    <span class="chart-label">FEB</span>
+                                </div>
+                                <div class="chart-bar-col">
+                                    <div class="chart-bar" style="height: 65%;" title="Mar: 155 Resolved"></div>
+                                    <span class="chart-label">MAR</span>
+                                </div>
+                                <div class="chart-bar-col">
+                                    <div class="chart-bar" style="height: 78%;" title="Apr: 185 Resolved"></div>
+                                    <span class="chart-label">APR</span>
+                                </div>
+                                <div class="chart-bar-col">
+                                    <div class="chart-bar" style="height: 88%;" title="May: 210 Resolved"></div>
+                                    <span class="chart-label">MAY</span>
+                                </div>
+                                <div class="chart-bar-col">
+                                    <div class="chart-bar" style="height: 98%; background: var(--red);"
+                                        title="Jun: 235 Resolved"></div>
+                                    <span class="chart-label" style="color: var(--red); font-weight: 800;">JUN</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 4: Report Consolidation -->
+                <div class="preview-panel" id="panel-verification">
+                    <div class="workflow-mockup">
+                        <div class="workflow-steps">
+                            <h3 style="font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">
+                                Report Consolidation & Summarization</h3>
+                            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 14px;">
+                                One of ACTBAYAN's key innovations is preventing system backlog when multiple residents
+                                report the same infrastructure defect.
+                            </p>
+
+                            <div class="step-box">
+                                <div class="step-icon"><i class="fas fa-compress-arrows-alt"></i></div>
+                                <div class="step-content">
+                                    <h4>1. Automated Duplicate Detection</h4>
+                                    <p>When 10 residents report a pothole on the same street, the system groups them by
+                                        GPS proximity instead of creating 10 cluttered tickets.</p>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <div class="step-icon"><i class="fas fa-file-alt"></i></div>
+                                <div class="step-content">
+                                    <h4>2. Concise AI/System Summaries</h4>
+                                    <p>Generates a single unified report summary with consolidated photographic
+                                        evidence, streamlining evaluation for LGU engineers.</p>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <div class="step-icon"><i class="fas fa-check-circle"></i></div>
+                                <div class="step-content">
+                                    <h4>3. Synchronized Community Updates</h4>
+                                    <p>When the municipal repair team marks the consolidated ticket as resolved, all
+                                        participating reporters receive instant verification.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="simulated-notification">
+                            <div class="noti-header">
+                                <div class="noti-badge-icon"><i class="fas fa-layer-group"></i></div>
+                                <div>
+                                    <h4 style="font-size: 15px; font-weight: 800; color: var(--text-main);">Consolidated
+                                        Report Summary</h4>
+                                    <span style="font-size: 11.5px; color: var(--text-muted);">LGU Assessment
+                                        Optimization Tool</span>
+                                </div>
+                            </div>
+                            <div class="noti-body">
+                                <strong><i class="fas fa-info-circle"></i> SYSTEM CONSOLIDATION ALERT</strong><br><br>
+                                <strong>Location:</strong> Brgy. Poblacion, Market Road<br>
+                                <strong>Merged Reports:</strong> 14 Resident Submissions<br>
+                                <strong>Summary:</strong> Severe drainage overflow during afternoon downpour causing
+                                road obstruction.<br><br>
+                                <em>Status: Merged into Single Priority Ticket #GEN-2026-104. Engineering dispatch
+                                    assigned.</em>
+                            </div>
+                            <div style="margin-top: 18px; text-align: right;">
+                                <a href="/register" class="btn btn-primary"
+                                    style="padding: 8px 18px; font-size: 13px;">Experience Resident Portal <i
+                                        class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================
+         SYSTEM'S MAIN FEATURES SECTION (THE 6 CORE MODULES)
+         ======================================================== -->
+    <section class="section-padding" id="features">
+        <div class="section-header">
+            <span class="section-tag"><i class="fas fa-cogs"></i> Capstone Innovation</span>
+            <h2 class="section-title">ACTBAYAN's Six Core System Features</h2>
+            <p class="section-desc">
+                Designed specifically to solve municipal infrastructure monitoring challenges through structured
+                technology and participatory governance.
+            </p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-box">
+                <div class="feature-icon-wrapper"><i class="fas fa-mobile-alt"></i></div>
+                <h3>1. Resident Reporting Module</h3>
+                <p>An online tool allowing community residents to report specific infrastructure issues, such as
+                    potholes, broken streetlights, damaged roads, and clogged drains.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon-wrapper"><i class="fas fa-user-tie"></i></div>
+                <h3>2. LGU Management System</h3>
+                <p>A dedicated administrative portal for local officials and municipal engineers to manage, process,
+                    prioritize, and respond to reports submitted by the community.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon-wrapper"><i class="fas fa-chart-pie"></i></div>
+                <h3>3. Centralized Data Analytics</h3>
+                <p>Integrated analytical tools that track infrastructure decay patterns and help municipal leaders make
+                    data-driven, evidence-based budgetary choices.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon-wrapper"><i class="fas fa-clipboard-check"></i></div>
+                <h3>4. Transparency Dashboard</h3>
+                <p>Public-facing visibility features providing community members with real-time updates into the
+                    progress, status, and completion of public works projects.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon-wrapper"><i class="fas fa-map-marked-alt"></i></div>
+                <h3>5. Geolocation Mapping</h3>
+                <p>Integration with GPS services to automatically capture exact coordinates of reported hazards,
+                    enabling precise tracking and dispatch without relying on manual descriptions.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon-wrapper"><i class="fas fa-compress-arrows-alt"></i></div>
+                <h3>6. Report Consolidation</h3>
+                <p>An automated tool that identifies and groups duplicate reports from the same area into concise
+                    summaries, preventing clutter and reducing LGU backlog.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================
+         HOW IT WORKS (PARTICIPATORY WORKFLOW)
+         ======================================================== -->
+    <section class="section-padding" id="how-it-works"
+        style="background: #ffffff; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div class="section-header">
+            <span class="section-tag"><i class="fas fa-sync-alt"></i> Participatory Process</span>
+            <h2 class="section-title">How the Monitoring Process Works</h2>
+            <p class="section-desc">
+                Connecting community vigilance with municipal action in three structured steps.
+            </p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-box">
+                <div class="feature-icon-wrapper">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <h3>1. Identify & GPS Tag</h3>
+                <p>
+                    A resident notices a public works issue in General Mamerto Natividad, snaps a photo, and submits it.
+                    GPS coordinates are captured automatically.
+                </p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon-wrapper">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <h3>2. Consolidate & Dispatch</h3>
+                <p>
+                    The system groups any duplicate reports and routes a clean, summarized priority ticket directly to
+                    the responsible LGU engineering or maintenance team.
+                </p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon-wrapper">
+                    <i class="fas fa-check-double"></i>
+                </div>
+                <h3>3. Resolve & Update</h3>
+                <p>
+                    Repair crews complete the public works restoration. The Transparency Dashboard updates instantly,
+                    notifying all participating community members.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Banner -->
+    <div class="cta-banner-wrapper">
+        <div class="cta-banner">
+            <h2>Participate in General Mamerto Natividad's Progress</h2>
+            <p>Join local officials and engaged community members in building a safer, more responsive, and digitally
+                structured public works ecosystem.</p>
+            <div class="btn-group">
+                {% if user %}
+                <a href="/activities" class="btn btn-outline"
+                    style="background: white; color: #8b0000; border: none; font-size: 15px;"><i
+                        class="fas fa-rocket"></i> Go to Resident Portal</a>
+                {% else %}
+                <a href="/register" class="btn btn-outline"
+                    style="background: white; color: #8b0000; border: none; font-size: 15px;"><i
+                        class="fas fa-user-plus"></i> Register as Resident</a>
+                <a href="/login" class="btn"
+                    style="background: rgba(0,0,0,0.35); color: white; border: 1px solid rgba(255,255,255,0.4); font-size: 15px;"><i
+                        class="fas fa-sign-in-alt"></i> Sign In to System</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="landing-footer" id="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="logo-container" style="display: inline-flex !important; align-items: center !important; gap: 10px !important; text-decoration: none !important;">
+                    <img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 42px; height: 42px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo">
+                    <div class="logo-text" style="font-size: 26px;">ActBayan<span>.</span></div>
+                </div>
+                <p>
+                    A Participatory Public Works Monitoring System for the Municipality of General Mamerto Natividad,
+                    Province of Nueva Ecija.
+                </p>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+                    BSIT Capstone Research Project — Group #8
+                </p>
+            </div>
+
+            <div class="footer-col">
+                <h4>System Navigation</h4>
+                <ul>
+                    <li><a href="#about-study">Background Study</a></li>
+                    <li><a href="#preview">Live Simulation</a></li>
+                    <li><a href="#features">Core Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="/login">Resident Login</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Municipal Coverage</h4>
+                <ul>
+                    <li><a href="#">Gen. Natividad Town Hall</a></li>
+                    <li><a href="#">Municipal Engineering Office</a></li>
+                    <li><a href="#">MDRRMO Disaster Response</a></li>
+                    <li><a href="#">Rural Health Unit</a></li>
+                    <li><a href="#">All 20 Barangays</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Capstone Researchers</h4>
+                <ul>
+                    <li><a href="#">Eusebio, Ferdinand Jr. DP</a>
+                    </li>
+                    <li><a href="#">Magbuhos, Markly Harrison</a></li>
+                    <li><a href="#">Pineda, Justine Lee G.</a></li>
+                    <li><a href="#">Santiago, Fred Rick B.</a></li>
+                    <li><a href="#" style="font-size: 11.5px; color: var(--text-dim);">BSIT 3B • Group #8</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>
+                © 2026 ACTBAYAN — Group #8 (Eusebio, Magbuhos, Pineda, Santiago). Municipality of General Mamerto
+                Natividad, Nueva Ecija. All rights reserved.
+            </div>
+            <div class="footer-socials">
+                <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" title="Twitter / X"><i class="fab fa-twitter"></i></a>
+                <a href="#" title="Government Portal"><i class="fas fa-globe"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Leaflet GIS Map Library JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Interactive JavaScript -->
+    <script>
+        // Philippine Standard Time Live Clock for Fallback Banner
+        function updatePSTClock() {
+            const el = document.getElementById('pstTimeDisplay');
+            if (el) {
+                const now = new Date();
+                const options = { timeZone: 'Asia/Manila', weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+                el.textContent = now.toLocaleString('en-US', options);
+            }
+        }
+        setInterval(updatePSTClock, 1000);
+        updatePSTClock();
+
+        // Hero Background Slideshow Rotation
+        let currentHeroSlide = 0;
+        const heroSlides = document.querySelectorAll('.hero-slide');
+        const heroIndicators = document.querySelectorAll('#heroIndicators .indicator');
+        let heroSlideInterval;
+
+        function showHeroSlide(index) {
+            if (!heroSlides.length) return;
+            heroSlides.forEach(slide => slide.classList.remove('active'));
+            heroIndicators.forEach(ind => ind.classList.remove('active'));
+            
+            currentHeroSlide = (index + heroSlides.length) % heroSlides.length;
+            if (heroSlides[currentHeroSlide]) heroSlides[currentHeroSlide].classList.add('active');
+            if (heroIndicators[currentHeroSlide]) heroIndicators[currentHeroSlide].classList.add('active');
+        }
+
+        function nextHeroSlide() {
+            showHeroSlide(currentHeroSlide + 1);
+        }
+
+        function jumpToHeroSlide(index) {
+            showHeroSlide(index);
+            clearInterval(heroSlideInterval);
+            heroSlideInterval = setInterval(nextHeroSlide, 5000);
+        }
+
+        if (heroSlides.length > 0) {
+            heroSlideInterval = setInterval(nextHeroSlide, 5000);
+        }
+
+        // Sticky Navbar Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 40) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Tab Switching for Live Preview
+        function switchPreviewTab(tabId, btn) {
+            document.querySelectorAll('.preview-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.preview-panel').forEach(p => p.classList.remove('active'));
+
+            btn.classList.add('active');
+            const panel = document.getElementById('panel-' + tabId);
+            if (panel) {
+                panel.classList.add('active');
+            }
+            if (tabId === 'gis' && typeof gisMap !== 'undefined' && gisMap) {
+                setTimeout(() => gisMap.invalidateSize(), 150);
+            }
+        }
+
+        // GIS Map Pin Interactive Selection
+        let gisMap;
+        let markers = {};
+
+        const incidentData = {
+            sampaloc: {
+                coords: [15.6180, 121.0450],
+                title: "📍 Brgy. Mag-asawang Sampaloc • Road Hazard",
+                desc: "GPS Coordinates pinpointed automatically by resident mobile report. Municipal Engineering Office is evaluating materials needed.",
+                status: "STATUS: UNDER ASSESSMENT 🟡",
+                color: "#d97706"
+            },
+            poblacion: {
+                coords: [15.6015, 121.0503],
+                title: "📍 Brgy. Poblacion Central • Broken Solar Streetlight",
+                desc: "Reported by community members. Solar LED streetlights successfully replaced and operational along central public market.",
+                status: "STATUS: RESOLVED ✅",
+                color: "#059669"
+            },
+            platero: {
+                coords: [15.5890, 121.0620],
+                title: "📍 Brgy. Platero Sector 2 • Clogged Agricultural Drain",
+                desc: "Reported by local farmers. Municipal heavy equipment scheduled for drainage desilting and clearing operations.",
+                status: "STATUS: ENGINEERING DISPATCHED 🔵",
+                color: "#2563eb"
+            },
+            balangkare: {
+                coords: [15.5720, 121.0580],
+                title: "📍 Brgy. Balangkare Sur • Shoulder Erosion Repair",
+                desc: "Reported by motorist safety group. Road shoulder erosion reported to Municipal Engineering and DPWH coordinators.",
+                status: "STATUS: PENDING REVIEW 🟠",
+                color: "#6b7280"
+            }
+        };
+
+        function initGisMap() {
+            if (gisMap || !document.getElementById('real-gis-map')) return;
+            gisMap = L.map('real-gis-map', { zoomControl: false }).setView([15.6015, 121.0503], 13);
+
+            // Sleek CartoDB Voyager Light Tiles
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap • CartoDB • ACTBAYAN Capstone',
+                maxZoom: 19
+            }).addTo(gisMap);
+
+            L.control.zoom({ position: 'topright' }).addTo(gisMap);
+
+            const createIcon = (color) => L.divIcon({
+                className: 'custom-gis-pin',
+                html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2.5px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center;"><div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div></div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 30],
+                popupAnchor: [0, -30]
+            });
+
+            for (let key in incidentData) {
+                let loc = incidentData[key];
+                let marker = L.marker(loc.coords, { icon: createIcon(loc.color) }).addTo(gisMap);
+                marker.bindPopup(`
+                    <div style="font-family: 'Inter', sans-serif; min-width: 230px; padding: 4px;">
+                        <h4 style="margin: 0 0 6px 0; font-size: 13.5px; font-weight: 800; color: #111827;">${loc.title}</h4>
+                        <p style="margin: 0 0 10px 0; font-size: 12px; color: #6b7280; line-height: 1.4;">${loc.desc}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e5e7eb; padding-top: 8px;">
+                            <span style="font-size: 11px; font-weight: 800; color: ${loc.color};">${loc.status}</span>
+                            <span style="font-size: 11px; font-weight: 700; color: #8b0000;"><i class="fas fa-satellite"></i> GPS Tagged</span>
+                        </div>
+                    </div>
+                `);
+                markers[key] = marker;
+                marker.on('click', () => {
+                    document.getElementById('live-coords').innerHTML = `<i class="fas fa-crosshairs" style="color: #8b0000;"></i> ${loc.coords[0].toFixed(4)}° N, ${loc.coords[1].toFixed(4)}° E`;
+                });
+            }
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(initGisMap, 300);
+        });
+
+        function selectPin(locKey, cardEl) {
+            document.querySelectorAll('.incident-card').forEach(c => c.classList.remove('selected'));
+            if (cardEl) cardEl.classList.add('selected');
+
+            if (gisMap && markers[locKey]) {
+                const marker = markers[locKey];
+                const latlng = marker.getLatLng();
+                gisMap.flyTo(latlng, 15, { animate: true, duration: 1.2 });
+                marker.openPopup();
+                document.getElementById('live-coords').innerHTML = `<i class="fas fa-crosshairs" style="color: #8b0000;"></i> ${latlng.lat.toFixed(4)}° N, ${latlng.lng.toFixed(4)}° E`;
+            }
+        }
+
+        function showPopup(locKey) {
+            selectPin(locKey, null);
+        }
+
+        // Bulletin Filter Pill Interaction
+        function filterBulletins(cat, pillEl) {
+            document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            if (pillEl) pillEl.classList.add('active');
+
+            const cards = document.querySelectorAll('.bulletin-card');
+            cards.forEach(card => {
+                if (cat === 'all' || card.getAttribute('data-cat') === cat) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const nav = document.querySelector('.nav-links');
+            const actions = document.querySelector('.header-actions');
+            if (nav.style.display === 'flex') {
+                nav.style.display = 'none';
+                actions.style.display = 'none';
+            } else {
+                nav.style.display = 'flex';
+                nav.style.position = 'absolute';
+                nav.style.top = '76px';
+                nav.style.left = '0';
+                nav.style.width = '100%';
+                nav.style.flexDirection = 'column';
+                nav.style.background = '#ffffff';
+                nav.style.padding = '20px';
+                nav.style.boxShadow = '0 10px 20px rgba(0,0,0,0.15)';
+
+                actions.style.display = 'flex';
+                actions.style.position = 'absolute';
+                actions.style.top = '270px';
+                actions.style.left = '0';
+                actions.style.width = '100%';
+                actions.style.justifyContent = 'center';
+                actions.style.background = '#ffffff';
+                actions.style.paddingBottom = '20px';
+            }
+        }
+    </script>
+</body>
+
+</html>
