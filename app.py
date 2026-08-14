@@ -8,6 +8,11 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from flask import send_file
 import bcrypt
+from ollama import chat, embed
+import json
+import math
+import base64
+import uuid
 
 
 
@@ -42,6 +47,151 @@ def check_password_bcrypt(stored_hash, password: str) -> bool:
         hash_bytes = str(stored_hash).encode('utf-8')
 
     return bcrypt.checkpw(password.encode('utf-8'), hash_bytes)
+
+
+# ===== OLLAMA DUPLICATE DETECTION HELPERS =====
+def get_embedding(text):
+    """Generate embedding vector for text using Ollama nomic-embed-text"""
+    try:
+        response = embed(
+            model='nomic-embed-text',
+            input=text
+        )
+        # Response format: {"embeddings": [[0.1, 0.2, ...]]}
+        if response and 'embeddings' in response:
+            return response['embeddings'][0]
+        return None
+    except Exception as e:
+        print(f"[Ollama] Embedding error: {e}")
+        return None
+
+def cosine_similarity(vec_a, vec_b):
+    """Compute cosine similarity between two vectors"""
+    if not vec_a or not vec_b or len(vec_a) != len(vec_b):
+        return 0.0
+    dot = sum(a * b for a, b in zip(vec_a, vec_b))
+    norm_a = math.sqrt(sum(a * a for a in vec_a))
+    norm_b = math.sqrt(sum(b * b for b in vec_b))
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot / (norm_a * norm_b)
+
+def haversine_distance(lat1, lng1, lat2, lng2):
+    """Compute distance in meters between two GPS coordinates"""
+    R = 6371000  # Earth radius in meters
+    phi1 = math.radians(float(lat1))
+    phi2 = math.radians(float(lat2))
+    delta_phi = math.radians(float(lat2) - float(lat1))
+    delta_lambda = math.radians(float(lng2) - float(lng1))
+    a = math.sin(delta_phi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+def text_similarity(text1, text2):
+    """Compare two texts using Ollama embeddings and cosine similarity"""
+    if not text1 or not text2:
+        return 0.0
+    emb1 = get_embedding(text1)
+    emb2 = get_embedding(text2)
+    if not emb1 or not emb2:
+        return 0.0
+    return cosine_similarity(emb1, emb2)
+
+def coordinate_proximity(lat1, lng1, lat2, lng2, threshold_meters=100):
+    """Check if two coordinates are within threshold meters of each other"""
+    try:
+        lat1_f = float(lat1)
+        lng1_f = float(lng1)
+        lat2_f = float(lat2)
+        lng2_f = float(lng2)
+        if lat1_f == 0 and lng1_f == 0:
+            return False, float('inf')
+        if lat2_f == 0 and lng2_f == 0:
+            return False, float('inf')
+        distance = haversine_distance(lat1_f, lng1_f, lat2_f, lng2_f)
+        return distance <= threshold_meters, distance
+    except (ValueError, TypeError):
+        return False, float('inf')
+
+
+# ===== API: Check for duplicate concerns =====
+@app.route('/api/check_duplicate', methods=['POST'])
+def api_check_duplicate():
+    """Check if a concern with similar title/description and nearby coordinates already exists"""
+    if 'user_id' not in session:
+        return {'success': False, 'message': 'Not logged in'}, 401
+    
+    data = request.get_json()
+    if not data:
+        return {'success': False, 'message': 'No data provided'}, 400
+    
+    title = (data.get('title') or '').strip()
+    description = (data.get('description') or '').strip()
+    geox = data.get('geox')
+    geoy = data.get('geoy')
+    
+    if not title and not description:
+        return {'success': False, 'message': 'No content to compare'}, 400
+    
+    # Generate embedding for the new concern text
+    combined_text = f"{title}. {description}" if title and description else (title or description)
+    
+    con = connect_db()
+    cursor = con.cursor(dictionary=True)
+    
+    # Fetch all existing reports with their locations
+    cursor.execute("""
+        SELECT r.report_id, r.public_key, r.title, r.description, r.category, r.status, l.x, l.y, l.locname
+        FROM reports r
+        JOIN location l ON r.location_id = l.location_id
+        WHERE l.x IS NOT NULL AND l.y IS NOT NULL AND r.public_key IS NOT NULL
+        ORDER BY r.created_at DESC
+        LIMIT 100
+    """)
+    existing_reports = cursor.fetchall()
+    con.close()
+    
+    duplicates = []
+    
+    for report in existing_reports:
+        old_title = report.get('title') or ''
+        old_desc = report.get('description') or ''
+        old_text = f"{old_title}. {old_desc}" if old_title and old_desc else (old_title or old_desc)
+        
+        # Calculate text similarity
+        sim = text_similarity(combined_text, old_text)
+        
+        # Calculate coordinate proximity
+        near, distance = coordinate_proximity(
+            geox, geoy,
+            report.get('x'), report.get('y')
+        )
+        
+        # Consider duplicate if EITHER condition is strong:
+        # - sim >= 0.80 (high text similarity regardless of location)
+        # - sim >= 0.70 AND near (moderate text + nearby)
+        # - sim >= 0.90 (very high text similarity)
+        if sim >= 0.80 or (sim >= 0.70 and near) or sim >= 0.90:
+            duplicates.append({
+                'report_id': report['report_id'],
+                'public_key': report.get('public_key', ''),
+                'title': old_title,
+                'category': report.get('category', ''),
+                'location': report.get('locname', ''),
+                'similarity': sim,  # Return as float 0-1
+                'distance_m': round(distance, 1) if near else None,
+                'status': report.get('status', 'Pending')
+            })
+    
+    # Limit to top 5 most similar
+    duplicates.sort(key=lambda d: d['similarity'], reverse=True)
+    duplicates = duplicates[:5]
+    
+    return {
+        'success': True,
+        'duplicates': duplicates,
+        'has_duplicates': len(duplicates) > 0
+    }
 
 
     
@@ -815,7 +965,8 @@ def login():
 
             reg_id = reg_record[0]
             if reg_id:
-                return redirect(url_for('cd', reg_id=reg_id))
+                session['reg_id'] = reg_id
+                return redirect(url_for('cd'))
         
         credquery = """SELECT u.emorph, p.password FROM credentials AS c
                     JOIN usercreds AS u ON u.user_id = c.user_id
@@ -961,10 +1112,10 @@ def file_concern():
             VALUES (%s, %s, %s)
         """
         get_location_id_sql = "SELECT MAX(location_id) FROM location"  # Get the last inserted location_id for association with report
-
+        
         query = """
-            INSERT INTO reports (account_id, category, title, location_id, image_url, description, status)
-            VALUES (%s, %s, %s, %s, %s, %s, 'Pending')
+            INSERT INTO reports (account_id, category, title, location_id, image_url, description, status, public_key)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
 
         # For fn==pc (posting feedback), do NOT insert a new report
@@ -998,7 +1149,9 @@ def file_concern():
                 # cursor is dictionary=True, so fetchone() returns a dict like {"MAX(location_id)": 123}
                 location_id = location_row.get('MAX(location_id)')
 
-            cursor.execute(query, (account_id, category, title, location_id, img_url, description))
+            # Generate UUID public key for this report
+            public_key = str(uuid.uuid4())
+            cursor.execute(query, (account_id, category, title, location_id, img_url, description, 'Pending', public_key))
 
         con.commit()
         con.close()
@@ -1122,6 +1275,74 @@ def file_concern():
         user_upvoted=user_upvoted,
         user=user_data
     )
+# ===== API: Fetch report details by public_key (UUID) =====
+@app.route('/api/report/<public_key>')
+def api_report_by_key(public_key):
+    """Fetch full report details by its UUID public_key for the modal viewer"""
+    if 'user_id' not in session:
+        from flask import jsonify
+        return jsonify({'success': False, 'message': 'Not logged in'}), 401
+    
+    con = connect_db()
+    cursor = con.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT r.report_id, r.public_key, r.title, r.description, r.category, r.status,
+               r.image_url, r.created_at,
+               a.first_name, a.last_name, a.profile_photo,
+               l.locname, l.x, l.y
+        FROM reports r
+        JOIN accounts a ON r.account_id = a.account_id
+        LEFT JOIN location l ON r.location_id = l.location_id
+        WHERE r.public_key = %s
+    """, (public_key,))
+    report = cursor.fetchone()
+    
+    if not report:
+        con.close()
+        from flask import jsonify
+        return jsonify({'success': False, 'message': 'Report not found'}), 404
+    
+    # Sanitize bytes
+    for k, v in list(report.items()):
+        if isinstance(v, (bytes, bytearray)):
+            report[k] = v.decode('utf-8', errors='ignore') if v else ""
+        elif isinstance(v, datetime):
+            report[k] = v.strftime('%B %d, %Y - %I:%M %p')
+    
+    # Get upvote count
+    cursor.execute("SELECT COUNT(*) as count FROM upvotes WHERE report_id = %s", (report['report_id'],))
+    report['upvote_count'] = cursor.fetchone()['count']
+    
+    # Get comment count
+    cursor.execute("SELECT COUNT(*) as count FROM feedbacks WHERE report_id = %s", (report['report_id'],))
+    report['comment_count'] = cursor.fetchone()['count']
+    
+    # Get recent comments
+    cursor.execute("""
+        SELECT f.feedback, f.uploaded_at,
+               CONCAT(a.first_name, ' ', a.last_name) AS fullname,
+               a.profile_photo
+        FROM feedbacks f
+        LEFT JOIN accounts a ON a.account_id = f.account_id
+        WHERE f.report_id = %s
+        ORDER BY f.uploaded_at DESC
+        LIMIT 10
+    """, (report['report_id'],))
+    comments = cursor.fetchall()
+    for c in comments:
+        for k, v in list(c.items()):
+            if isinstance(v, (bytes, bytearray)):
+                c[k] = v.decode('utf-8', errors='ignore') if v else ""
+            elif isinstance(v, datetime):
+                c[k] = v.strftime('%b %d, %Y • %I:%M %p')
+    
+    report['comments'] = comments
+    
+    con.close()
+    from flask import jsonify
+    return jsonify({'success': True, 'report': report})
+
+
 @app.route('/api/upvote', methods=['POST'])
 def api_upvote():
     if 'user_id' not in session:
@@ -1182,19 +1403,43 @@ def register():
         hashed_pw = hash_password_bcrypt(password)
 
 
-        if email or phone:
-            query = """
-                INSERT INTO registration (email_address, phone_number, password)
-                VALUES (%s, %s, %s)
-            """
-            values = (email if email else None, phone if phone else None, hashed_pw)
-        else:
+        if not email and not phone:
             return render_template('register.html', error="Enter email or phone number")
 
+        # Check for existing email or phone
+        conditions = []
+        check_values = []
+        if email:
+            conditions.append("email_address = %s")
+            check_values.append(email)
+        if phone:
+            conditions.append("phone_number = %s")
+            check_values.append(phone)
+            
+        check_query = f"SELECT email_address, phone_number FROM registration WHERE {' OR '.join(conditions)}"
+        cursor.execute(check_query, tuple(check_values))
+        existing_user = cursor.fetchone()
+        
+        if existing_user:
+            existing_email, existing_phone = existing_user
+            if email and existing_email == email:
+                return render_template('register.html', error="Email address is already in use")
+            if phone and existing_phone == phone:
+                return render_template('register.html', error="Phone number is already in use")
+            return render_template('register.html', error="Account already exists")
+
+        query = """
+            INSERT INTO registration (email_address, phone_number, password)
+            VALUES (%s, %s, %s)
+        """
+        values = (email if email else None, phone if phone else None, hashed_pw)
+
         cursor.execute(query, values)
+        new_reg_id = cursor.lastrowid
         con.commit()
 
-        return redirect(url_for('login'))
+        session['reg_id'] = new_reg_id
+        return redirect(url_for('cd'))
 
     return render_template('register.html')
 
@@ -1202,7 +1447,7 @@ def register():
 def cd():
     con = connect_db()
     cursor = con.cursor(buffered=True)
-    reg_id = request.args.get('reg_id') or request.form.get('reg_id')
+    reg_id = session.get('reg_id') or request.args.get('reg_id') or request.form.get('reg_id')
     
     if not reg_id:
         return redirect(url_for('login'))
@@ -1287,6 +1532,7 @@ def cd():
         con.close()
         
         session['pending_user_id'] = newid # Pass to next step
+        session.pop('reg_id', None)
         return redirect(url_for('id_verification'))
 
 @app.route('/id_verification', methods=['GET', 'POST'])

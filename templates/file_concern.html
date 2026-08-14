@@ -1682,6 +1682,7 @@
         </div>
         <!-- Comment Input Bar (FIXED BOTTOM PADDING SO IT NEVER CUTS OR OVERLAPS) -->
         <div style="padding:14px 20px 24px 20px; border-top:1px solid var(--border-color); background:var(--bg-nav-card); flex-shrink:0; box-sizing:border-box;">
+            {% if user.account_status == 'Verified' %}
             <form action="/file_concern" method="POST" id="cdm-comment-form" style="display:flex; gap:10px; align-items:center; margin:0;">
                 <input type="hidden" name="fn" value="pc">
                 <input type="hidden" name="report_id" id="cdm-form-report-id" value="">
@@ -1692,6 +1693,11 @@
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </form>
+            {% else %}
+            <div style="width:100%; padding:10px 16px; border-radius:20px; background:#fff3f3; color:#d32f2f; font-size:13px; text-align:center; border: 1px solid #ffdcdc;">
+                <i class="fas fa-lock" style="margin-right:5px;"></i> You must be a verified user to comment.
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -1720,6 +1726,42 @@
                 <div class="rp-empty-icon"><i class="fas fa-clock"></i></div>
                 <div class="rp-empty-title">Awaiting Updates</div>
                 <p class="rp-empty-sub">The LGU has not posted any progress documentation yet.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== DUPLICATE WARNING MODAL ===== -->
+<div class="modal-backdrop" id="duplicate-modal" onclick="if(event.target===this)closeDuplicateModalDirect()">
+    <div class="modal" style="max-width:600px;">
+        <div class="modal-head">
+            <div class="modal-head-deco"></div>
+            <div class="modal-head-deco2"></div>
+            <div>
+                <div class="modal-head-badge">
+                    <i class="fas fa-exclamation-triangle"></i> Duplicate Notice
+                </div>
+                <h2 class="modal-head-title">Similar Concern Found</h2>
+                <p class="modal-head-sub">A report with a similar title and nearby location already exists.</p>
+            </div>
+            <button class="modal-close-btn" type="button" onclick="closeDuplicateModalDirect()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-section-head">Matching Reports</div>
+            <div id="duplicate-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
+            <div class="modal-disclaimer" style="border-color:rgba(234,179,8,0.4);background:rgba(234,179,8,0.08);">
+                <i class="fas fa-info-circle" style="color:#a16207;"></i>
+                <p style="color:var(--text-main);">Submitting a duplicate report may cause confusion. Please verify if your concern has already been filed before proceeding.</p>
+            </div>
+            <div class="modal-action-row" style="flex-wrap:wrap;gap:8px;">
+                <button class="modal-btn-back" type="button" onclick="closeDuplicateModalDirect()" style="flex:1;justify-content:center;">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="modal-btn-next" type="button" onclick="mSubmitConcernForce()" style="flex:1;background:#92400e;">
+                    <i class="fas fa-paper-plane"></i> Submit Anyway
+                </button>
             </div>
         </div>
     </div>
@@ -1802,6 +1844,14 @@
         }
         if (n === 4) mFillReview();
         mCurStep = n;
+
+        // Auto-detect user location when reaching the Details step (Step 2)
+        if (n === 2) {
+            setTimeout(() => {
+                mEnsureLocationMap();
+                mUseMyLocation();
+            }, 400);
+        }
     }
 
     function mSelectCat(el) {
@@ -1927,7 +1977,7 @@
             return;
         }
 
-        showToast('Getting your location...', 'fa-crosshairs');
+        showToast('Getting your GPS location...', 'fa-crosshairs');
         navigator.geolocation.getCurrentPosition(
             async (pos) => {
                 const lat = pos.coords.latitude;
@@ -1953,41 +2003,13 @@
                 }
             },
             async (err) => {
-                // If blocked by browser because of HTTP LAN IP (e.g., http://192.168.1.111:5000), try network approximate location estimation!
-                try {
-                    showToast('Trying network location estimation...', 'fa-satellite-dish');
-                    const ipRes = await fetch('https://ipapi.co/json/');
-                    if (ipRes.ok) {
-                        const ipData = await ipRes.json();
-                        if (ipData.latitude && ipData.longitude) {
-                            const lat = Number(ipData.latitude);
-                            const lng = Number(ipData.longitude);
-                            if (mLeaflet.map) {
-                                mLeaflet.map.setView([lat, lng], 16);
-                                mLeaflet.marker.setLatLng([lat, lng]);
-                                mLeaflet.marker.setOpacity(1);
-                            }
-                            mSetCoords(lat, lng);
-                            try {
-                                const txt = await mReverseGeocode(lat, lng);
-                                mSetLocationText(txt, 'ip-location');
-                            } catch (rgErr) {
-                                mSetLocationText(`Lat ${lat.toFixed(5)}, Lng ${lng.toFixed(5)}`, 'ip-location');
-                            }
-                            const hint = document.getElementById('loc-map-hint');
-                            if (hint) hint.textContent = 'Network Location Selected';
-                            showToast('Approximate location detected via network!', 'fa-check-circle');
-                            return;
-                        }
-                    }
-                } catch (ipErr) {
-                    // Fall through if IP detection also fails
-                }
-
-                // Never overwrite with a default town pin! Prompt the user clearly.
-                showToast('Could not detect location over HTTP. Please click or drag the pin on the map to set your exact location!', 'fa-exclamation-circle');
+                // GPS failed — likely running over HTTP (not HTTPS).
+                // DO NOT fall back to IP geolocation (ipapi.co etc.) as it gives
+                // inaccurate ISP-level coordinates that mislead users.
+                // Instead, let the user manually place the pin on the map.
+                showToast('GPS unavailable over HTTP. Please click or drag the pin on the map to set your exact location.', 'fa-exclamation-circle');
                 const hint = document.getElementById('loc-map-hint');
-                if (hint) hint.textContent = 'Click map to select location';
+                if (hint) hint.textContent = '⚠ Click map to pin location';
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
         );
@@ -2041,7 +2063,20 @@
         }
     }
 
-    function mSubmitConcern() {
+    // ===== DUPLICATE DETECTION =====
+    let mDuplicateCheckInProgress = false;
+
+    function closeDuplicateModalDirect() {
+        document.getElementById('duplicate-modal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function mSubmitConcernForce() {
+        closeDuplicateModalDirect();
+        mDoSubmitConcern();
+    }
+
+    function mDoSubmitConcern() {
         // Populating the hidden form fields that interact with Flask
         document.getElementById('hf-category').value    = mState.cat;
         document.getElementById('hf-title').value       = mState.title;
@@ -2061,7 +2096,89 @@
         // Actual form submission to Python backend after briefly showing the success message
         setTimeout(() => {
             document.getElementById('concern-real-form').submit();
-        }, 1500); 
+        }, 1500);
+    }
+
+    async function mCheckDuplicate() {
+        if (mDuplicateCheckInProgress) return;
+        mDuplicateCheckInProgress = true;
+
+        // Populate hidden fields first so we can read them if needed
+        document.getElementById('hf-category').value    = mState.cat;
+        document.getElementById('hf-title').value       = mState.title;
+        document.getElementById('hf-location').value    = mState.loc;
+        document.getElementById('hf-description').value = mState.desc;
+
+        // Build payload
+        const payload = {
+            title: mState.title,
+            description: mState.desc,
+            geox: mState.geox,
+            geoy: mState.geoy
+        };
+
+        try {
+            const res = await fetch('/api/check_duplicate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if (data.duplicates && data.duplicates.length > 0) {
+                // Show duplicate warning modal
+                const listEl = document.getElementById('duplicate-list');
+                listEl.innerHTML = data.duplicates.map(d => {
+                    const similarityPct = Math.round(d.similarity * 100);
+                    const distText = d.distance_m !== null ? `${Math.round(d.distance_m)}m away` : '';
+                    const similarityClass = similarityPct >= 85 ? 'cat-safety' : (similarityPct >= 70 ? 'cat-road' : 'cat-sanitation');
+                    const publicKey = d.public_key || '';
+                    return `
+                        <div style="background:var(--search-bg);border:1px solid var(--border-color);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;" onclick="closeDuplicateModalDirect();openPostModalByPublicKey('${publicKey}')">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <strong style="font-size:13px;color:var(--text-main);">${d.title}</strong>
+                                <span style="font-size:11px;font-weight:800;padding:2px 10px;border-radius:50px;background:var(--${similarityClass === 'cat-safety' ? 'red-light' : 'search-bg'});color:${similarityClass === 'cat-safety' ? 'var(--primary-red)' : 'var(--text-muted)'};">${similarityPct}% match</span>
+                            </div>
+                            ${distText ? `<div style="font-size:11px;color:var(--text-muted);"><i class="fas fa-map-marker-alt" style="color:var(--primary-red);font-size:10px;"></i> ${distText}</div>` : ''}
+                            <div style="font-size:11px;color:var(--text-muted);display:flex;gap:10px;">
+                                <span>Status: ${d.status}</span>
+                                <span>Category: ${d.category}</span>
+                            </div>
+                            <div style="font-size:10px;font-weight:600;color:var(--primary-red);margin-top:4px;">Click to view details →</div>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('duplicate-modal').classList.add('open');
+                document.body.style.overflow = 'hidden';
+            } else {
+                // No duplicates found — submit normally
+                mDoSubmitConcern();
+            }
+        } catch (err) {
+            console.error('Duplicate check failed:', err);
+            // On error, still allow submission
+            mDoSubmitConcern();
+        } finally {
+            mDuplicateCheckInProgress = false;
+        }
+    }
+
+    function mSubmitConcern() {
+        // Populating the hidden form fields that interact with Flask
+        document.getElementById('hf-category').value    = mState.cat;
+        document.getElementById('hf-title').value       = mState.title;
+        document.getElementById('hf-location').value    = mState.loc;
+        document.getElementById('hf-description').value = mState.desc;
+
+        if (mState.imgFile) {
+            const dt = new DataTransfer();
+            dt.items.add(mState.imgFile);
+            document.getElementById('hf-photo').files = dt.files;
+        }
+
+        // First check for duplicates via the API
+        mCheckDuplicate();
     }
 
     function mResetModal() {
@@ -2422,6 +2539,171 @@
             }
         });
         document.getElementById('no-results-msg').classList.toggle('visible', visibleCount === 0);
+    }
+
+    // ===== OPEN POST MODAL VIA PUBLIC KEY API =====
+    async function openPostModalByPublicKey(publicKey) {
+        if (!publicKey) {
+            showToast('Cannot load details: missing public key.', 'fa-exclamation-circle');
+            return;
+        }
+        try {
+            const res = await fetch(`/api/report/${publicKey}`);
+            const data = await res.json();
+            if (!data.success || !data.report) {
+                showToast('Report not found.', 'fa-exclamation-circle');
+                return;
+            }
+            
+            const r = data.report;
+            
+            // Close any existing modals
+            closePostModal();
+            
+            // Populate modal elements
+            const modal = document.getElementById('concern-details-modal');
+            if (!modal) return;
+            
+            // Avatar
+            const cdmAvatar = document.getElementById('cdm-avatar');
+            if (cdmAvatar) {
+                if (r.profile_photo) {
+                    const photoStr = String(r.profile_photo).replace(/\bbytearray\(b['"]/g, '').replace(/['"]\)$/g, '').replace(/^b['"]/, '').replace(/['"]$/, '');
+                    const clean = photoStr.replace('static/', '');
+                    cdmAvatar.innerHTML = `<img src="/static/${clean}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                } else {
+                    cdmAvatar.textContent = (r.first_name || '?')[0].toUpperCase();
+                }
+            }
+            
+            // Header
+            const cdmAuthor = document.getElementById('cdm-author-name');
+            if (cdmAuthor) cdmAuthor.textContent = `${r.first_name || ''} ${r.last_name || ''}`.trim() || 'Anonymous';
+            
+            const cdmTime = document.getElementById('cdm-time');
+            if (cdmTime) cdmTime.textContent = r.created_at || '';
+            
+            const cdmCatBadge = document.getElementById('cdm-category-badge');
+            if (cdmCatBadge) cdmCatBadge.textContent = r.category || 'Other';
+            
+            // Body
+            document.getElementById('cdm-title').textContent = r.title || '';
+            document.getElementById('cdm-desc').textContent = r.description || 'No additional details provided.';
+            const locEl = document.getElementById('cdm-loc');
+            if (locEl) locEl.innerHTML = r.locname ? `<i class="fas fa-map-marker-alt" style="color:#ef4444;"></i> ${r.locname}` : '';
+            
+            // Set report ID for comment form
+            const formIdInput = document.getElementById('cdm-form-report-id');
+            if (formIdInput) formIdInput.value = r.report_id || '';
+            if (modal) modal.dataset.activeReportId = r.report_id || '';
+            
+            // Stats
+            const cdmUp = document.getElementById('cdm-upvote-stat');
+            const cdmCom = document.getElementById('cdm-comment-stat');
+            if (cdmUp) cdmUp.innerHTML = `<i class="fas fa-arrow-up" style="color:var(--primary-red);"></i> ${r.upvote_count || 0} Upvotes`;
+            if (cdmCom) cdmCom.innerHTML = `<i class="fas fa-comment" style="color:var(--primary-red);"></i> ${r.comment_count || 0} Comments`;
+            
+            // Stepper
+            const stLower = (r.status || '').toLowerCase();
+            const stageBadge = document.getElementById('cdm-stage-badge');
+            const dot1 = document.getElementById('step-dot-1');
+            const dot2 = document.getElementById('step-dot-2');
+            const dot3 = document.getElementById('step-dot-3');
+            const line1 = document.getElementById('step-line-1');
+            const line2 = document.getElementById('step-line-2');
+            const lbl2 = document.getElementById('step-lbl-2');
+            const lbl3 = document.getElementById('step-lbl-3');
+            
+            // Reset
+            if (dot1) { dot1.style.background = '#ef4444'; dot1.style.color = 'white'; dot1.style.boxShadow = '0 0 0 5px rgba(239,68,68,0.2)'; dot1.innerHTML = '1'; }
+            if (dot2) { dot2.style.background = 'var(--border-color)'; dot2.style.color = 'var(--text-muted)'; dot2.style.boxShadow = 'none'; dot2.innerHTML = '2'; }
+            if (lbl2) { lbl2.style.color = 'var(--text-muted)'; lbl2.textContent = 'In Review'; lbl2.style.fontWeight = '600'; }
+            if (dot3) { dot3.style.background = 'var(--border-color)'; dot3.style.color = 'var(--text-muted)'; dot3.style.boxShadow = 'none'; dot3.innerHTML = '3'; }
+            if (lbl3) { lbl3.style.color = 'var(--text-muted)'; lbl3.textContent = 'Resolved'; lbl3.style.fontWeight = '600'; }
+            if (line1) line1.style.background = 'var(--border-color)';
+            if (line2) line2.style.background = 'var(--border-color)';
+            
+            if (stLower === 'resolved' || stLower === 'completed') {
+                if (stageBadge) { stageBadge.innerHTML = '✓ Resolved'; stageBadge.style.background = '#dcfce7'; stageBadge.style.color = '#166534'; }
+                if (dot1) dot1.style.background = '#22c55e';
+                if (line1) line1.style.background = '#22c55e';
+                if (dot2) { dot2.style.background = '#22c55e'; dot2.style.color = 'white'; }
+                if (lbl2) lbl2.style.color = 'var(--text-main)';
+                if (line2) line2.style.background = '#22c55e';
+                if (dot3) { dot3.style.background = '#22c55e'; dot3.style.color = 'white'; dot3.style.boxShadow = '0 0 0 5px rgba(34,197,94,0.25)'; }
+                if (lbl3) { lbl3.style.color = '#166534'; }
+            } else if (stLower.includes('deny') || stLower.includes('denied') || stLower.includes('reject') || stLower.includes('declin') || stLower.includes('cancel') || stLower.includes('spam') || stLower.includes('invalid')) {
+                const labelText = stLower.includes('deny') || stLower.includes('denied') ? 'Denied' : 'Rejected';
+                if (stageBadge) { stageBadge.innerHTML = '✖ ' + labelText; stageBadge.style.background = '#fee2e2'; stageBadge.style.color = '#dc2626'; }
+                if (dot1) dot1.style.background = '#64748b';
+                if (line1) line1.style.background = '#f87171';
+                if (dot2) { dot2.style.background = '#64748b'; dot2.style.color = 'white'; }
+                if (lbl2) { lbl2.style.color = 'var(--text-muted)'; lbl2.textContent = 'Reviewed'; }
+                if (line2) line2.style.background = '#f87171';
+                if (dot3) { dot3.style.background = '#dc2626'; dot3.style.color = 'white'; dot3.style.boxShadow = '0 0 0 5px rgba(220,38,38,0.25)'; dot3.innerHTML = '<i class="fas fa-times"></i>'; }
+                if (lbl3) { lbl3.textContent = labelText; lbl3.style.color = '#dc2626'; lbl3.style.fontWeight = '800'; }
+            } else if (stLower.includes('prog') || stLower.includes('review') || stLower.includes('process') || stLower.includes('investigat')) {
+                if (stageBadge) { stageBadge.innerHTML = '⚡ In Progress'; stageBadge.style.background = '#dbeafe'; stageBadge.style.color = '#1d4ed8'; }
+                if (dot1) dot1.style.background = '#3b82f6';
+                if (line1) line1.style.background = '#3b82f6';
+                if (dot2) { dot2.style.background = '#3b82f6'; dot2.style.color = 'white'; dot2.style.boxShadow = '0 0 0 5px rgba(59,130,246,0.25)'; }
+                if (lbl2) lbl2.style.color = '#1d4ed8';
+            } else {
+                if (stageBadge) { stageBadge.innerHTML = '⏳ Pending Review'; stageBadge.style.background = '#fef3c7'; stageBadge.style.color = '#d97706'; }
+            }
+            
+            // Photo
+            const photoCont = document.getElementById('cdm-photo-container');
+            const photoImg = document.getElementById('cdm-photo');
+            const noPhoto = document.getElementById('cdm-no-photo');
+            if (r.image_url) {
+                const imgSrc = r.image_url.startsWith('static/') ? '/' + r.image_url : '/static/' + r.image_url;
+                if (photoCont) photoCont.style.display = 'flex';
+                if (noPhoto) noPhoto.style.display = 'none';
+                if (photoImg) photoImg.src = imgSrc;
+            } else {
+                if (photoCont) photoCont.style.display = 'none';
+                if (noPhoto) noPhoto.style.display = 'flex';
+            }
+            
+            // Comments
+            const stream = document.getElementById('cdm-comments-stream');
+            if (stream) {
+                stream.innerHTML = '';
+                if (r.comments && r.comments.length > 0) {
+                    r.comments.forEach(c => {
+                        const initials = (c.fullname || 'U')[0].toUpperCase();
+                        let avatarHtml = initials;
+                        if (c.profile_photo) {
+                            const photoStr = String(c.profile_photo).replace(/\bbytearray\(b['"]/g, '').replace(/['"]\)$/g, '').replace(/^b['"]/, '').replace(/['"]$/, '');
+                            const clean = photoStr.replace('static/', '');
+                            avatarHtml = `<img src="/static/${clean}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                        }
+                        stream.innerHTML += `
+                            <div class="comment-item">
+                                <div class="comment-mono">${avatarHtml}</div>
+                                <div style="display:flex;flex-direction:column;flex:1;min-width:0;">
+                                    <div class="comment-bubble">
+                                        <div class="comment-author">${c.fullname || 'User'}</div>
+                                        <div class="comment-text">${c.feedback || ''}</div>
+                                    </div>
+                                    <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-top:4px;margin-left:8px;">${c.uploaded_at || ''}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    stream.innerHTML = `<div class="no-comments"><div class="no-comments-icon"><i class="fas fa-comment-slash"></i></div><span class="no-comments-text">No comments yet</span></div>`;
+                }
+            }
+            
+            modal.classList.add('open');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        } catch (err) {
+            console.error('Failed to load report details:', err);
+            showToast('Failed to load report details.', 'fa-exclamation-circle');
+        }
     }
 
     // ===== CONCERN CARD CLICK TO OPEN FACEBOOK-STYLE DETAILS MODAL =====
