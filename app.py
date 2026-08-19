@@ -260,24 +260,58 @@ def users():
         acttype = request.form.get('act')
         account_id = request.form.get('account_id')
 
-        # Update all credentials belonging to the selected account/contact.
-        # This ensures a single click affects both resident + Gmail user_ids.
-        lock_val = None
-        if acttype in ("ban", "restrict", "remove"):
-            lock_val = 'Y'
-        elif acttype == "unban":
-            lock_val = 'N'
+        if account_id:
+            if acttype == "remove":
+                try:
+                    cursor.execute("SET FOREIGN_KEY_CHECKS=0")
+                    
+                    # 1. Delete reports and related data by this account
+                    cursor.execute("DELETE FROM reports WHERE account_id = %s", (account_id,))
+                    
+                    # 2. Get all associated contact_ids
+                    cursor.execute("SELECT contact_id FROM contacts WHERE account_id = %s", (account_id,))
+                    contacts = cursor.fetchall()
+                    
+                    for c_row in contacts:
+                        c_id = c_row[0]
+                        # 3. Get all user_ids for this contact
+                        cursor.execute("SELECT user_id FROM usercreds WHERE contact_id = %s", (c_id,))
+                        users_list = cursor.fetchall()
+                        
+                        for u_row in users_list:
+                            u_id = u_row[0]
+                            cursor.execute("DELETE FROM user_role WHERE user_id = %s", (u_id,))
+                            cursor.execute("DELETE FROM credentials WHERE user_id = %s", (u_id,))
+                            cursor.execute("DELETE FROM usercreds WHERE user_id = %s", (u_id,))
+                        
+                        cursor.execute("DELETE FROM contacts WHERE contact_id = %s", (c_id,))
+                        
+                    # 4. Finally delete the account itself
+                    cursor.execute("DELETE FROM accounts WHERE account_id = %s", (account_id,))
+                    
+                    cursor.execute("SET FOREIGN_KEY_CHECKS=1")
+                    con.commit()
+                except Exception as e:
+                    print(f"Error removing account {account_id}: {e}")
+                    con.rollback()
+            else:
+                # Update all credentials belonging to the selected account/contact.
+                lock_val = None
+                if acttype in ("ban", "restrict"):
+                    lock_val = 'Y'
+                elif acttype == "unban":
+                    lock_val = 'N'
 
-        if account_id and lock_val is not None:
-            update_sql = """
-                UPDATE credentials c
-                JOIN usercreds u ON u.user_id = c.user_id
-                JOIN contacts ct ON ct.contact_id = u.contact_id
-                SET c.is_locked = %s
-                WHERE ct.account_id = %s
-            """
-            cursor.execute(update_sql, (lock_val, account_id))
-            con.commit()
+                if lock_val is not None:
+                    update_sql = """
+                        UPDATE credentials c
+                        JOIN usercreds u ON u.user_id = c.user_id
+                        JOIN contacts ct ON ct.contact_id = u.contact_id
+                        SET c.is_locked = %s
+                        WHERE ct.account_id = %s
+                    """
+                    cursor.execute(update_sql, (lock_val, account_id))
+                    con.commit()
 
         con.close()
         return redirect(url_for("users"))

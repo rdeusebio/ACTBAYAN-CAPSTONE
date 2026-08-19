@@ -20,243 +20,220 @@
             background-image: url("{{ url_for('static', filename='img/indexbg.png') }}") !important;
         }
 
-        /* Modern Premium Highlight Cards - Background Study Split Section */
-        .study-grid {
+        /* =====================================================
+           MISSION CARD SECTION
+           ===================================================== */
+        .mission-wrapper {
+            max-width: 1100px;
+            margin: 0 auto;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
-            gap: 32px;
-            margin-top: 28px;
-        }
-
-        @media (max-width: 991px) {
-            .study-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .study-card {
-            position: relative;
+            grid-template-columns: 1fr 1fr;
+            background: #5c0a1e;
             border-radius: 24px;
-            padding: 40px;
+            box-shadow: 0 32px 80px -16px rgba(92, 10, 30, 0.45), 0 8px 24px -4px rgba(0,0,0,0.2);
             overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Ambient orb top-right */
+        .mission-card::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 280px; height: 280px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 65%);
+            pointer-events: none;
+        }
+
+        /* LEFT column */
+        .mission-left {
+            padding: 52px 48px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            z-index: 1;
+            background: #5c0a1e;
+            border-right: 16px solid #fdf8eb;
+            position: relative;
         }
 
-        .study-card:hover {
-            transform: translateY(-6px);
-        }
-
-        /* Problem Card Theme - Premium Rose & Crimson */
-        .study-card.problem-card {
-            background: linear-gradient(145deg, #fffcfd 0%, #ffffff 45%, #fff1f2 100%);
-            border: 1px solid rgba(244, 63, 94, 0.22);
-            box-shadow: 0 20px 40px -15px rgba(244, 63, 94, 0.1), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
-        }
-
-        .study-card.problem-card:hover {
-            border-color: rgba(244, 63, 94, 0.45);
-            box-shadow: 0 28px 50px -12px rgba(244, 63, 94, 0.18), 0 8px 24px -4px rgba(0, 0, 0, 0.04);
-        }
-
-        /* Solution Card Theme - Premium Emerald & Teal */
-        .study-card.solution-card {
-            background: linear-gradient(145deg, #f2fcf7 0%, #ffffff 45%, #ecfdf5 100%);
-            border: 1px solid rgba(16, 185, 129, 0.25);
-            box-shadow: 0 20px 40px -15px rgba(16, 185, 129, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
-        }
-
-        .study-card.solution-card:hover {
-            border-color: rgba(16, 185, 129, 0.5);
-            box-shadow: 0 28px 50px -12px rgba(16, 185, 129, 0.22), 0 8px 24px -4px rgba(0, 0, 0, 0.04);
-        }
-
-        /* Decorative Ambient Glow inside Cards */
-        .study-card::after {
-            content: '';
-            position: absolute;
-            top: -60px;
-            right: -60px;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            filter: blur(55px);
-            z-index: -1;
-            opacity: 0.65;
-            transition: opacity 0.4s ease, transform 0.4s ease;
-        }
-
-        .study-card.problem-card::after {
-            background: radial-gradient(circle, rgba(244, 63, 94, 0.35) 0%, transparent 70%);
-        }
-
-        .study-card.solution-card::after {
-            background: radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, transparent 70%);
-        }
-
-        .study-card:hover::after {
-            opacity: 1;
-            transform: scale(1.15);
-        }
-
-        /* Card Header & Badges */
-        .study-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .study-icon-wrapper {
-            width: 56px;
-            height: 56px;
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            flex-shrink: 0;
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .study-card:hover .study-icon-wrapper {
-            transform: scale(1.12) rotate(6deg);
-        }
-
-        .problem-card .study-icon-wrapper {
-            background: linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%);
-            color: #e11d48;
-            border: 1px solid rgba(225, 29, 72, 0.25);
-            box-shadow: 0 8px 20px -4px rgba(225, 29, 72, 0.25);
-        }
-
-        .solution-card .study-icon-wrapper {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-            color: #059669;
-            border: 1px solid rgba(5, 150, 105, 0.25);
-            box-shadow: 0 8px 20px -4px rgba(5, 150, 105, 0.25);
-        }
-
-        .study-badge {
+        .mission-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 6px 14px;
+            padding: 6px 16px;
             border-radius: 50px;
-            font-size: 11.5px;
+            border: 1px solid rgba(212, 175, 80, 0.5);
+            color: #d4af50;
+            font-size: 10.5px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-        }
-
-        .problem-card .study-badge {
-            background: #fff1f2;
-            color: #be123c;
-            border: 1px solid rgba(244, 63, 94, 0.2);
-        }
-
-        .solution-card .study-badge {
-            background: #ecfdf5;
-            color: #047857;
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .badge-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-        }
-
-        .problem-card .badge-dot {
-            background: #f43f5e;
-            box-shadow: 0 0 8px #f43f5e;
-        }
-
-        .solution-card .badge-dot {
-            background: #10b981;
-            box-shadow: 0 0 8px #10b981;
-        }
-
-        /* Content & Typography */
-        .study-card h3 {
-            font-size: 23px;
-            font-weight: 800;
-            color: var(--text-main);
-            margin-bottom: 16px;
-            line-height: 1.35;
-            letter-spacing: -0.4px;
-        }
-
-        .study-card p {
-            font-size: 15.5px;
-            color: #475569;
-            line-height: 1.75;
+            letter-spacing: 1.2px;
             margin-bottom: 28px;
-            flex-grow: 1;
+            width: fit-content;
+        }
+        .mission-badge-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #d4af50;
+            box-shadow: 0 0 7px #d4af50;
         }
 
-        .study-card p strong {
-            color: #1e293b;
+        .mission-quote {
+            font-size: 26px;
+            font-style: italic;
+            font-weight: 700;
+            color: #f5e6c8;
+            line-height: 1.35;
+            margin-bottom: 28px;
+            letter-spacing: -0.3px;
+        }
+
+        .mission-desc {
+            font-size: 14px;
+            color: rgba(245, 230, 200, 0.65);
+            line-height: 1.75;
+            margin-bottom: 40px;
+        }
+        .mission-desc strong {
+            color: #f5e6c8;
             font-weight: 700;
         }
 
-        /* Footer Chips / Feature Pills */
-        .study-chips {
+        /* Stats row */
+        .mission-stats {
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding-top: 22px;
-            border-top: 1px solid rgba(226, 232, 240, 0.8);
+            gap: 36px;
         }
-
-        .problem-card .study-chips {
-            border-top-color: rgba(254, 205, 211, 0.5);
+        .mission-stat-num {
+            font-size: 28px;
+            font-weight: 900;
+            color: #f5e6c8;
+            line-height: 1;
+            margin-bottom: 4px;
         }
-
-        .solution-card .study-chips {
-            border-top-color: rgba(167, 243, 208, 0.5);
-        }
-
-        .study-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            padding: 7px 14px;
-            border-radius: 12px;
-            font-size: 12.5px;
+        .mission-stat-label {
+            font-size: 11.5px;
+            color: rgba(245, 230, 200, 0.55);
             font-weight: 600;
-            transition: all 0.25s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .problem-card .study-chip {
-            background: rgba(255, 255, 255, 0.85);
-            color: #9f1239;
-            border: 1px solid rgba(244, 63, 94, 0.18);
+        /* RIGHT column */
+        .mission-right {
+            display: flex;
+            flex-direction: column;
+            background: #fdf8eb;
+            gap: 16px;
         }
 
-        .problem-card .study-chip:hover {
-            background: #ffe4e6;
-            border-color: rgba(244, 63, 94, 0.35);
-            transform: translateY(-2px);
+        .mission-item {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            background: #5c0a1e;
+            padding: 36px 44px;
+            flex: 1;
         }
 
-        .solution-card .study-chip {
-            background: rgba(255, 255, 255, 0.85);
-            color: #065f46;
-            border: 1px solid rgba(16, 185, 129, 0.18);
+        .mission-num {
+            flex-shrink: 0;
+            width: 46px; height: 46px;
+            border-radius: 14px;
+            background: rgba(212, 175, 80, 0.15);
+            border: 1px solid rgba(212, 175, 80, 0.4);
+            color: #d4af50;
+            font-size: 14px;
+            font-weight: 900;
+            font-style: italic;
+            font-family: Georgia, serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 0.5px;
+            transition: background 0.25s ease;
+        }
+        .mission-item:hover .mission-num {
+            background: rgba(212, 175, 80, 0.28);
         }
 
-        .solution-card .study-chip:hover {
-            background: #d1fae5;
-            border-color: rgba(16, 185, 129, 0.35);
-            transform: translateY(-2px);
+        .mission-item-body h4 {
+            font-size: 15.5px;
+            font-weight: 800;
+            color: #f5e6c8;
+            margin-bottom: 7px;
+            letter-spacing: -0.2px;
         }
+        .mission-item-body p {
+            font-size: 13.5px;
+            color: rgba(245, 230, 200, 0.6);
+            line-height: 1.65;
+            margin: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 860px) {
+            .mission-wrapper { grid-template-columns: 1fr; border-radius: 24px; background: transparent; box-shadow: none; overflow: visible; gap: 16px; }
+            .mission-left { border-right: none; border-radius: 20px; box-shadow: 0 16px 40px -16px rgba(92, 10, 30, 0.45); padding: 40px 32px; }
+            .mission-right { background: transparent; gap: 16px; }
+            .mission-item { border-radius: 20px; box-shadow: 0 16px 40px -16px rgba(92, 10, 30, 0.45); }
+            .mission-quote { font-size: 21px; }
+        }
+        @media (max-width: 500px) {
+            .mission-stats { gap: 20px; flex-wrap: wrap; }
+        }
+
+        /* Full-width backgrounds fix */
+        #about-study, #preview, #features {
+            max-width: 100% !important;
+        }
+        .preview-showcase-container {
+            max-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Core Features Horizontal Carousel */
+        .core-features-carousel {
+            display: flex;
+            gap: 24px;
+            overflow-x: auto;
+            padding: 20px 0 40px 0;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .core-features-carousel::-webkit-scrollbar {
+            display: none;
+        }
+        .core-feature-card {
+            flex: 0 0 340px;
+            background: #fff;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .core-feature-img {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #e2e8f0;
+            object-fit: cover;
+            display: block;
+        }
+        .core-feature-text h3 {
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+        .core-feature-text p {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.6;
+            margin: 0;
+        }
+
     </style>
 </head>
 
@@ -389,96 +366,84 @@
          BACKGROUND OF THE STUDY & OBJECTIVES SECTION
          ======================================================== -->
     <section class="section-padding" id="about-study"
-        style="background: #ffffff; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        style="background: #fdf8eb; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
         <div class="section-header">
             <span class="section-tag"><i class="fas fa-book-open"></i> Background of the Study</span>
-            <h2 class="section-title">Why General Mamerto Natividad Needs ACTBAYAN</h2>
-            <p class="section-desc">
-                Transforming unstructured, manual inspection procedures into an integrated digital framework for
-                efficient municipal governance.
-            </p>
+            <h2 class="section-title">Why General Mamerto Natividad Chose ACTBAYAN</h2>
+            <p class="section-desc">A participatory digital platform designed to connect community observations with municipal action.</p>
         </div>
 
-        <div style="max-width: 1150px; margin: 0 auto;">
-            <div class="study-grid">
-                <!-- Problem Card -->
-                <div class="study-card problem-card">
+        <div class="mission-wrapper">
+
+                <!-- LEFT: Quote + Stats -->
+                <div class="mission-left">
                     <div>
-                        <div class="study-card-header">
-                            <div class="study-icon-wrapper">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                            <span class="study-badge">
-                                <span class="badge-dot"></span> Legacy Challenge
-                            </span>
+                        <div class="mission-badge">
+                            <span class="mission-badge-dot"></span> The Mission
                         </div>
-                        <h3>The Problem: Unstructured & Manual Monitoring</h3>
-                        <p>
-                            Historically, the monitoring of infrastructure in General Mamerto Natividad Municipality
-                            utilized
-                            unstructured procedures and processes carried out manually. Notes were taken arbitrarily
-                            during
-                            inspection rounds, making it difficult for local officials to follow up on changes and
-                            ensure
-                            information remained updated. While community residents are often the very first to identify
-                            infrastructure hazards—such as potholes, broken streetlights, or clogged drains—the lack of
-                            a
-                            structured reporting channel caused repair workflows to suffer from severe delays and
-                            backlogs.
+                        <p class="mission-quote">
+                            &ldquo;Every pothole reported. Every repair tracked. Every barangay heard.&rdquo;
+                        </p>
+                        <p class="mission-desc">
+                            Residents of General Mamerto Natividad are often the very first to notice infrastructure
+                            needs &mdash; a pothole forming, a streetlight out, a drain clogging.
+                            <strong>ACTBAYAN</strong> gives that everyday awareness a direct, structured channel to the
+                            municipal government, replacing scattered paper notes with a single participatory
+                            digital system built for evidence-based, faster local governance.
                         </p>
                     </div>
-                    <div class="study-chips">
-                        <span class="study-chip"><i class="fas fa-file-alt"></i> Arbitrary Notes</span>
-                        <span class="study-chip"><i class="fas fa-history"></i> Severe Delays</span>
-                        <span class="study-chip"><i class="fas fa-unlink"></i> Unstructured Channel</span>
+                    <div class="mission-stats">
+                        <div>
+                            <div class="mission-stat-num">20</div>
+                            <div class="mission-stat-label">Barangays Connected</div>
+                        </div>
+                        <div>
+                            <div class="mission-stat-num">24/7</div>
+                            <div class="mission-stat-label">Resident Reporting</div>
+                        </div>
+                        <div>
+                            <div class="mission-stat-num">GPS</div>
+                            <div class="mission-stat-label">Verified Locations</div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Solution Card -->
-                <div class="study-card solution-card">
-                    <div>
-                        <div class="study-card-header">
-                            <div class="study-icon-wrapper">
-                                <i class="fas fa-lightbulb"></i>
-                            </div>
-                            <span class="study-badge">
-                                <span class="badge-dot"></span> ACTBAYAN Innovation
-                            </span>
+                <!-- RIGHT: Numbered Mission Items -->
+                <div class="mission-right">
+                    <div class="mission-item">
+                        <div class="mission-num">I</div>
+                        <div class="mission-item-body">
+                            <h4>Real-Time Reporting</h4>
+                            <p>Residents submit infrastructure concerns the moment they&rsquo;re spotted, routed straight to the municipal office.</p>
                         </div>
-                        <h3>Our Solution: An Integrated Participatory Framework</h3>
-                        <p>
-                            <strong>ACTBAYAN</strong> bridges this gap by serving as a dedicated participatory public
-                            works
-                            monitoring system. By connecting community residents directly with the centralized municipal
-                            administration, paper-based practices are replaced with digital communication channels. The
-                            platform
-                            incorporates real-time reporting, automated duplicate consolidation, GPS coordinate tagging,
-                            and
-                            data-driven analytical tools to ensure evidence-based decision-making and rapid LGU response
-                            times
-                            across all 20 barangays.
-                        </p>
                     </div>
-                    <div class="study-chips">
-                        <span class="study-chip"><i class="fas fa-map-marked-alt"></i> GPS Tagging</span>
-                        <span class="study-chip"><i class="fas fa-layer-group"></i> Auto-Consolidation</span>
-                        <span class="study-chip"><i class="fas fa-chart-line"></i> Analytics Dashboard</span>
+                    <div class="mission-item">
+                        <div class="mission-num">II</div>
+                        <div class="mission-item-body">
+                            <h4>GPS Tagging &amp; Consolidation</h4>
+                            <p>Every report is location-verified and automatically merged with duplicates for one accurate record.</p>
+                        </div>
+                    </div>
+                    <div class="mission-item">
+                        <div class="mission-num">III</div>
+                        <div class="mission-item-body">
+                            <h4>Data-Driven Response</h4>
+                            <p>Analytics dashboards help officials prioritize repairs and respond faster across all barangays.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
+
+        </div><!-- /mission-wrapper -->
     </section>
 
     <!-- ========================================================
          INTERACTIVE LIVE PREVIEW SECTION
          ======================================================== -->
-    <section class="section-padding" id="preview">
-        <div class="section-header">
-            <span class="section-tag"><i class="fas fa-eye"></i> Interactive Simulation</span>
-            <h2 class="section-title">Preview the ACTBAYAN System</h2>
-            <p class="section-desc">
-                Explore how residents report public works concerns, view municipal bulletins, track infrastructure
-                analytics, and utilize automated geolocation across General Mamerto Natividad.
+    <section class="section-padding" id="preview" style="background: #5c0a1e; color: #f5e6c8; border-top: none;">
+        <div class="section-header" style="color: #f5e6c8;">
+            <h2 class="section-title" style="color: #f5e6c8; font-size: 36px; font-weight: 800; margin-bottom: 12px;">Preview the ACTBAYAN System</h2>
+            <p class="section-desc" style="color: rgba(245, 230, 200, 0.85); font-size: 15px;">
+                Explore the major interface concepts of the ACTBAYAN monitoring platform.
             </p>
         </div>
 
@@ -828,57 +793,62 @@
     <!-- ========================================================
          SYSTEM'S MAIN FEATURES SECTION (THE 6 CORE MODULES)
          ======================================================== -->
-    <section class="section-padding" id="features">
+    <section class="section-padding" id="features" style="background: #fdf8eb; border-top: none; border-bottom: none;">
         <div class="section-header">
-            <span class="section-tag"><i class="fas fa-cogs"></i> Capstone Innovation</span>
-            <h2 class="section-title">ACTBAYAN's Six Core System Features</h2>
+            <span class="section-tag" style="background: transparent; color: #b91c1c; padding: 0; letter-spacing: 1.5px;">CAPSTONE INNOVATION</span>
+            <h2 class="section-title" style="margin-top: 8px;">ACTBAYAN's Six Core System Features</h2>
             <p class="section-desc">
-                Designed specifically to solve municipal infrastructure monitoring challenges through structured
-                technology and participatory governance.
+                Designed to address municipal infrastructure monitoring challenges through technology and participatory governance.
             </p>
         </div>
 
-        <div class="features-grid">
-            <div class="feature-box">
-                <div class="feature-icon-wrapper"><i class="fas fa-mobile-alt"></i></div>
-                <h3>1. Resident Reporting Module</h3>
-                <p>An online tool allowing community residents to report specific infrastructure issues, such as
-                    potholes, broken streetlights, damaged roads, and clogged drains.</p>
+        <div class="core-features-carousel">
+            <div class="core-feature-card">
+                <img src="{{ url_for('static', filename='img/actfe1.png') }}" onerror="if(!this.getAttribute('data-tried')){this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='actfe1.png') }}';}" class="core-feature-img" alt="Feature 1">
+                <div class="core-feature-text">
+                    <h3>1. Resident Reporting Module</h3>
+                    <p>Residents can report potholes, damaged roads, broken streetlights, clogged drains, and other infrastructure concerns.</p>
+                </div>
             </div>
 
-            <div class="feature-box">
-                <div class="feature-icon-wrapper"><i class="fas fa-user-tie"></i></div>
-                <h3>2. LGU Management System</h3>
-                <p>A dedicated administrative portal for local officials and municipal engineers to manage, process,
-                    prioritize, and respond to reports submitted by the community.</p>
+            <div class="core-feature-card">
+                <img src="{{ url_for('static', filename='img/actfe2.png') }}" onerror="if(!this.getAttribute('data-tried')){this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='actfe2.png') }}';}" class="core-feature-img" alt="Feature 2">
+                <div class="core-feature-text">
+                    <h3>2. LGU Management System</h3>
+                    <p>A dedicated portal for local officials and engineers to manage, prioritize, and respond to reports submitted by the community.</p>
+                </div>
             </div>
 
-            <div class="feature-box">
-                <div class="feature-icon-wrapper"><i class="fas fa-chart-pie"></i></div>
-                <h3>3. Centralized Data Analytics</h3>
-                <p>Integrated analytical tools that track infrastructure decay patterns and help municipal leaders make
-                    data-driven, evidence-based budgetary choices.</p>
+            <div class="core-feature-card">
+                <img src="{{ url_for('static', filename='img/actfe3.png') }}" onerror="if(!this.getAttribute('data-tried')){this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='actfe3.png') }}';}" class="core-feature-img" alt="Feature 3">
+                <div class="core-feature-text">
+                    <h3>3. Centralized Data Analytics</h3>
+                    <p>Integrated analytical tools that track infrastructure decay patterns and help municipal leaders make data-driven decisions.</p>
+                </div>
             </div>
 
-            <div class="feature-box">
-                <div class="feature-icon-wrapper"><i class="fas fa-clipboard-check"></i></div>
-                <h3>4. Transparency Dashboard</h3>
-                <p>Public-facing visibility features providing community members with real-time updates into the
-                    progress, status, and completion of public works projects.</p>
+            <div class="core-feature-card">
+                <img src="{{ url_for('static', filename='img/actfe4.png') }}" onerror="if(!this.getAttribute('data-tried')){this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='actfe4.png') }}';}" class="core-feature-img" alt="Feature 4">
+                <div class="core-feature-text">
+                    <h3>4. Transparency Dashboard</h3>
+                    <p>Public-facing visibility features providing community members with real-time updates into the progress of public works.</p>
+                </div>
             </div>
 
-            <div class="feature-box">
-                <div class="feature-icon-wrapper"><i class="fas fa-map-marked-alt"></i></div>
-                <h3>5. Geolocation Mapping</h3>
-                <p>Integration with GPS services to automatically capture exact coordinates of reported hazards,
-                    enabling precise tracking and dispatch without relying on manual descriptions.</p>
+            <div class="core-feature-card">
+                <img src="{{ url_for('static', filename='img/actfe5.png') }}" onerror="if(!this.getAttribute('data-tried')){this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='actfe5.png') }}';}" class="core-feature-img" alt="Feature 5">
+                <div class="core-feature-text">
+                    <h3>5. Geolocation Mapping</h3>
+                    <p>Integration with GPS services to capture exact coordinates of reported hazards, enabling precise tracking and dispatch.</p>
+                </div>
             </div>
 
-            <div class="feature-box">
-                <div class="feature-icon-wrapper"><i class="fas fa-compress-arrows-alt"></i></div>
-                <h3>6. Report Consolidation</h3>
-                <p>An automated tool that identifies and groups duplicate reports from the same area into concise
-                    summaries, preventing clutter and reducing LGU backlog.</p>
+            <div class="core-feature-card">
+                <img src="{{ url_for('static', filename='img/actfe6.png') }}" onerror="if(!this.getAttribute('data-tried')){this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='actfe6.png') }}';}" class="core-feature-img" alt="Feature 6">
+                <div class="core-feature-text">
+                    <h3>6. Report Consolidation</h3>
+                    <p>An automated tool that identifies and groups duplicate reports from the same area into concise summaries to prevent backlog.</p>
+                </div>
             </div>
         </div>
     </section>
@@ -1230,6 +1200,106 @@
                 actions.style.background = '#ffffff';
                 actions.style.paddingBottom = '20px';
             }
+        }
+        // Core Features Carousel Auto-Scroll and Drag
+        const carousel = document.querySelector('.core-features-carousel');
+        let isDown = false;
+        let isHovered = false;
+        let startX;
+        let scrollLeft;
+        let animationId;
+        const scrollSpeed = 1; // Pixels per frame
+
+        if (carousel) {
+            // Clone cards for seamless infinite scrolling
+            const cards = Array.from(carousel.children);
+            cards.forEach(card => {
+                const clone = card.cloneNode(true);
+                clone.classList.add('clone-card');
+                carousel.appendChild(clone);
+            });
+
+            carousel.style.cursor = 'grab';
+
+            function autoScroll() {
+                if (!carousel) return;
+                
+                // Only scroll if not interacting
+                if (!isDown && !isHovered) {
+                    carousel.scrollLeft += scrollSpeed;
+                    
+                    const firstClone = carousel.querySelector('.clone-card');
+                    const wrapPoint = firstClone ? (firstClone.offsetLeft - carousel.firstElementChild.offsetLeft) : 0;
+                    
+                    // Reset to start seamlessly when reached the clone wrap point
+                    if (wrapPoint > 0 && carousel.scrollLeft >= wrapPoint) {
+                        carousel.scrollLeft -= wrapPoint;
+                    }
+                }
+                animationId = requestAnimationFrame(autoScroll);
+            }
+            
+            // Start the animation loop
+            autoScroll();
+
+            const dragStart = (e) => {
+                isDown = true;
+                carousel.style.cursor = 'grabbing';
+                
+                const pageX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
+                startX = pageX - carousel.offsetLeft;
+                scrollLeft = carousel.scrollLeft;
+            };
+
+            const dragEnd = () => {
+                isDown = false;
+                carousel.style.cursor = 'grab';
+            };
+
+            const dragMove = (e) => {
+                if (!isDown) return;
+                e.preventDefault(); // Prevent default text selection or scrolling
+                const pageX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
+                const x = pageX - carousel.offsetLeft;
+                const walk = (x - startX) * 1.5; // Drag sensitivity
+                
+                let newScrollLeft = scrollLeft - walk;
+                
+                const firstClone = carousel.querySelector('.clone-card');
+                const wrapPoint = firstClone ? (firstClone.offsetLeft - carousel.firstElementChild.offsetLeft) : 0;
+                
+                if (wrapPoint > 0) {
+                    // Infinite wrap handling for dragging forwards
+                    if (newScrollLeft >= wrapPoint) {
+                        newScrollLeft -= wrapPoint;
+                        scrollLeft -= wrapPoint; // Adjust reference point
+                    } 
+                    // Infinite wrap handling for dragging backwards
+                    else if (newScrollLeft <= 0) {
+                        newScrollLeft += wrapPoint;
+                        scrollLeft += wrapPoint; // Adjust reference point
+                    }
+                }
+                
+                carousel.scrollLeft = newScrollLeft;
+            };
+
+            // Mouse events
+            carousel.addEventListener('mousedown', dragStart);
+            carousel.addEventListener('mouseleave', () => {
+                dragEnd();
+                isHovered = false;
+            });
+            carousel.addEventListener('mouseup', dragEnd);
+            carousel.addEventListener('mousemove', dragMove);
+            
+            // Touch events
+            carousel.addEventListener('touchstart', dragStart, { passive: true });
+            carousel.addEventListener('touchend', dragEnd);
+            carousel.addEventListener('touchmove', dragMove, { passive: false });
+            
+            // Pause auto-scroll on hover for better readability
+            carousel.addEventListener('mouseenter', () => isHovered = true);
         }
     </script>
 </body>

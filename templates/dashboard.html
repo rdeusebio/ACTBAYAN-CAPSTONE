@@ -545,15 +545,7 @@
                 </div>
             </div>
             <div class="action-buttons">
-                {% if user and user.account_status == 'Verified' %}
-                <button class="btn" onclick="openModal()">
-                    <i class="fas fa-plus"></i> File Concern
-                </button>
-                {% else %}
-                <button class="btn" style="opacity: 0.6; cursor: not-allowed;" onclick="showToast('Your account is pending verification. You cannot file a concern yet.', 'info')">
-                    <i class="fas fa-plus"></i> File Concern
-                </button>
-                {% endif %}
+
                 <button class="btn" style="background:#b91c1c;" onclick="showToast('Calling Emergency 911...', 'info')">
                     <i class="fas fa-phone-alt"></i> Emergency
                 </button>
