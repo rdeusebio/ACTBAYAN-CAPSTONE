@@ -989,6 +989,11 @@ def login():
         
         if not u or not p:
             return render_template('login.html', error="Please enter email/phone and password")
+            
+        u = u.replace(' ', '')
+        if u.startswith('+63'):
+            u = '0' + u[3:]
+
         
         # Fetch registration record
         query_reg = "SELECT registration_id, email_address, phone_number, password FROM registration WHERE email_address = %s OR phone_number = %s"
@@ -1435,6 +1440,16 @@ def register():
             return render_template('register.html', error="Passwords do not match")
 
         hashed_pw = hash_password_bcrypt(password)
+
+        if phone:
+            phone = phone.replace(' ', '')
+            if phone.startswith('+63'):
+                phone = '0' + phone[3:]
+            
+            import re
+            if not re.match(r'^09\d{9}$', phone):
+                return render_template('register.html', error="Invalid Philippine mobile number format")
+
 
 
         if not email and not phone:

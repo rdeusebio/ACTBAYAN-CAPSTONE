@@ -900,7 +900,7 @@
                         <div>
                             <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:7px;"><i class="fas fa-camera" style="color:#8b0000;margin-right:4px;"></i>Attach Photo Proof</label>
                             <label style="display:block;border:2px dashed var(--border-color);border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:var(--search-bg);transition:all 0.2s;" onmouseover="this.style.borderColor='#8b0000'" onmouseout="this.style.borderColor='var(--border-color)'">
-                                <input type="file" id="update-photo" name="update_photo" accept="image/*" style="display:none;" onchange="lguPreviewPhoto(this)">
+                                <input type="file" id="update-photo" name="update_photo" accept="image/*" style="display:none;" onclick="if(!this.dataset.prompting){ event.preventDefault(); showCameraGalleryPrompt(this); }" onchange="lguPreviewPhoto(this)">
                                 <i id="lgu-upload-icon" class="fas fa-cloud-upload-alt" style="font-size:20px;color:var(--text-muted);display:block;margin-bottom:6px;"></i>
                                 <div id="lgu-upload-text" style="font-size:12px;color:var(--text-muted);font-weight:600;">Click to upload photo evidence</div>
                                 <div style="font-size:10px;color:var(--text-muted);opacity:0.7;margin-top:3px;">JPG, PNG, WEBP — max 10MB</div>
@@ -1032,7 +1032,7 @@
             <div class="modal-panel" id="mpanel-3">
                 <div class="modal-section-head">Attach evidence (optional)</div>
                 <label class="modal-upload-tile" id="modal-upload-tile">
-                    <input type="file" id="modal-photo-input" accept="image/*" onchange="mPreviewFile(this)">
+                    <input type="file" id="modal-photo-input" accept="image/*" onclick="if(!this.dataset.prompting){ event.preventDefault(); showCameraGalleryPrompt(this); }" onchange="mPreviewFile(this)">
                     <i class="fas fa-camera" id="modal-upload-icon"></i>
                     <p id="modal-upload-text">Click to upload a photo</p>
                     <small>JPG, PNG, WEBP — max 10MB</small>
@@ -1091,7 +1091,7 @@
                 <input type="hidden" name="title" id="hf-title">
                 <input type="hidden" name="location" id="hf-location">
                 <input type="hidden" name="description" id="hf-description">
-                <input type="file" name="concern_photo" id="hf-photo">
+                <input type="file" name="concern_photo" id="hf-photo" accept="image/*" onclick="if(!this.dataset.prompting){ event.preventDefault(); showCameraGalleryPrompt(this); }">
             </form>
 
         </div>
@@ -1654,6 +1654,70 @@
             if (submitBtn) submitBtn.disabled = false;
         }
     });
+</script>
+<script>
+function showCameraGalleryPrompt(inputElement) {
+    if (inputElement.dataset.prompting) return;
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999999;display:flex;align-items:flex-end;justify-content:center;transition:opacity 0.3s;opacity:0;';
+    const sheet = document.createElement('div');
+    sheet.style.cssText = 'background:#fff;width:100%;max-width:500px;border-radius:24px 24px 0 0;padding:24px;box-shadow:0 -5px 25px rgba(0,0,0,0.15);transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.1, 0.8, 0.3, 1);font-family:inherit;';
+    
+    const title = document.createElement('div');
+    title.innerText = 'Upload Photo';
+    title.style.cssText = 'font-size:18px;font-weight:700;margin-bottom:20px;color:#2c3e50;text-align:center;';
+    
+    const btnStyle = 'display:flex;align-items:center;width:100%;padding:16px 20px;margin-bottom:12px;border:none;border-radius:16px;background:#f4f6f8;color:#2c3e50;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.2s;';
+    const iconStyle = 'margin-right:16px;font-size:22px;width:24px;text-align:center;';
+    
+    const btnCamera = document.createElement('button');
+    btnCamera.style.cssText = btnStyle;
+    btnCamera.innerHTML = '<i class="fas fa-camera" style="' + iconStyle + 'color:#3498db;"></i> Take a Photo';
+    
+    const btnGallery = document.createElement('button');
+    btnGallery.style.cssText = btnStyle;
+    btnGallery.innerHTML = '<i class="fas fa-images" style="' + iconStyle + 'color:#2ecc71;"></i> Choose from Gallery';
+    
+    const btnCancel = document.createElement('button');
+    btnCancel.style.cssText = btnStyle + 'background:#fff;color:#e74c3c;justify-content:center;margin-bottom:0;border:1px solid #fee2e2;';
+    btnCancel.innerText = 'Cancel';
+    
+    sheet.appendChild(title);
+    sheet.appendChild(btnCamera);
+    sheet.appendChild(btnGallery);
+    sheet.appendChild(btnCancel);
+    overlay.appendChild(sheet);
+    document.body.appendChild(overlay);
+    
+    void overlay.offsetWidth;
+    overlay.style.opacity = '1';
+    sheet.style.transform = 'translateY(0)';
+    
+    function closeSheet() {
+        sheet.style.transform = 'translateY(100%)';
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 300);
+    }
+    
+    btnCamera.onclick = () => {
+        inputElement.setAttribute('capture', inputElement.id === 'profile-photo' ? 'user' : 'environment');
+        inputElement.dataset.prompting = '1';
+        inputElement.click();
+        delete inputElement.dataset.prompting;
+        closeSheet();
+    };
+    
+    btnGallery.onclick = () => {
+        inputElement.removeAttribute('capture');
+        inputElement.dataset.prompting = '1';
+        inputElement.click();
+        delete inputElement.dataset.prompting;
+        closeSheet();
+    };
+    
+    btnCancel.onclick = closeSheet;
+    overlay.onclick = (e) => { if(e.target === overlay) closeSheet(); };
+}
 </script>
 </body>
 </html>
