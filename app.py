@@ -114,6 +114,259 @@ def coordinate_proximity(lat1, lng1, lat2, lng2, threshold_meters=100):
         return False, float('inf')
 
 
+# ===== OLLAMA ANALYTICS SUMMARIZATION HELPER (CACHED & NON-BLOCKING) =====
+import threading
+
+_ANALYTICS_CACHE_V2 = {
+    'time': 0,
+    'monthly_summary': None,
+    'sample_summary': None,
+    'status_summary': None,
+    'location_summary': None,
+    'is_generating': False
+}
+
+def _run_ollama_in_background(monthly_labels, monthly_counts, monthly_resolved, sample_report, fallback_summary, fallback_sample_summary, fallback_status_summary, status_counts, top_locations, fallback_location_summary):
+    global _ANALYTICS_CACHE_V2
+    try:
+        sample_info = ""
+        if sample_report:
+            sample_info = (
+                f"\nSample Citizen Report (From Past Week / Community):\n"
+                f"- Title: {sample_report.get('title')}\n"
+                f"- Category: {sample_report.get('category')}\n"
+                f"- Location: {sample_report.get('locname') or 'Barangay Picaleon'}\n"
+                f"- Status: {sample_report.get('status')}\n"
+                f"- Description: {sample_report.get('description')}\n"
+            )
+
+        total_volume = sum(monthly_counts) if monthly_counts else 0
+        total_resolved = sum(monthly_resolved) if monthly_resolved else 0
+        resolution_pct = round((total_resolved / total_volume) * 100) if total_volume > 0 else 0
+        peak_count = max(monthly_counts) if monthly_counts else 0
+        peak_month = monthly_labels[monthly_counts.index(peak_count)] if peak_count > 0 and monthly_counts else 'N/A'
+
+        status_info = (
+            f"\nCurrent Status Breakdown:\n"
+            f"- Total: {status_counts.get('total', 0)}\n"
+            f"- Pending: {status_counts.get('pending', 0)}\n"
+            f"- In Progress: {status_counts.get('in_progress', 0)}\n"
+            f"- Resolved: {status_counts.get('resolved', 0)}\n"
+            f"- Denied: {status_counts.get('denied', 0)}\n"
+        )
+
+        loc_info = ""
+        if top_locations:
+            loc_list = ", ".join([f"{loc.get('locname', 'Unknown')} ({loc.get('count', 0)})" for loc in top_locations[:5]])
+            loc_info = f"\nTop Locations:\n- {loc_list}\n"
+
+        prompt = (
+            f"You are a local government analytics assistant for Barangay Picaleon (ActBayan system).\n"
+            f"Analyze this 6-month report volume data:\n"
+            f"- Months: {', '.join(monthly_labels)}\n"
+            f"- Submissions: {monthly_counts}\n"
+            f"- Resolved: {monthly_resolved}\n"
+            f"- Total: {total_volume}, Peak: {peak_month} ({peak_count} reports)\n"
+            f"- Resolution rate: {resolution_pct}%\n"
+            f"{status_info}"
+            f"{sample_info}\n"
+            f"{loc_info}"
+            f"Instructions:\n"
+            f"1. Write a concise 1-2 sentence analytical summary of the monthly volume trend, including peak periods, trajectory, and resolution performance.\n"
+            f"2. Write a concise 1-2 sentence analytical summary of the current status breakdown (Pending, In Progress, Resolved). Elaborate on what these numbers indicate about the LGU team's efficiency, current workload, and areas that may need immediate attention.\n"
+            f"3. If a sample report is provided, write 1 sentence summarizing what that sample concern illustrates.\n"
+            f"4. If location data is provided, write a concise 1-2 sentence analytical summary of the top reported locations. Elaborate on what these geographic hotspots might indicate about community needs or infrastructure issues.\n"
+            f"CRITICAL: DO NOT use markdown formatting like **bolding** or bullet points in the output keys. Keep the tone professional, objective, highly informative, and descriptive.\n"
+            f"Output format:\n"
+            f"TREND_SUMMARY: <1-2 sentence summary>\n"
+            f"STATUS_SUMMARY: <1-2 sentence summary>\n"
+            f"SAMPLE_SUMMARY: <1-sentence summary>\n"
+            f"LOCATION_SUMMARY: <1-2 sentence summary>"
+        )
+
+        response = chat(
+            model='llama3.2:3b',
+            messages=[
+                {'role': 'system', 'content': 'You are a detailed and analytical municipal data expert for Barangay Picaleon. Provide elaborate insights based on the data. Output only the requested summaries without conversational filler.'},
+                {'role': 'user', 'content': prompt}
+            ],
+            options={'temperature': 0.4, 'num_predict': 500}
+        )
+
+        content = response.get('message', {}).get('content', '').strip()
+        if content:
+            content = content.replace('**', '') # Strip bolding to ensure parser matches keys
+            # Parse responses using string manipulation
+            trend_part = fallback_summary
+            status_part = fallback_status_summary
+            sample_part = fallback_sample_summary
+            location_part = fallback_location_summary
+            
+            if 'TREND_SUMMARY:' in content:
+                # Basic parsing logic relying on expected order
+                parts = content.split('STATUS_SUMMARY:')
+                trend_part = parts[0].replace('TREND_SUMMARY:', '').strip()
+                if len(parts) > 1:
+                    sub_parts = parts[1].split('SAMPLE_SUMMARY:')
+                    status_part = sub_parts[0].strip()
+                    if len(sub_parts) > 1:
+                        loc_parts = sub_parts[1].split('LOCATION_SUMMARY:')
+                        sample_part = loc_parts[0].strip()
+                        if len(loc_parts) > 1:
+                            location_part = loc_parts[1].strip()
+            else:
+                trend_part = content
+
+            _ANALYTICS_CACHE_V2['monthly_summary'] = trend_part or fallback_summary
+            _ANALYTICS_CACHE_V2['status_summary'] = status_part or fallback_status_summary
+            _ANALYTICS_CACHE_V2['sample_summary'] = sample_part or fallback_sample_summary
+            _ANALYTICS_CACHE_V2['location_summary'] = location_part or fallback_location_summary
+            _ANALYTICS_CACHE_V2['time'] = time.time()
+            print("[Ollama Analytics] Successfully generated and cached AI summary.")
+    except Exception as e:
+        print(f"[Ollama Analytics] Background generation error: {e}")
+    finally:
+        _ANALYTICS_CACHE_V2['is_generating'] = False
+
+def generate_monthly_analytics_summary(monthly_labels, monthly_counts, monthly_resolved, sample_report=None, status_counts=None, top_locations=None):
+    """
+    Returns cached summary immediately if valid (valid for 15 minutes).
+    If cache is empty or expired, returns instant calculated statistical summary immediately
+    so page load NEVER blocks or freezes, and warms up Ollama in a non-blocking background thread.
+    """
+    global _ANALYTICS_CACHE_V2
+    now = time.time()
+
+    # If valid cache exists (within 15 minutes), return immediately
+    if _ANALYTICS_CACHE_V2.get('monthly_summary') and (now - _ANALYTICS_CACHE_V2.get('time', 0) < 900):
+        return _ANALYTICS_CACHE_V2['monthly_summary'], _ANALYTICS_CACHE_V2.get('sample_summary', ''), _ANALYTICS_CACHE_V2.get('status_summary', ''), _ANALYTICS_CACHE_V2.get('location_summary', '')
+
+    total_volume = sum(monthly_counts) if monthly_counts else 0
+    total_resolved = sum(monthly_resolved) if monthly_resolved else 0
+    resolution_pct = round((total_resolved / total_volume) * 100) if total_volume > 0 else 0
+
+    peak_count = max(monthly_counts) if monthly_counts else 0
+    peak_month = monthly_labels[monthly_counts.index(peak_count)] if peak_count > 0 and monthly_counts else 'N/A'
+
+    trend_direction = "stable"
+    if len(monthly_counts) >= 2:
+        last_m = monthly_counts[-1]
+        prev_m = monthly_counts[-2]
+        if last_m > prev_m:
+            diff = last_m - prev_m
+            pct_change = round((diff / prev_m * 100)) if prev_m > 0 else 100
+            trend_direction = f"upward (+{pct_change}% vs previous month)"
+        elif last_m < prev_m:
+            diff = prev_m - last_m
+            pct_change = round((diff / prev_m * 100)) if prev_m > 0 else 0
+            trend_direction = f"downward (-{pct_change}% vs previous month)"
+
+    # Instant deterministic calculation directly from MySQL data (renders in 0.001s)
+    fallback_summary = (
+        f"Over the past 6 months, Barangay Picaleon received {total_volume} total citizen concerns, "
+        f"peaking in {peak_month} with {peak_count} reports. The overall resolution rate stands at {resolution_pct}% "
+        f"with a {trend_direction} reporting trajectory."
+    )
+    fallback_sample_summary = ""
+    if sample_report:
+        fallback_sample_summary = (
+            f"A representative concern '{sample_report.get('title')}' in {sample_report.get('locname') or 'Barangay Picaleon'} "
+            f"({sample_report.get('category')}) is currently {sample_report.get('status')}, "
+            f"illustrating priority citizen feedback."
+        )
+        
+    status_counts = status_counts or {}
+    fallback_status_summary = (
+        f"Out of {status_counts.get('total', 0)} total reports, {status_counts.get('resolved', 0)} have been fully resolved by the LGU team. "
+        f"Currently, {status_counts.get('in_progress', 0)} reports are in progress and {status_counts.get('pending', 0)} reports are pending review."
+    )
+
+    fallback_location_summary = ""
+    if top_locations:
+        top_loc = top_locations[0]
+        fallback_location_summary = f"The area with the highest volume of concerns is {top_loc.get('locname')} with {top_loc.get('count')} reports."
+
+    # Trigger background thread for Ollama if not already generating
+    if not _ANALYTICS_CACHE_V2.get('is_generating', False):
+        _ANALYTICS_CACHE_V2['is_generating'] = True
+        t = threading.Thread(
+            target=_run_ollama_in_background,
+            args=(monthly_labels, monthly_counts, monthly_resolved, sample_report, fallback_summary, fallback_sample_summary, fallback_status_summary, status_counts, top_locations, fallback_location_summary),
+            daemon=True
+        )
+        t.start()
+
+    # If first time, cache the fallback so it serves instantly
+    if not _ANALYTICS_CACHE_V2.get('monthly_summary'):
+        _ANALYTICS_CACHE_V2['monthly_summary'] = fallback_summary
+        _ANALYTICS_CACHE_V2['sample_summary'] = fallback_sample_summary
+        _ANALYTICS_CACHE_V2['status_summary'] = fallback_status_summary
+        _ANALYTICS_CACHE_V2['location_summary'] = fallback_location_summary
+        _ANALYTICS_CACHE_V2['time'] = now
+
+    return _ANALYTICS_CACHE_V2['monthly_summary'], _ANALYTICS_CACHE_V2.get('sample_summary', ''), _ANALYTICS_CACHE_V2.get('status_summary', ''), _ANALYTICS_CACHE_V2.get('location_summary', '')
+
+
+# ===== API: Get Analytics Summary =====
+@app.route('/api/analytics_summary')
+def api_analytics_summary():
+    if 'user_id' not in session or session.get('user_role') != 'lgu':
+        return {'success': False, 'message': 'Unauthorized'}, 401
+    return {
+        'success': True,
+        'monthly_summary': _ANALYTICS_CACHE_V2.get('monthly_summary', ''),
+        'sample_summary': _ANALYTICS_CACHE_V2.get('sample_summary', ''),
+        'status_summary': _ANALYTICS_CACHE_V2.get('status_summary', ''),
+        'location_summary': _ANALYTICS_CACHE_V2.get('location_summary', ''),
+        'is_generating': _ANALYTICS_CACHE_V2.get('is_generating', False)
+    }
+
+# ===== API: Get Reports by Category =====
+@app.route('/api/reports')
+def api_reports():
+    if 'user_id' not in session or session.get('user_role') != 'lgu':
+        return {'success': False, 'message': 'Unauthorized'}, 401
+    
+    category = request.args.get('category')
+    if not category:
+        return {'success': False, 'message': 'Category required'}, 400
+        
+    con = connect_db()
+    cursor = con.cursor(dictionary=True)
+    
+    query = """
+        SELECT r.report_id, r.title, r.category, r.status, r.created_at,
+               a.first_name, a.last_name, a.profile_photo, l.locname
+        FROM reports r
+        JOIN accounts a ON r.account_id = a.account_id
+        LEFT JOIN location l ON r.location_id = l.location_id
+        WHERE r.category = %s
+        ORDER BY r.created_at DESC
+        LIMIT 50
+    """
+    cursor.execute(query, (category,))
+    reports = cursor.fetchall()
+    con.close()
+    
+    for r in reports:
+        if r.get('created_at'):
+            r['created_at_str'] = r['created_at'].strftime('%b %d')
+        else:
+            r['created_at_str'] = '—'
+            
+        if r.get('profile_photo'):
+            photo_str = str(r['profile_photo']).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "")
+            r['profile_photo'] = photo_str.replace('static/', '', 1) if photo_str.startswith('static/') else photo_str
+            
+        r['first_name'] = r.get('first_name') or '?'
+        r['last_name'] = r.get('last_name') or ''
+        r['locname'] = r.get('locname') or '—'
+        r['status'] = r.get('status') or 'Pending'
+        
+    return {'success': True, 'reports': reports}
+
+
+
 # ===== API: Check for duplicate concerns =====
 @app.route('/api/check_duplicate', methods=['POST'])
 def api_check_duplicate():
@@ -1079,6 +1332,16 @@ def login():
                     con.close()
                     return redirect(url_for("admin"))
                 
+                # Critical check: prevent incomplete accounts from accessing the dashboard
+                cursor.execute("SELECT account_status FROM accounts WHERE account_id = %s", (account_id,))
+                status_row = cursor.fetchone()
+                if status_row and status_row[0] == 'Incomplete':
+                    session['pending_user_id'] = account_id
+                    session.pop('user_id', None)
+                    session.pop('user_name', None)
+                    con.close()
+                    return redirect(url_for("id_verification"))
+
                 session['user_role'] = 'resident'
                 con.close()
                 return redirect(url_for("dashboard"))
@@ -1937,6 +2200,28 @@ def lgu_analytics():
     """)
     recent_reports = cursor.fetchall()
 
+    # --- Random report sample (from the past week, or fallback to any random report) ---
+    cursor.execute("""
+        SELECT r.report_id, r.title, r.category, r.description, r.status, r.created_at,
+               a.first_name, a.last_name, l.locname
+        FROM reports r
+        JOIN accounts a ON r.account_id = a.account_id
+        LEFT JOIN location l ON r.location_id = l.location_id
+        WHERE r.created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        ORDER BY RAND() LIMIT 1
+    """)
+    sample_report = cursor.fetchone()
+    if not sample_report:
+        cursor.execute("""
+            SELECT r.report_id, r.title, r.category, r.description, r.status, r.created_at,
+                   a.first_name, a.last_name, l.locname
+            FROM reports r
+            JOIN accounts a ON r.account_id = a.account_id
+            LEFT JOIN location l ON r.location_id = l.location_id
+            ORDER BY RAND() LIMIT 1
+        """)
+        sample_report = cursor.fetchone()
+
     con.close()
 
     stats = {
@@ -1949,6 +2234,11 @@ def lgu_analytics():
         'total_comments': total_comments,
         'total_residents': total_residents,
     }
+
+    # Generate monthly volume summary and sample report insight via Ollama (llama3.2:3b)
+    monthly_summary, sample_summary, status_summary, location_summary = generate_monthly_analytics_summary(
+        monthly_labels, monthly_counts, monthly_resolved, sample_report, stats, top_locations
+    )
 
     return render_template(
         'lgu_analytics.html',
@@ -1966,7 +2256,13 @@ def lgu_analytics():
         top_reporters=top_reporters,
         oldest_pending=oldest_pending,
         recent_reports=recent_reports,
+        sample_report=sample_report,
+        monthly_summary=monthly_summary,
+        sample_summary=sample_summary,
+        status_summary=status_summary,
+        location_summary=location_summary
     )
+
 
 
 @app.route('/lgu_map')

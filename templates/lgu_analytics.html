@@ -233,6 +233,37 @@
         .toast.show{transform:translateX(0);opacity:1;}
         .toast i{color:var(--red);}
 
+        /* ── MODAL ── */
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; align-items:center; justify-content:center; opacity:0; visibility:hidden; transition:all .3s; backdrop-filter:blur(4px); }
+        .modal-overlay.open { opacity:1; visibility:visible; }
+        .modal-box { background:var(--card); border-radius:16px; width:90%; max-width:800px; max-height:85vh; display:flex; flex-direction:column; box-shadow:var(--sh-lg); transform:translateY(20px) scale(0.95); transition:all .3s cubic-bezier(0.16,1,0.3,1); overflow:hidden; }
+        .modal-overlay.open .modal-box { transform:translateY(0) scale(1); }
+        .modal-header { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:var(--card); z-index:20; }
+        .modal-title { font-size:16px; font-weight:800; color:var(--main); display:flex; align-items:center; gap:8px; }
+        .modal-close { font-size:20px; color:var(--muted); cursor:pointer; background:none; border:none; padding:4px; transition:color .2s; }
+        .modal-close:hover { color:var(--red); }
+        .modal-body { padding:0; overflow-y:auto; flex:1; }
+        .modal-loading { padding:60px; text-align:center; color:var(--muted); font-size:14px; font-weight:600; display:flex; flex-direction:column; align-items:center; gap:12px; }
+        .modal-loading i { font-size:28px; color:var(--red); }
+        .clickable-row { transition: background 0.2s; }
+        .clickable-row:hover { background: var(--hover-bg) !important; }
+
+        /* ── OLLAMA ANALYTICS SUMMARY BOX ── */
+        .asb-box{margin-top:16px;padding:14px 16px;border-radius:14px;background:var(--hover-bg);border:1px solid var(--border);display:flex;flex-direction:column;gap:10px;transition:all .2s;}
+        .asb-header{display:flex;align-items:center;justify-content:space-between;}
+        .asb-tag{font-size:11px;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:6px;}
+        .asb-model-pill{font-size:9.5px;font-weight:800;padding:2px 8px;border-radius:50px;background:var(--red-lt);color:var(--red);display:flex;align-items:center;gap:4px;border:1px solid var(--red-md);}
+        .asb-text{font-size:12.5px;line-height:1.6;color:var(--main);font-weight:500;}
+        .asb-sample-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--sh-sm);}
+        .asb-sample-head{display:flex;align-items:center;justify-content:space-between;}
+        .asb-sample-pill{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:5px;}
+        .asb-sample-title{font-size:12.5px;font-weight:700;color:var(--main);}
+        .asb-sample-meta{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--muted);margin-top:1px;}
+        .asb-sample-meta span{display:inline-flex;align-items:center;gap:4px;}
+        .asb-sample-text{font-size:11.5px;color:var(--muted);line-height:1.5;background:var(--search);padding:8px 10px;border-radius:8px;border-left:3px solid var(--red);margin-top:3px;}
+        .sp-denied{background:rgba(239,68,68,.12);color:#dc2626;}
+
+
         @media(max-width:1280px){.kpi-row{grid-template-columns:repeat(4,1fr);}.g2{grid-template-columns:1fr;}.g3{grid-template-columns:1fr 1fr;}}
         @media(max-width:900px){.g3,.g22,.g12{grid-template-columns:1fr;}.kpi-row{grid-template-columns:repeat(3,1fr);}}
         .mobile-topbar { display: none; }
@@ -463,6 +494,37 @@
                     <div style="height:220px;position:relative;">
                         <canvas id="trendChart"></canvas>
                     </div>
+
+                    <!-- AI Monthly Volume Summary & Sample Report Box -->
+                    <div class="asb-box">
+                        <div class="asb-header">
+                            <div class="asb-tag"><i class="fas fa-brain"></i> Monthly Trend Summary</div>
+                        </div>
+                        <p class="asb-text" id="asb-monthly-text">{{ monthly_summary }}</p>
+
+                        {% if sample_report %}
+                        <div class="asb-sample-card">
+                            <div class="asb-sample-head">
+                                {% set sample_st = sample_report.status|lower|replace(' ','') %}
+                                <span class="sp sp-{{ sample_st }}"><span class="sp-dot"></span>{{ sample_report.status }}</span>
+                            </div>
+                            <div class="asb-sample-title">{{ sample_report.title }}</div>
+                            <div class="asb-sample-meta">
+                                <span><i class="fas fa-map-marker-alt"></i> {{ sample_report.locname or 'Barangay Picaleon' }}</span>
+                                <span><i class="fas fa-tag"></i> {{ sample_report.category }}</span>
+                                {% if sample_report.created_at %}
+                                <span><i class="fas fa-clock"></i> {{ sample_report.created_at.strftime('%b %d, %Y') }}</span>
+                                {% endif %}
+                            </div>
+                            {% if sample_summary %}
+                            <p class="asb-sample-text" id="asb-sample-text"><i class="fas fa-quote-left" style="font-size:9px;opacity:0.5;margin-right:4px;"></i>{{ sample_summary }}</p>
+                            {% elif sample_report.description %}
+                            <p class="asb-sample-text" id="asb-sample-text"><i class="fas fa-quote-left" style="font-size:9px;opacity:0.5;margin-right:4px;"></i>{{ sample_report.description }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+
                     <!-- Day-of-week bar heatmap -->
                     <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:14px;">
                         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Submissions by Day of Week</div>
@@ -538,6 +600,13 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Status Summary Box -->
+                    <div class="asb-box" style="margin-top:16px;">
+                        <div class="asb-header">
+                            <div class="asb-tag"><i class="fas fa-chart-pie"></i> Status Summary Analysis</div>
+                        </div>
+                        <p class="asb-text" id="asb-status-text">{{ status_summary }}</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -586,6 +655,14 @@
                             <span class="loc-cnt">{{ loc.count }}</span>
                         </div>
                         {% endfor %}
+                    </div>
+                    
+                    <!-- Location Summary Box -->
+                    <div class="asb-box" style="margin-top:16px;">
+                        <div class="asb-header">
+                            <div class="asb-tag"><i class="fas fa-map-marked-alt"></i> Location Summary Analysis</div>
+                        </div>
+                        <p class="asb-text" id="asb-location-text">{{ location_summary }}</p>
                     </div>
                     {% else %}
                     <div class="empty"><i class="fas fa-map"></i><p>No location data yet</p></div>
@@ -718,6 +795,19 @@
     </div><!-- /body -->
 </main>
 
+<!-- Drill-down Modal -->
+<div class="modal-overlay" id="drilldown-modal" onclick="if(event.target===this) this.classList.remove('open')">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title"><i class="fas fa-list"></i> <span id="drilldown-title">Category Reports</span></div>
+            <button class="modal-close" onclick="document.getElementById('drilldown-modal').classList.remove('open')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="drilldown-body">
+            <!-- Content dynamically loaded -->
+        </div>
+    </div>
+</div>
+
 <div class="toast-c" id="toast-c"></div>
 
 <script>
@@ -806,6 +896,16 @@ new Chart(document.getElementById('catChart').getContext('2d'), {
         scales: {
             x: { grid: { color: gc() }, ticks: { color: tc(), font: { size: 10 }, stepSize: 1 }, beginAtZero: true },
             y: { grid: { display: false }, ticks: { color: tc(), font: { size: 11.5, weight: '700' } } }
+        },
+        onClick: (e, elements) => {
+            if (elements.length > 0) {
+                const index = elements[0].index;
+                const category = catNames[index];
+                openDrilldownModal(category);
+            }
+        },
+        onHover: (event, chartElement) => {
+            event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
         }
     }
 });
@@ -833,6 +933,116 @@ function toast(msg) {
     c.appendChild(t);
     requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 2800);
+}
+
+// ── BACKGROUND AI SUMMARY SYNC ──
+function pollAnalyticsSummary() {
+    fetch('/api/analytics_summary')
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                const mel = document.getElementById('asb-monthly-text');
+                if (mel && d.monthly_summary && mel.innerText !== d.monthly_summary) {
+                    mel.innerText = d.monthly_summary;
+                }
+                const sel = document.getElementById('asb-sample-text');
+                if (sel && d.sample_summary) {
+                    sel.innerHTML = `<i class="fas fa-quote-left" style="font-size:9px;opacity:0.5;margin-right:4px;"></i>${d.sample_summary}`;
+                }
+                const st_el = document.getElementById('asb-status-text');
+                if (st_el && d.status_summary && st_el.innerText !== d.status_summary) {
+                    st_el.innerText = d.status_summary;
+                }
+                const loc_el = document.getElementById('asb-location-text');
+                if (loc_el && d.location_summary && loc_el.innerText !== d.location_summary) {
+                    loc_el.innerText = d.location_summary;
+                }
+
+                if (d.is_generating) {
+                    // add a tiny loading indicator to the headers if generating
+                    const tags = document.querySelectorAll('.asb-tag');
+                    tags.forEach(tag => {
+                        if (!tag.innerHTML.includes('fa-spinner')) {
+                            tag.innerHTML += ' <i class="fas fa-spinner fa-spin" style="font-size:10px; margin-left:6px; opacity:0.6;"></i>';
+                        }
+                    });
+                    setTimeout(pollAnalyticsSummary, 3000);
+                } else {
+                    // remove spinner when done
+                    const tags = document.querySelectorAll('.asb-tag');
+                    tags.forEach(tag => {
+                        tag.innerHTML = tag.innerHTML.replace(/<i class="fas fa-spinner fa-spin".*?<\/i>/, '');
+                    });
+                }
+            }
+        })
+        .catch(() => {
+            setTimeout(pollAnalyticsSummary, 5000); // retry on error
+        });
+}
+
+// Start polling
+setTimeout(pollAnalyticsSummary, 2000);
+
+// ── DRILLDOWN MODAL ──
+function openDrilldownModal(category) {
+    const modal = document.getElementById('drilldown-modal');
+    const title = document.getElementById('drilldown-title');
+    const body = document.getElementById('drilldown-body');
+    
+    title.innerHTML = `Reports: <b>${category}</b>`;
+    body.innerHTML = `<div class="modal-loading"><i class="fas fa-spinner fa-spin"></i> Fetching reports...</div>`;
+    modal.classList.add('open');
+    
+    fetch(`/api/reports?category=${encodeURIComponent(category)}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && data.reports.length > 0) {
+                let html = `
+                <table class="tbl" style="margin:0;">
+                    <thead style="position:sticky; top:0; z-index:10;">
+                        <tr>
+                            <th>Report</th>
+                            <th>Location</th>
+                            <th>By</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                `;
+                data.reports.forEach(r => {
+                    const st = (r.status || 'pending').toLowerCase().replace(' ', '');
+                    const initial = r.first_name ? r.first_name.charAt(0).toUpperCase() : '?';
+                    const name = `${r.first_name} ${r.last_name}`.trim();
+                    html += `
+                        <tr class="clickable-row" style="cursor:pointer;" onclick="window.location.href='/lgu#post-${r.report_id}'">
+                            <td><div class="td-title">${r.title}</div></td>
+                            <td class="td-muted">${r.locname}</td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:7px;">
+                                    <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
+                                        ${r.profile_photo ? `<img src="/static/${r.profile_photo}" style="width:100%;height:100%;object-fit:cover;">` : initial}
+                                    </div>
+                                    <span class="td-muted">${name}</span>
+                                </div>
+                            </td>
+                            <td class="td-muted">${r.created_at_str}</td>
+                            <td>
+                                <span class="sp sp-${st}"><span class="sp-dot"></span>${r.status}</span>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+                body.innerHTML = html;
+            } else {
+                body.innerHTML = `<div class="empty" style="padding:60px;"><i class="fas fa-inbox"></i><p>No reports found for ${category}</p></div>`;
+            }
+        })
+        .catch(() => {
+            body.innerHTML = `<div class="empty" style="padding:60px; color:#dc2626;"><i class="fas fa-exclamation-triangle"></i><p>Failed to load reports</p></div>`;
+        });
 }
 </script>
 </body>

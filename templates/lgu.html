@@ -601,6 +601,7 @@
 
                     {% for c in reps %}
                     <div class="concern-post"
+                         id="post-{{ c.report_id }}"
                          data-category="{{ c.category|lower|replace(' ', '')|replace('/', '') }}"
                          data-title="{{ c.title|lower }}"
                          data-location="{{ c.location|lower }}">
