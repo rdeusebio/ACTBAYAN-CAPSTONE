@@ -123,10 +123,11 @@ _ANALYTICS_CACHE_V2 = {
     'sample_summary': None,
     'status_summary': None,
     'location_summary': None,
+    'category_summary': None,
     'is_generating': False
 }
 
-def _run_ollama_in_background(monthly_labels, monthly_counts, monthly_resolved, sample_report, fallback_summary, fallback_sample_summary, fallback_status_summary, status_counts, top_locations, fallback_location_summary):
+def _run_ollama_in_background(monthly_labels, monthly_counts, monthly_resolved, sample_report, fallback_summary, fallback_sample_summary, fallback_status_summary, status_counts, top_locations, fallback_location_summary, category_data, fallback_category_summary):
     global _ANALYTICS_CACHE_V2
     try:
         sample_info = ""
@@ -160,6 +161,11 @@ def _run_ollama_in_background(monthly_labels, monthly_counts, monthly_resolved, 
             loc_list = ", ".join([f"{loc.get('locname', 'Unknown')} ({loc.get('count', 0)})" for loc in top_locations[:5]])
             loc_info = f"\nTop Locations:\n- {loc_list}\n"
 
+        cat_info = ""
+        if category_data:
+            cat_list = ", ".join([f"{c['name']} ({c['count']})" for c in category_data[:5]])
+            cat_info = f"\nTop Categories:\n- {cat_list}\n"
+
         prompt = (
             f"You are a local government analytics assistant for Barangay Picaleon (ActBayan system).\n"
             f"Analyze this 6-month report volume data:\n"
@@ -171,17 +177,20 @@ def _run_ollama_in_background(monthly_labels, monthly_counts, monthly_resolved, 
             f"{status_info}"
             f"{sample_info}\n"
             f"{loc_info}"
+            f"{cat_info}"
             f"Instructions:\n"
             f"1. Write a concise 1-2 sentence analytical summary of the monthly volume trend, including peak periods, trajectory, and resolution performance.\n"
             f"2. Write a concise 1-2 sentence analytical summary of the current status breakdown (Pending, In Progress, Resolved). Elaborate on what these numbers indicate about the LGU team's efficiency, current workload, and areas that may need immediate attention.\n"
             f"3. If a sample report is provided, write 1 sentence summarizing what that sample concern illustrates.\n"
-            f"4. If location data is provided, write a concise 1-2 sentence analytical summary of the top reported locations. Elaborate on what these geographic hotspots might indicate about community needs or infrastructure issues.\n"
+            f"4. If location data is provided, write a detailed 3-4 sentence analytical summary of the top reported locations. CRITICAL: When mentioning locations, ONLY mention the general Barangay name (extract it from the address if needed). DO NOT include street names, subdivisions, or house numbers. Elaborate deeply on what these barangay hotspots might indicate about community needs, potential underlying infrastructure gaps, and why the LGU should prioritize these specific areas.\n"
+            f"5. If category data is provided, write a concise 1-2 sentence analytical summary of the top reported concern categories. Elaborate on what these categories say about the town's current challenges.\n"
             f"CRITICAL: DO NOT use markdown formatting like **bolding** or bullet points in the output keys. Keep the tone professional, objective, highly informative, and descriptive.\n"
             f"Output format:\n"
             f"TREND_SUMMARY: <1-2 sentence summary>\n"
             f"STATUS_SUMMARY: <1-2 sentence summary>\n"
             f"SAMPLE_SUMMARY: <1-sentence summary>\n"
-            f"LOCATION_SUMMARY: <1-2 sentence summary>"
+            f"LOCATION_SUMMARY: <1-2 sentence summary>\n"
+            f"CATEGORY_SUMMARY: <1-2 sentence summary>"
         )
 
         response = chat(
@@ -201,6 +210,7 @@ def _run_ollama_in_background(monthly_labels, monthly_counts, monthly_resolved, 
             status_part = fallback_status_summary
             sample_part = fallback_sample_summary
             location_part = fallback_location_summary
+            category_part = fallback_category_summary
             
             if 'TREND_SUMMARY:' in content:
                 # Basic parsing logic relying on expected order
@@ -213,7 +223,10 @@ def _run_ollama_in_background(monthly_labels, monthly_counts, monthly_resolved, 
                         loc_parts = sub_parts[1].split('LOCATION_SUMMARY:')
                         sample_part = loc_parts[0].strip()
                         if len(loc_parts) > 1:
-                            location_part = loc_parts[1].strip()
+                            cat_parts = loc_parts[1].split('CATEGORY_SUMMARY:')
+                            location_part = cat_parts[0].strip()
+                            if len(cat_parts) > 1:
+                                category_part = cat_parts[1].strip()
             else:
                 trend_part = content
 
@@ -221,6 +234,7 @@ def _run_ollama_in_background(monthly_labels, monthly_counts, monthly_resolved, 
             _ANALYTICS_CACHE_V2['status_summary'] = status_part or fallback_status_summary
             _ANALYTICS_CACHE_V2['sample_summary'] = sample_part or fallback_sample_summary
             _ANALYTICS_CACHE_V2['location_summary'] = location_part or fallback_location_summary
+            _ANALYTICS_CACHE_V2['category_summary'] = category_part or fallback_category_summary
             _ANALYTICS_CACHE_V2['time'] = time.time()
             print("[Ollama Analytics] Successfully generated and cached AI summary.")
     except Exception as e:
@@ -228,7 +242,7 @@ def _run_ollama_in_background(monthly_labels, monthly_counts, monthly_resolved, 
     finally:
         _ANALYTICS_CACHE_V2['is_generating'] = False
 
-def generate_monthly_analytics_summary(monthly_labels, monthly_counts, monthly_resolved, sample_report=None, status_counts=None, top_locations=None):
+def generate_monthly_analytics_summary(monthly_labels, monthly_counts, monthly_resolved, sample_report=None, status_counts=None, top_locations=None, category_data=None):
     """
     Returns cached summary immediately if valid (valid for 15 minutes).
     If cache is empty or expired, returns instant calculated statistical summary immediately
@@ -239,7 +253,7 @@ def generate_monthly_analytics_summary(monthly_labels, monthly_counts, monthly_r
 
     # If valid cache exists (within 15 minutes), return immediately
     if _ANALYTICS_CACHE_V2.get('monthly_summary') and (now - _ANALYTICS_CACHE_V2.get('time', 0) < 900):
-        return _ANALYTICS_CACHE_V2['monthly_summary'], _ANALYTICS_CACHE_V2.get('sample_summary', ''), _ANALYTICS_CACHE_V2.get('status_summary', ''), _ANALYTICS_CACHE_V2.get('location_summary', '')
+        return _ANALYTICS_CACHE_V2['monthly_summary'], _ANALYTICS_CACHE_V2.get('sample_summary', ''), _ANALYTICS_CACHE_V2.get('status_summary', ''), _ANALYTICS_CACHE_V2.get('location_summary', ''), _ANALYTICS_CACHE_V2.get('category_summary', '')
 
     total_volume = sum(monthly_counts) if monthly_counts else 0
     total_resolved = sum(monthly_resolved) if monthly_resolved else 0
@@ -286,12 +300,17 @@ def generate_monthly_analytics_summary(monthly_labels, monthly_counts, monthly_r
         top_loc = top_locations[0]
         fallback_location_summary = f"The area with the highest volume of concerns is {top_loc.get('locname')} with {top_loc.get('count')} reports."
 
+    fallback_category_summary = ""
+    if category_data:
+        top_cat = category_data[0]
+        fallback_category_summary = f"The most reported concern category is {top_cat['name']} with {top_cat['count']} reports."
+
     # Trigger background thread for Ollama if not already generating
     if not _ANALYTICS_CACHE_V2.get('is_generating', False):
         _ANALYTICS_CACHE_V2['is_generating'] = True
         t = threading.Thread(
             target=_run_ollama_in_background,
-            args=(monthly_labels, monthly_counts, monthly_resolved, sample_report, fallback_summary, fallback_sample_summary, fallback_status_summary, status_counts, top_locations, fallback_location_summary),
+            args=(monthly_labels, monthly_counts, monthly_resolved, sample_report, fallback_summary, fallback_sample_summary, fallback_status_summary, status_counts, top_locations, fallback_location_summary, category_data, fallback_category_summary),
             daemon=True
         )
         t.start()
@@ -302,9 +321,10 @@ def generate_monthly_analytics_summary(monthly_labels, monthly_counts, monthly_r
         _ANALYTICS_CACHE_V2['sample_summary'] = fallback_sample_summary
         _ANALYTICS_CACHE_V2['status_summary'] = fallback_status_summary
         _ANALYTICS_CACHE_V2['location_summary'] = fallback_location_summary
+        _ANALYTICS_CACHE_V2['category_summary'] = fallback_category_summary
         _ANALYTICS_CACHE_V2['time'] = now
 
-    return _ANALYTICS_CACHE_V2['monthly_summary'], _ANALYTICS_CACHE_V2.get('sample_summary', ''), _ANALYTICS_CACHE_V2.get('status_summary', ''), _ANALYTICS_CACHE_V2.get('location_summary', '')
+    return _ANALYTICS_CACHE_V2['monthly_summary'], _ANALYTICS_CACHE_V2.get('sample_summary', ''), _ANALYTICS_CACHE_V2.get('status_summary', ''), _ANALYTICS_CACHE_V2.get('location_summary', ''), _ANALYTICS_CACHE_V2.get('category_summary', '')
 
 
 # ===== API: Get Analytics Summary =====
@@ -318,6 +338,7 @@ def api_analytics_summary():
         'sample_summary': _ANALYTICS_CACHE_V2.get('sample_summary', ''),
         'status_summary': _ANALYTICS_CACHE_V2.get('status_summary', ''),
         'location_summary': _ANALYTICS_CACHE_V2.get('location_summary', ''),
+        'category_summary': _ANALYTICS_CACHE_V2.get('category_summary', ''),
         'is_generating': _ANALYTICS_CACHE_V2.get('is_generating', False)
     }
 
@@ -2129,6 +2150,17 @@ def lgu_analytics():
     dow_labels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
     dow_counts = [dow_map.get(i,0) for i in range(1,8)]
 
+    # --- Week-of-month distribution (current month) ---
+    cursor.execute("""
+        SELECT CEIL(DAY(created_at) / 7) AS week_num, COUNT(*) AS cnt
+        FROM reports 
+        WHERE YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE())
+        GROUP BY week_num ORDER BY week_num
+    """)
+    wom_map = {r['week_num']: r['cnt'] for r in cursor.fetchall() if r['week_num']}
+    wom_labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5']
+    wom_counts = [wom_map.get(i, 0) for i in range(1, 6)]
+
     # --- Category breakdown ---
     cat_colors = {
         'road':       '#fbbf24',
@@ -2236,8 +2268,8 @@ def lgu_analytics():
     }
 
     # Generate monthly volume summary and sample report insight via Ollama (llama3.2:3b)
-    monthly_summary, sample_summary, status_summary, location_summary = generate_monthly_analytics_summary(
-        monthly_labels, monthly_counts, monthly_resolved, sample_report, stats, top_locations
+    monthly_summary, sample_summary, status_summary, location_summary, category_summary = generate_monthly_analytics_summary(
+        monthly_labels, monthly_counts, monthly_resolved, sample_report, stats, top_locations, category_data
     )
 
     return render_template(
@@ -2249,6 +2281,8 @@ def lgu_analytics():
         monthly_resolved=monthly_resolved,
         dow_labels=dow_labels,
         dow_counts=dow_counts,
+        wom_labels=wom_labels,
+        wom_counts=wom_counts,
         category_data=category_data,
         category_names=category_names,
         category_counts=category_counts,
@@ -2260,7 +2294,8 @@ def lgu_analytics():
         monthly_summary=monthly_summary,
         sample_summary=sample_summary,
         status_summary=status_summary,
-        location_summary=location_summary
+        location_summary=location_summary,
+        category_summary=category_summary
     )
 
 

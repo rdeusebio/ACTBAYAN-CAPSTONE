@@ -1101,9 +1101,9 @@
             if (gisMap || !document.getElementById('real-gis-map')) return;
             gisMap = L.map('real-gis-map', { zoomControl: false }).setView([15.6015, 121.0503], 13);
 
-            // Sleek CartoDB Voyager Light Tiles
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: '© OpenStreetMap • CartoDB • ACTBAYAN Capstone',
+            // Standard OpenStreetMap Tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors • ACTBAYAN Capstone',
                 maxZoom: 19
             }).addTo(gisMap);
 
