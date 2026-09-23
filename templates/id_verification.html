@@ -3,283 +3,695 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ActBayan — ID Verification</title>
+    <title>ActBayan — Document Submission</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .verification-container {
-            max-width: 800px;
-            margin: 50px auto;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            display: flex;
-            overflow: hidden;
-        }
-        .v-left {
-            flex: 1;
-            background: linear-gradient(135deg, var(--red) 0%, #b30000 100%);
-            color: #fff;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .v-left h2 { font-size: 28px; margin-bottom: 15px; }
-        .v-left p { opacity: 0.9; line-height: 1.6; margin-bottom: 30px; }
-        
-        .accepted-ids {
-            list-style: none;
-            padding: 0; margin: 0;
-        }
-        .accepted-ids li {
-            background: rgba(255,255,255,0.1);
-            margin-bottom: 10px;
-            padding: 12px 15px;
-            border-radius: 8px;
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
             display: flex;
             align-items: center;
-            gap: 15px;
+            justify-content: center;
+            padding: 40px 16px;
+            position: relative;
+            overflow-x: hidden;
+            background-image: none; /* cancel style.css body bg; body::before still shows mamerta.png */
+        }
+
+        /* ---- Dark tint overlay (separate div, does NOT touch body::before) ---- */
+        .verif-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(
+                145deg,
+                rgba(60,0,0,0.78) 0%,
+                rgba(139,0,0,0.60) 45%,
+                rgba(20,5,5,0.80) 100%
+            );
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .verif-wrapper {
+            width: 100%;
+            max-width: 780px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ============================
+           PAGE HEADER
+        ============================= */
+        .verif-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .verif-header .step-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, rgba(139,0,0,0.75) 0%, rgba(90,0,0,0.85) 100%);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 9px 22px;
+            border-radius: 50px;
+            margin-bottom: 18px;
+            letter-spacing: 1.2px;
+            border: 1px solid rgba(255,120,120,0.35);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            text-transform: uppercase;
+            box-shadow:
+                0 4px 20px rgba(139,0,0,0.45),
+                0 0 0 1px rgba(255,255,255,0.08) inset,
+                0 1px 0 rgba(255,180,180,0.15) inset;
+            position: relative;
+            overflow: hidden;
+            animation: badgePulse 3s ease-in-out infinite;
+        }
+        /* shimmer sweep on badge */
+        .verif-header .step-badge::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.18) 50%, transparent 65%);
+            transform: translateX(-100%);
+            animation: badgeShimmer 3s ease-in-out infinite;
+        }
+        @keyframes badgeShimmer {
+            0%, 60% { transform: translateX(-100%); }
+            80%      { transform: translateX(100%); }
+            100%     { transform: translateX(100%); }
+        }
+        @keyframes badgePulse {
+            0%, 100% { box-shadow: 0 4px 20px rgba(139,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.08) inset; }
+            50%       { box-shadow: 0 6px 28px rgba(139,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.08) inset; }
+        }
+        .verif-header .step-badge i {
+            font-size: 13px;
+            color: #fca5a5;
+            filter: drop-shadow(0 0 4px rgba(255,150,150,0.6));
+            flex-shrink: 0;
+        }
+        /* Dot separator */
+        .verif-header .step-badge .step-num {
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .verif-header h1 {
+            font-size: 30px;
+            font-weight: 900;
+            color: #fff;
+            margin: 0 0 10px;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        }
+        .verif-header p {
+            color: rgba(255,255,255,0.72);
+            font-size: 14px;
+            margin: 0;
             font-weight: 500;
         }
-        .accepted-ids i { font-size: 20px; }
-        
-        .v-right {
-            flex: 1.2;
-            padding: 40px;
-            background: #fdfdfd;
+
+        /* ============================
+           DOCUMENT CARDS  (glassmorphism)
+        ============================= */
+        .doc-card {
+            background: rgba(255,255,255,0.96);
+            border-radius: 22px;
+            box-shadow:
+                0 8px 32px rgba(0,0,0,0.18),
+                0 1px 0 rgba(255,255,255,0.6) inset;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.5);
+            transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease;
+            backdrop-filter: blur(16px);
         }
-        
+        .doc-card:hover {
+            transform: translateY(-4px);
+            box-shadow:
+                0 20px 50px rgba(0,0,0,0.22),
+                0 1px 0 rgba(255,255,255,0.6) inset;
+        }
+
+        .doc-card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 20px 26px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            background: linear-gradient(135deg, rgba(139,0,0,0.03) 0%, transparent 100%);
+        }
+
+        .doc-card-header .card-icon {
+            width: 46px; height: 46px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 19px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .card-icon.mandatory {
+            background: linear-gradient(135deg, rgba(139,0,0,0.15), rgba(139,0,0,0.08));
+            color: #8b0000;
+        }
+        .card-icon.optional {
+            background: linear-gradient(135deg, rgba(139,0,0,0.1), rgba(139,0,0,0.05));
+            color: #8b0000;
+        }
+
+        .doc-card-header .card-title {
+            font-size: 15.5px;
+            font-weight: 800;
+            color: #111827;
+        }
+        .doc-card-header .card-desc {
+            font-size: 12.5px;
+            color: #6b7280;
+            margin-top: 3px;
+        }
+
+        .card-badge {
+            margin-left: auto;
+            padding: 5px 14px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+        .card-badge.required {
+            background: linear-gradient(135deg, rgba(139,0,0,0.12), rgba(139,0,0,0.06));
+            color: #8b0000;
+            border: 1px solid rgba(139,0,0,0.2);
+            box-shadow: 0 2px 8px rgba(139,0,0,0.12);
+        }
+        .card-badge.optional-badge {
+            background: rgba(107,114,128,0.1);
+            color: #6b7280;
+        }
+
+        .doc-card-body { padding: 22px 26px; }
+
+        /* ============================
+           UPLOAD AREA
+        ============================= */
         .upload-area {
             display: block;
             width: 100%;
-            box-sizing: border-box;
-            border: 2px dashed #ccc;
-            border-radius: 12px;
-            padding: 40px 30px;
+            border: 2.5px dashed #e2e8f0;
+            border-radius: 16px;
+            padding: 36px 24px;
             text-align: center;
-            background: #fdfdfd;
+            background: linear-gradient(135deg, #fafafa 0%, #f8f9ff 100%);
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
             position: relative;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);
+            overflow: hidden;
         }
-        .upload-area:hover { 
-            border-color: #d32f2f; 
-            background: #fff5f5; 
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(211,47,47,0.1);
+        /* shimmer sweep */
+        .upload-area::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.7) 50%, transparent 60%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        .upload-area:hover::after { transform: translateX(100%); }
+
+        .upload-area:hover {
+            border-color: #8b0000;
+            border-style: solid;
+            background: linear-gradient(135deg, rgba(139,0,0,0.04) 0%, rgba(139,0,0,0.02) 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(139,0,0,0.12);
         }
         .upload-area input { display: none; }
-        .upload-icon { font-size: 40px; color: #ccc; margin-bottom: 15px; transition: 0.3s; }
-        .upload-area:hover .upload-icon { color: #d32f2f; transform: scale(1.1); }
-        .upload-text { font-size: 16px; font-weight: 600; color: #555; }
-        .upload-subtext { font-size: 13px; color: #999; margin-top: 5px; }
-        
-        .preview-container {
-            display: none;
-            margin-top: 20px;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #eee;
-            position: relative;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        .preview-container img {
-            width: 100%;
+
+        .upload-icon {
+            font-size: 40px;
+            color: #d1d5db;
+            margin-bottom: 12px;
+            transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
             display: block;
         }
-        .remove-btn {
-            position: absolute;
-            top: 10px; right: 10px;
-            background: rgba(255,0,0,0.8);
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            width: 30px; height: 30px;
-            cursor: pointer;
-            display: flex; justify-content: center; align-items: center;
+        .upload-area:hover .upload-icon {
+            color: #8b0000;
+            transform: scale(1.2) translateY(-3px);
+            filter: drop-shadow(0 4px 8px rgba(139,0,0,0.3));
         }
-        
-        .submit-btn { 
-            margin-top: 30px; 
-            width: 100%; 
-            padding: 15px; 
-            background: linear-gradient(135deg, #d32f2f 0%, #b30000 100%); 
-            color: white; 
-            border: none; 
-            border-radius: 10px; 
-            font-size: 16px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: 0.3s; 
-            box-shadow: 0 4px 15px rgba(211,47,47,0.3);
+
+        .upload-text {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: #374151;
+        }
+        .upload-area:hover .upload-text { color: #8b0000; }
+
+        .upload-subtext {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        /* ============================
+           PREVIEW
+        ============================= */
+        .preview-container {
+            display: none;
+            margin-top: 16px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 2px solid rgba(139,0,0,0.2);
+            position: relative;
+            box-shadow: 0 6px 20px rgba(139,0,0,0.1);
+            animation: fadeInUp 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .preview-container img {
+            width: 100%; display: block;
+            max-height: 220px; object-fit: cover;
+        }
+        .remove-btn {
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(220,38,38,0.9); color: #fff;
+            border: none; border-radius: 50%;
+            width: 32px; height: 32px; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 13px; transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .remove-btn:hover {
+            background: #dc2626;
+            transform: scale(1.1) rotate(90deg);
+        }
+        .pdf-indicator {
+            padding: 22px;
+            text-align: center;
+            background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+            font-weight: 700;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        /* ============================
+           DROPDOWN
+        ============================= */
+        .id-type-select-wrap {
+            display: none;
+            margin-bottom: 16px;
+        }
+        .id-type-select-wrap label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #374151;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .id-type-select-wrap select {
+            width: 100%;
+            padding: 13px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #374151;
+            background: #fff;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 44px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+        .id-type-select-wrap select:focus {
+            border-color: #8b0000;
+            box-shadow: 0 0 0 3px rgba(139,0,0,0.1);
+        }
+
+        /* ============================
+           SUBMIT SECTION
+        ============================= */
+        .submit-section { margin-top: 8px; }
+
+        .submit-btn {
+            width: 100%;
+            padding: 17px;
+            background: linear-gradient(135deg, #8b0000 0%, #5a0000 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 15.5px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            box-shadow: 0 6px 24px rgba(139,0,0,0.50);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+        /* pulse glow ring when enabled */
+        .submit-btn:not(:disabled)::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 19px;
+            background: linear-gradient(135deg, #b91c1c, #6b0000, #b91c1c);
+            z-index: -1;
+            animation: pulseGlow 2s ease-in-out infinite;
+            opacity: 0.5;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); opacity: 0.4; }
+            50%       { transform: scale(1.02); opacity: 0.7; }
         }
         .submit-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(211,47,47,0.4);
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 12px 32px rgba(220,38,38,0.55);
+        }
+        .submit-btn:active:not(:disabled) {
+            transform: translateY(0) scale(0.99);
         }
         .submit-btn:disabled {
-            background: #ccc;
-            box-shadow: none;
+            background: linear-gradient(135deg, #8b0000 0%, #5a0000 100%);
+            box-shadow: 0 4px 12px rgba(139,0,0,0.2);
             cursor: not-allowed;
             transform: none;
+            opacity: 0.55;
         }
-        
-        @media (max-width: 768px) {
-            .verification-container { flex-direction: column; margin: 20px; }
+        .submit-btn:disabled::before { display: none; }
+
+        .submit-hint {
+            text-align: center;
+            font-size: 12.5px;
+            color: rgba(255,255,255,0.75);
+            margin-top: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 20px;
+            transition: all 0.3s;
+        }
+
+        /* ============================
+           INFO NOTE
+        ============================= */
+        .info-note {
+            display: flex; align-items: flex-start; gap: 10px;
+            background: rgba(59,130,246,0.06);
+            border: 1px solid rgba(59,130,246,0.18);
+            border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;
+            font-size: 12.5px; color: #374151; font-weight: 500; line-height: 1.5;
+        }
+        .info-note i { color: #3b82f6; margin-top: 1px; flex-shrink: 0; }
+
+        /* ============================
+           RESPONSIVE
+        ============================= */
+        @media (max-width: 600px) {
+            body { padding: 20px 12px; }
+            .verif-header h1 { font-size: 22px; }
+            .doc-card-header { padding: 16px 18px; }
+            .doc-card-body { padding: 18px; }
+            .submit-btn { font-size: 14px; padding: 15px; }
         }
     </style>
 </head>
-<body style="background: var(--bg-body); display: flex; align-items: center; min-height: 100vh;">
+<body>
+<div class="verif-overlay"></div>
 
-    <div class="verification-container">
-        <div class="v-left">
-            <i class="fas fa-shield-alt" style="font-size: 48px; margin-bottom: 20px;"></i>
-            <h2>Identity Verification</h2>
-            <p>To keep the ActBayan community secure and authentic, we require proof of identity before activating your account. Please upload a clear photo or scanned copy of one of the following:</p>
-            
-            <ul class="accepted-ids">
-                <li><i class="fas fa-id-card"></i> Philippine National ID (PhilSys)</li>
-                <li><i class="fas fa-passport"></i> Valid Passport</li>
-                <li><i class="fas fa-car"></i> Driver's License</li>
-                <li><i class="fas fa-file-signature"></i> Voter's ID / Certification</li>
-                <li><i class="fas fa-home"></i> Barangay Indigency / Clearance</li>
-            </ul>
+    <div class="verif-wrapper">
+
+        <!-- Page Header -->
+        <div class="verif-header">
+            <div class="step-badge"><i class="fas fa-shield-alt"></i><span class="step-num">3 of 3</span> Document Submission</div>
+            <h1>Submit Your Verification Documents</h1>
+            <p>Your documents will be reviewed by the Barangay LGU before your account is activated.</p>
         </div>
-        
-        <div class="v-right">
-            <h3 style="margin-top: 0; color: var(--text-dark); margin-bottom: 5px;">Upload Your Document</h3>
-            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">Ensure all text is readable and the edges of the card are visible.</p>
-            
-            <form action="/id_verification" method="POST" enctype="multipart/form-data">
-                <!-- Keep user_id hidden to link to their pending account -->
-                <input type="hidden" name="user_id" value="{{ user_id }}">
-                
-                <label class="upload-area" id="upload-label">
-                    <input type="file" name="id_proof" id="id-proof" accept="image/*,application/pdf" onclick="if(!this.dataset.prompting){ event.preventDefault(); showCameraGalleryPrompt(this); }" required onchange="handleFile(this)">
-                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                    <div class="upload-text">Click to browse or drag file here</div>
-                    <div class="upload-subtext">Supports JPG, PNG, PDF (Max 5MB)</div>
-                </label>
-                
-                <div class="preview-container" id="preview-box">
-                    <button type="button" class="remove-btn" onclick="removeFile()"><i class="fas fa-times"></i></button>
-                    <img id="image-preview" src="">
-                    <!-- We can also add an iframe for PDF preview if needed, but keeping it simple for images -->
-                    <div id="pdf-preview" style="display:none; padding: 20px; text-align:center; background:#eee; font-weight:600; color:#555;">
-                        <i class="fas fa-file-pdf" style="font-size: 30px; color:#d32f2f; margin-bottom:10px;"></i><br>
-                        PDF Selected
+
+        <form action="/id_verification" method="POST" enctype="multipart/form-data" id="verif-form">
+            <input type="hidden" name="user_id" value="{{ user_id }}">
+            <input type="hidden" name="id_type" id="hidden-doc-type" value="">
+
+            <!-- ============================
+                 SECTION 1 — REQUIRED ID
+            ============================= -->
+            <div class="doc-card">
+                <div class="doc-card-header">
+                    <div class="card-icon mandatory"><i class="fas fa-id-card"></i></div>
+                    <div>
+                        <div class="card-title">Valid Government ID</div>
+                        <div class="card-desc">Select your ID type then upload a clear photo or scan</div>
+                    </div>
+                    <span class="card-badge required"><i class="fas fa-asterisk" style="font-size:8px;margin-right:4px;"></i>Required</span>
+                </div>
+                <div class="doc-card-body">
+
+                    <!-- Dropdown to pick ID type -->
+                    <div class="id-type-select-wrap" style="display:block; margin-bottom:14px;">
+                        <label for="id-type-select"><i class="fas fa-list-ul" style="color:#dc2626;margin-right:5px;"></i>Select ID / Document Type <span style="color:#dc2626;font-weight:700;">*</span></label>
+                        <select id="id-type-select" onchange="onDocTypeChange(this.value)" required>
+                            <option value="">— Choose document type —</option>
+                            <option value="Philippine National ID (PhilSys)">🪪 Philippine National ID (PhilSys)</option>
+                            <option value="Valid Passport">🛂 Valid Passport</option>
+                            <option value="Driver's License">🚗 Driver's License</option>
+                            <option value="Voter's ID / Certification">🗳️ Voter's ID / Certification</option>
+                            <option value="SSS ID">💳 SSS ID</option>
+                            <option value="PhilHealth ID">🏥 PhilHealth ID</option>
+                            <option value="Pag-IBIG ID">🏠 Pag-IBIG ID</option>
+                            <option value="TIN ID">📋 TIN ID</option>
+                        </select>
+                    </div>
+
+                    <!-- Upload area (shown after type is selected) -->
+                    <div id="id-upload-wrap" style="display:none;">
+                        <label class="upload-area" id="id-label">
+                            <input type="file" name="id_proof" id="id-proof" accept="image/*,application/pdf" onchange="handleFile(this,'id')" onclick="if(!this.dataset.prompting){ event.preventDefault(); showCameraGalleryPrompt(this); }">
+                            <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                            <div class="upload-text" id="id-upload-text">Upload your selected ID</div>
+                            <div class="upload-subtext">JPG, PNG, or PDF — Max 5MB</div>
+                        </label>
+                        <div class="preview-container" id="id-preview-box">
+                            <button type="button" class="remove-btn" onclick="removeFile('id')"><i class="fas fa-times"></i></button>
+                            <img id="id-img-preview" src="">
+                            <div id="id-pdf-indicator" class="pdf-indicator" style="display:none;">
+                                <i class="fas fa-file-pdf" style="font-size:28px;color:#d32f2f;margin-bottom:6px;display:block;"></i>
+                                PDF document selected
+                            </div>
+                        </div>
+                    </div>
+                   <!-- ============================
+                 SECTION 2 — REQUIRED SELFIE
+            ============================= -->
+            <div class="doc-card">
+                <div class="doc-card-header">
+                    <div class="card-icon mandatory"><i class="fas fa-user-circle"></i></div>
+                    <div>
+                        <div class="card-title">Photo Holding the ID</div>
+                        <div class="card-desc">Upload a clear selfie holding your selected ID</div>
+                    </div>
+                    <span class="card-badge required"><i class="fas fa-asterisk" style="font-size:8px;margin-right:4px;"></i>Required</span>
+                </div>
+                <div class="doc-card-body">
+                    <label class="upload-area" id="selfie-label">
+                        <input type="file" name="selfie" id="selfie-proof" accept="image/*" required onchange="handleFile(this,'selfie')" onclick="if(!this.dataset.prompting){ event.preventDefault(); showCameraGalleryPrompt(this); }">
+                        <div class="upload-icon"><i class="fas fa-camera"></i></div>
+                        <div class="upload-text">Click to upload Selfie with ID</div>
+                        <div class="upload-subtext">JPG or PNG — Max 5MB</div>
+                    </label>
+                    <div class="preview-container" id="selfie-preview-box">
+                        <button type="button" class="remove-btn" onclick="removeFile('selfie')"><i class="fas fa-times"></i></button>
+                        <img id="selfie-img-preview" src="">
+                        <div id="selfie-pdf-indicator" class="pdf-indicator" style="display:none;">
+                        </div>
                     </div>
                 </div>
+            </div>
+                    </div>
 
+                </div>
+            </div>
+
+            <!-- ============================
+                 SUBMIT BUTTON
+            ============================= -->
+            <div class="submit-section">
                 <button type="submit" class="submit-btn" id="submit-btn" disabled>
-                    Submit Verification <i class="fas fa-check-circle"></i>
+                    <i class="fas fa-paper-plane"></i> Submit Documents for Verification
                 </button>
-            </form>
-        </div>
+                <div class="submit-hint" id="submit-hint">
+                    <i class="fas fa-asterisk" style="font-size:9px;"></i>
+                    Upload both documents to enable submission
+                </div>
+            </div>
+
+        </form>
     </div>
 
 <script>
-    function handleFile(input) {
+    let idUploaded = false;
+    let selfieUploaded = false;
+
+    // ---- Handle file selection ----
+    function handleFile(input, zone) {
         const file = input.files[0];
         if (!file) return;
-        
-        const previewBox = document.getElementById('preview-box');
-        const imgPreview = document.getElementById('image-preview');
-        const pdfPreview = document.getElementById('pdf-preview');
-        const uploadLabel = document.getElementById('upload-label');
-        const submitBtn = document.getElementById('submit-btn');
-        
-        uploadLabel.style.display = 'none';
+
+        const imgPrev    = document.getElementById(zone + '-img-preview');
+        const pdfInd     = document.getElementById(zone + '-pdf-indicator');
+        const previewBox = document.getElementById(zone + '-preview-box');
+        const label      = document.getElementById(zone + '-label');
+
+        label.style.display = 'none';
         previewBox.style.display = 'block';
-        submitBtn.disabled = false;
-        
+
         if (file.type === 'application/pdf') {
-            imgPreview.style.display = 'none';
-            pdfPreview.style.display = 'block';
+            imgPrev.style.display = 'none';
+            pdfInd.style.display  = 'block';
         } else {
-            pdfPreview.style.display = 'none';
-            imgPreview.style.display = 'block';
-            
+            pdfInd.style.display  = 'none';
+            imgPrev.style.display = 'block';
             const reader = new FileReader();
-            reader.onload = function(e) {
-                imgPreview.src = e.target.result;
-            }
+            reader.onload = e => { imgPrev.src = e.target.result; };
             reader.readAsDataURL(file);
         }
+
+        if (zone === 'id') idUploaded = true;
+        if (zone === 'selfie') selfieUploaded = true;
+        updateSubmitBtn();
     }
-    
-    function removeFile() {
-        document.getElementById('id-proof').value = "";
-        document.getElementById('upload-label').style.display = 'block';
-        document.getElementById('preview-box').style.display = 'none';
-        document.getElementById('submit-btn').disabled = true;
+
+    function removeFile(zone) {
+        document.getElementById(zone + '-proof').value = '';
+        document.getElementById(zone + '-label').style.display = 'block';
+        document.getElementById(zone + '-preview-box').style.display = 'none';
+        document.getElementById(zone + '-img-preview').src = '';
+        document.getElementById(zone + '-pdf-indicator').style.display = 'none';
+
+        if (zone === 'id') idUploaded = false;
+        if (zone === 'selfie') selfieUploaded = false;
+        updateSubmitBtn();
     }
-</script>
-<script>
-function showCameraGalleryPrompt(inputElement) {
-    if (inputElement.dataset.prompting) return;
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999999;display:flex;align-items:flex-end;justify-content:center;transition:opacity 0.3s;opacity:0;';
-    const sheet = document.createElement('div');
-    sheet.style.cssText = 'background:#fff;width:100%;max-width:500px;border-radius:24px 24px 0 0;padding:24px;box-shadow:0 -5px 25px rgba(0,0,0,0.15);transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.1, 0.8, 0.3, 1);font-family:inherit;';
-    
-    const title = document.createElement('div');
-    title.innerText = 'Upload Photo';
-    title.style.cssText = 'font-size:18px;font-weight:700;margin-bottom:20px;color:#2c3e50;text-align:center;';
-    
-    const btnStyle = 'display:flex;align-items:center;width:100%;padding:16px 20px;margin-bottom:12px;border:none;border-radius:16px;background:#f4f6f8;color:#2c3e50;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.2s;';
-    const iconStyle = 'margin-right:16px;font-size:22px;width:24px;text-align:center;';
-    
-    const btnCamera = document.createElement('button');
-    btnCamera.style.cssText = btnStyle;
-    btnCamera.innerHTML = '<i class="fas fa-camera" style="' + iconStyle + 'color:#3498db;"></i> Take a Photo';
-    
-    const btnGallery = document.createElement('button');
-    btnGallery.style.cssText = btnStyle;
-    btnGallery.innerHTML = '<i class="fas fa-images" style="' + iconStyle + 'color:#2ecc71;"></i> Choose from Gallery';
-    
-    const btnCancel = document.createElement('button');
-    btnCancel.style.cssText = btnStyle + 'background:#fff;color:#e74c3c;justify-content:center;margin-bottom:0;border:1px solid #fee2e2;';
-    btnCancel.innerText = 'Cancel';
-    
-    sheet.appendChild(title);
-    sheet.appendChild(btnCamera);
-    sheet.appendChild(btnGallery);
-    sheet.appendChild(btnCancel);
-    overlay.appendChild(sheet);
-    document.body.appendChild(overlay);
-    
-    void overlay.offsetWidth;
-    overlay.style.opacity = '1';
-    sheet.style.transform = 'translateY(0)';
-    
-    function closeSheet() {
-        sheet.style.transform = 'translateY(100%)';
-        overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 300);
+
+    function updateSubmitBtn() {
+        const btn  = document.getElementById('submit-btn');
+        const hint = document.getElementById('submit-hint');
+        const both = idUploaded && selfieUploaded;
+        btn.disabled = !both;
+
+        if (!idUploaded && !selfieUploaded) {
+            hint.innerHTML = '<i class="fas fa-asterisk" style="font-size:9px;"></i> Upload both documents to enable submission';
+        } else if (idUploaded && !selfieUploaded) {
+            hint.innerHTML = '<i class="fas fa-user-circle" style="color:#dc2626;"></i> Now upload your selfie holding the ID to continue';
+        } else if (!idUploaded && selfieUploaded) {
+            hint.innerHTML = '<i class="fas fa-id-card" style="color:#dc2626;"></i> Still need your Valid Government ID';
+        } else {
+            hint.innerHTML = '<i class="fas fa-check-circle" style="color:#16a34a;"></i> Both documents uploaded — ready to submit!';
+        }
     }
-    
-    btnCamera.onclick = () => {
-        inputElement.setAttribute('capture', inputElement.id === 'profile-photo' ? 'user' : 'environment');
-        inputElement.dataset.prompting = '1';
-        inputElement.click();
-        delete inputElement.dataset.prompting;
-        closeSheet();
-    };
-    
-    btnGallery.onclick = () => {
-        inputElement.removeAttribute('capture');
-        inputElement.dataset.prompting = '1';
-        inputElement.click();
-        delete inputElement.dataset.prompting;
-        closeSheet();
-    };
-    
-    btnCancel.onclick = closeSheet;
-    overlay.onclick = (e) => { if(e.target === overlay) closeSheet(); };
-}
+
+    // ---- When user picks a doc type from dropdown ----
+    function onDocTypeChange(val) {
+        const uploadWrap = document.getElementById('id-upload-wrap');
+        const uploadText = document.getElementById('id-upload-text');
+        const hiddenType = document.getElementById('hidden-doc-type');
+        hiddenType.value = val;
+
+        if (val) {
+            uploadWrap.style.display = 'block';
+            uploadText.textContent   = 'Upload: ' + val;
+            // Clear previous file if type changed
+            removeFile('id');
+        } else {
+            uploadWrap.style.display = 'none';
+            hiddenType.value = '';
+        }
+    }
+
+    // ---- Camera/Gallery prompt (same as other pages) ----
+    function showCameraGalleryPrompt(inputElement) {
+        if (inputElement.dataset.prompting) return;
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999999;display:flex;align-items:flex-end;justify-content:center;transition:opacity 0.3s;opacity:0;';
+        const sheet = document.createElement('div');
+        sheet.style.cssText = 'background:#fff;width:100%;max-width:500px;border-radius:24px 24px 0 0;padding:24px;box-shadow:0 -5px 25px rgba(0,0,0,0.15);transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.1,0.8,0.3,1);font-family:inherit;';
+        const title = document.createElement('div');
+        title.innerText = 'Upload Document';
+        title.style.cssText = 'font-size:18px;font-weight:700;margin-bottom:20px;color:#2c3e50;text-align:center;';
+        const btnStyle = 'display:flex;align-items:center;width:100%;padding:16px 20px;margin-bottom:12px;border:none;border-radius:16px;background:#f4f6f8;color:#2c3e50;font-size:16px;font-weight:600;cursor:pointer;';
+        const iconStyle = 'margin-right:16px;font-size:22px;width:24px;text-align:center;';
+        const btnCamera  = document.createElement('button');
+        btnCamera.style.cssText  = btnStyle;
+        btnCamera.innerHTML = '<i class="fas fa-camera" style="' + iconStyle + 'color:#3498db;"></i> Take a Photo';
+        const btnGallery = document.createElement('button');
+        btnGallery.style.cssText = btnStyle;
+        btnGallery.innerHTML = '<i class="fas fa-images" style="' + iconStyle + 'color:#2ecc71;"></i> Choose from Gallery';
+        const btnCancel  = document.createElement('button');
+        btnCancel.style.cssText  = btnStyle + 'background:#fff;color:#e74c3c;justify-content:center;margin-bottom:0;border:1px solid #fee2e2;';
+        btnCancel.innerText = 'Cancel';
+        sheet.appendChild(title);
+        sheet.appendChild(btnCamera);
+        sheet.appendChild(btnGallery);
+        sheet.appendChild(btnCancel);
+        overlay.appendChild(sheet);
+        document.body.appendChild(overlay);
+        void overlay.offsetWidth;
+        overlay.style.opacity = '1';
+        sheet.style.transform = 'translateY(0)';
+        function closeSheet() {
+            sheet.style.transform = 'translateY(100%)';
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 300);
+        }
+        btnCamera.onclick = () => {
+            inputElement.setAttribute('capture', 'environment');
+            inputElement.dataset.prompting = '1';
+            inputElement.click();
+            delete inputElement.dataset.prompting;
+            closeSheet();
+        };
+        btnGallery.onclick = () => {
+            inputElement.removeAttribute('capture');
+            inputElement.dataset.prompting = '1';
+            inputElement.click();
+            delete inputElement.dataset.prompting;
+            closeSheet();
+        };
+        btnCancel.onclick = closeSheet;
+        overlay.onclick = (e) => { if (e.target === overlay) closeSheet(); };
+    }
 </script>
 </body>
 </html>

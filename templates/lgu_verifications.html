@@ -294,22 +294,48 @@
                                     <div style="font-weight: 800; font-size: 16px; color: var(--text-main);">{{ u.first_name }} {{ u.last_name }}</div>
                                     <div style="font-size: 12px; color: var(--text-muted);"><i class="fas fa-envelope"></i> {{ u.email or 'No email' }}</div>
                                     <div style="font-size: 12px; color: var(--text-muted);"><i class="fas fa-phone"></i> {{ u.phone_number or 'No phone' }}</div>
+                                    {% if u.secondary_phone %}
+                                    <div style="font-size: 12px; color: var(--text-muted);"><i class="fas fa-phone-alt"></i> {{ u.secondary_phone }} <span style="font-size:10px;background:rgba(107,114,128,0.12);color:#6b7280;padding:1px 6px;border-radius:10px;font-weight:700;">Secondary</span></div>
+                                    {% endif %}
                                 </div>
                             </div>
                             
                             <div style="margin-bottom: 16px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">Proof of Identity</div>
+
+                                <!-- === VALID GOVERNMENT ID === -->
+                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                                    <i class="fas fa-id-card" style="color:#dc2626;"></i> {{ u.id_type or 'Valid Government ID' }}
+                                    <span style="background:rgba(220,38,38,0.1);color:#dc2626;font-size:9px;padding:1px 6px;border-radius:8px;margin-left:4px;">Required</span>
+                                </div>
                                 {% if u.id_proof_path %}
-                                    <a href="/{{ u.id_proof_path }}" target="_blank">
-                                        {% set id_str = (u.id_proof_path|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if u.id_proof_path else '' %}
-                                        {% set idp = id_str.replace('static/', '', 1) if id_str.startswith('static/') else id_str %}
-                                        <img src="{{ url_for('static', filename=idp) }}" style="width: 100%; height: 160px; object-fit: contain; border: 1px dashed var(--border-color); border-radius: 8px; background: var(--search-bg);">
+                                    {% set id_str = (u.id_proof_path|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                                    {% set id_clean = id_str.replace('static/', '', 1) if id_str.startswith('static/') else id_str %}
+                                    <a href="/{{ u.id_proof_path }}" target="_blank" title="Click to view full image">
+                                        <img src="{{ url_for('static', filename=id_clean) }}" style="width: 100%; height: 140px; object-fit: contain; border: 1px dashed var(--border-color); border-radius: 8px; background: var(--search-bg); margin-bottom: 10px;">
                                     </a>
                                 {% else %}
-                                    <div style="width: 100%; height: 100px; display: flex; align-items: center; justify-content: center; background: var(--search-bg); border-radius: 8px; color: var(--text-muted); font-size: 12px; font-style: italic;">
-                                        No ID provided
+                                    <div style="width: 100%; height: 80px; display: flex; align-items: center; justify-content: center; background: var(--search-bg); border-radius: 8px; color: var(--text-muted); font-size: 12px; font-style: italic; margin-bottom: 10px;">
+                                        <i class="fas fa-exclamation-circle" style="margin-right:6px;color:#f59e0b;"></i> No Valid ID provided
                                     </div>
                                 {% endif %}
+
+                                <!-- === SELFIE HOLDING ID === -->
+                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; margin-top: 4px;">
+                                    <i class="fas fa-user-circle" style="color:#3b82f6;"></i> Selfie Holding ID
+                                    <span style="background:rgba(220,38,38,0.1);color:#dc2626;font-size:9px;padding:1px 6px;border-radius:8px;margin-left:4px;">Required</span>
+                                </div>
+                                {% if u.selfie_path %}
+                                    {% set selfie_str = (u.selfie_path|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                                    {% set selfie_clean = selfie_str.replace('static/', '', 1) if selfie_str.startswith('static/') else selfie_str %}
+                                    <a href="/{{ u.selfie_path }}" target="_blank" title="Click to view full image">
+                                        <img src="{{ url_for('static', filename=selfie_clean) }}" style="width: 100%; height: 140px; object-fit: contain; border: 1px dashed #bfdbfe; border-radius: 8px; background: var(--search-bg);">
+                                    </a>
+                                {% else %}
+                                    <div style="width: 100%; height: 80px; display: flex; align-items: center; justify-content: center; background: var(--search-bg); border-radius: 8px; color: var(--text-muted); font-size: 12px; font-style: italic; margin-bottom: 10px;">
+                                        <i class="fas fa-exclamation-circle" style="margin-right:6px;color:#f59e0b;"></i> No Selfie provided
+                                    </div>
+                                {% endif %}
+
                             </div>
 
                             <div style="display: flex; gap: 10px; margin-top: auto;">

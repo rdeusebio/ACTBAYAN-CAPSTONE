@@ -1734,8 +1734,6 @@ def register():
             if not re.match(r'^09\d{9}$', phone):
                 return render_template('register.html', error="Invalid Philippine mobile number format")
 
-
-
         if not email and not phone:
             return render_template('register.html', error="Enter email or phone number")
 
@@ -1825,7 +1823,7 @@ def cd():
         cursor.execute("SELECT account_id FROM accounts WHERE account_id = %s", (reg_id,))
         newid = cursor.fetchone()[0]
         
-        # Add contacts for email and phone
+        # Add contacts for email and primary phone
         cursor.execute(
             "INSERT INTO contacts (account_id, email, phone_number) VALUES (%s, %s, %s)", 
             (newid, reg_user[0] if reg_user[0] else None, reg_user[1] if reg_user[1] else None)
@@ -1881,31 +1879,54 @@ def id_verification():
         if not user_id:
             return redirect(url_for('login'))
             
+        # --- Valid ID (required) ---
         id_proof = request.files.get('id_proof')
-        id_path = None
+        id_type = request.form.get('id_type', '').strip() or None
+        id_proof_path = None
         if id_proof and id_proof.filename:
             os.makedirs('static/uploads/id_proofs', exist_ok=True)
-            id_path = f"static/uploads/id_proofs/{id_proof.filename}"
-            id_proof.save(id_path)
-            
-            con = connect_db()
-            cursor = con.cursor(buffered=True)
-            cursor.execute("UPDATE accounts SET id_proof_path = %s, account_status = 'Pending' WHERE account_id = %s", (id_path, user_id))
-            con.commit()
-            
-            # Auto login the user
-            cursor.execute("SELECT first_name FROM accounts WHERE account_id = %s", (user_id,))
-            user_name = cursor.fetchone()[0]
-            con.close()
-            
-            session['user_id'] = user_id
-            session['user_name'] = user_name
-            session['user_role'] = 'resident'
-            session.pop('pending_user_id', None)
-            
-            return redirect(url_for('dashboard'))
-            
-        return render_template('id_verification.html', user_id=user_id, error="Please upload a valid ID")
+            id_filename = f"id_{user_id}_{int(datetime.now().timestamp())}_{id_proof.filename}"
+            id_proof_path = f"static/uploads/id_proofs/{id_filename}"
+            id_proof.save(id_proof_path)
+        
+        if not id_proof_path or not id_type:
+            return render_template('id_verification.html', user_id=user_id, error="Please select an ID type and upload your valid ID")
+
+        # --- Selfie with ID (required) ---
+        selfie = request.files.get('selfie')
+        selfie_path = None
+        if selfie and selfie.filename:
+            os.makedirs('static/uploads/id_proofs', exist_ok=True)
+            selfie_filename = f"selfie_{user_id}_{int(datetime.now().timestamp())}_{selfie.filename}"
+            selfie_path = f"static/uploads/id_proofs/{selfie_filename}"
+            selfie.save(selfie_path)
+
+        if not selfie_path:
+            return render_template('id_verification.html', user_id=user_id, error="Please upload a selfie holding your ID")
+        
+        con = connect_db()
+        cursor = con.cursor(buffered=True)
+        cursor.execute("""
+            UPDATE accounts 
+            SET id_proof_path = %s,
+                id_type = %s,
+                selfie_path = %s,
+                account_status = 'Pending'
+            WHERE account_id = %s
+        """, (id_proof_path, id_type, selfie_path, user_id))
+        con.commit()
+        
+        # Auto login the user
+        cursor.execute("SELECT first_name FROM accounts WHERE account_id = %s", (user_id,))
+        user_name = cursor.fetchone()[0]
+        con.close()
+        
+        session['user_id'] = user_id
+        session['user_name'] = user_name
+        session['user_role'] = 'resident'
+        session.pop('pending_user_id', None)
+        
+        return redirect(url_for('dashboard'))
 
 @app.route('/logout')
 def logout():
@@ -2035,7 +2056,9 @@ def lgu_verifications():
     
     # Get pending users
     cursor.execute("""
-        SELECT a.account_id, a.first_name, a.last_name, a.profile_photo, a.id_proof_path, c.email, c.phone_number 
+        SELECT a.account_id, a.first_name, a.last_name, a.profile_photo,
+               a.id_proof_path, a.selfie_path, a.id_type,
+               c.email, c.phone_number
         FROM accounts a
         LEFT JOIN contacts c ON a.account_id = c.account_id
         WHERE a.account_status = 'Pending'
