@@ -1,0 +1,3439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActBayan — Concerns</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    
+    
+    
+
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+        :root {
+            --bg-main: #f4f6f8;
+            --bg-nav-card: #ffffff;
+            --text-main: #202124;
+            --text-muted: #5f6368;
+            --border-color: #e0e0e0;
+            --icon-hover: #f1f3f4;
+            --search-bg: #f1f3f4;
+            --primary-red: #8b0000;
+            --primary-red-hover: #a30000;
+            --red-light: rgba(139,0,0,0.08);
+        }
+
+        body.dark-mode {
+            --bg-main: #121212;
+            --bg-nav-card: #1e1e1e;
+            --text-main: #e8eaed;
+            --text-muted: #9aa0a6;
+            --border-color: #333333;
+            --icon-hover: #2a2a2a;
+            --search-bg: #2a2a2a;
+            --red-light: rgba(139,0,0,0.15);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px; height: 100vh; position: fixed; left: 0; top: 0;
+            background-color: var(--bg-nav-card); border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column; padding: 24px 20px;
+            z-index: 1000; transition: background-color 0.3s, border-color 0.3s;
+        }
+        .sidebar-logo {
+            font-weight: 900; font-size: 26px; color: var(--text-main);
+            text-decoration: none; margin-bottom: 30px; padding: 0 10px;
+            display: inline-flex; align-items: center; gap: 10px;
+        }
+        .sidebar-logo span { color: var(--primary-red); }
+        
+        .sidebar-search {
+            display: flex; align-items: center; background-color: var(--search-bg);
+            border-radius: 12px; padding: 10px 14px; gap: 8px; margin-bottom: 24px;
+            border: 1.5px solid transparent; transition: border-color 0.2s;
+        }
+        .sidebar-search:focus-within { border-color: var(--primary-red); }
+        .sidebar-search i { color: var(--text-muted); font-size: 13px; }
+        .sidebar-search input {
+            background: transparent; border: none; outline: none; font-size: 13px;
+            color: var(--text-main); width: 100%; font-family: 'Inter';
+        }
+
+        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .sidebar-link {
+            display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+            border-radius: 12px; color: var(--text-muted); text-decoration: none;
+            font-weight: 600; font-size: 14px; transition: all 0.2s;
+        }
+        .sidebar-link i { font-size: 18px; width: 20px; text-align: center; }
+        .sidebar-link:hover { background-color: var(--icon-hover); color: var(--primary-red); }
+        .sidebar-link.active { background-color: var(--primary-red); color: white; }
+        .notif-badge { background-color: #cc0000; color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 50px; margin-left: auto; }
+
+        .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .theme-toggle-btn {
+            display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; color: var(--text-muted); cursor: pointer;
+            font-weight: 600; font-size: 14px; background: transparent; border: none; font-family: 'Inter'; width: 100%; text-align: left;
+        }
+        .theme-toggle-btn:hover { background-color: var(--icon-hover); color: var(--text-main); }
+        
+        .user-profile-btn { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #c0392b); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+        .user-info { display: flex; flex-direction: column; overflow: hidden; }
+        .user-name { font-size: 13px; font-weight: 700; color: var(--text-main); }
+        .user-role { font-size: 11px; color: var(--text-muted); }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
+
+        .page-header {
+            background-color: #8b0000;
+            background-image: linear-gradient(135deg, rgba(139,0,0,0.88) 0%, rgba(185,28,28,0.82) 50%, rgba(139,0,0,0.88) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}");
+            background-size: cover;
+            background-position: center;
+            padding: 40px 50px; position: relative; overflow: hidden; color: white;
+        }
+        .page-badge {
+            display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25); border-radius: 50px; padding: 5px 14px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 14px;
+        }
+        .page-title { font-size: 38px; font-weight: 900; letter-spacing: -1px; margin-bottom: 8px; margin-top: 0; }
+        .page-subtitle { font-size: 14px; color: rgba(255,255,255,0.8); font-weight: 600; margin: 0; }
+
+        .main-wrap { max-width: 1100px; margin: 0 auto; padding: 40px; display: grid; grid-template-columns: 1fr 340px; gap: 30px; align-items: start; width: 100%; }
+
+        /* ===== CATEGORY FILTER CHIPS ===== */
+        .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .chip {
+            padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 700;
+            border: 1.5px solid var(--border-color); background: var(--bg-nav-card);
+            color: var(--text-muted); cursor: pointer; transition: all 0.2s;
+            text-transform: uppercase; letter-spacing: 0.4px;
+        }
+        .chip:hover { border-color: var(--primary-red); color: var(--primary-red); }
+        .chip.active { background: var(--primary-red); color: white; border-color: var(--primary-red); }
+
+        /* ===== CONCERN FEED ===== */
+        .concern-feed { display: flex; flex-direction: column; gap: 24px; }
+        .concern-post {
+            background: var(--bg-nav-card);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
+        }
+        .concern-post {
+            background: var(--bg-nav-card);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+        .concern-post:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(139,0,0,0.12);
+            border-color: var(--primary-red);
+        }
+        .concern-post.hidden { display: none; }
+
+        /* Post Header */
+        .post-header {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px 20px 14px;
+            background: linear-gradient(to bottom, rgba(139,0,0,0.03), transparent);
+            border-bottom: 1px solid var(--border-color);
+        }
+        body.dark-mode .post-header {
+            background: linear-gradient(to bottom, rgba(139,0,0,0.07), transparent);
+        }
+        .post-avatar {
+            width: 42px; height: 42px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-red), #c0392b);
+            color: white; font-size: 16px; font-weight: 800;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(139,0,0,0.3);
+            flex-shrink: 0;
+        }
+        .post-user { flex: 1; }
+        .post-username { font-size: 14px; font-weight: 700; color: var(--text-main); }
+        .post-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+        .post-time::before { content: '🕐'; font-size: 10px; }
+        
+        .post-category {
+            font-size: 10px; font-weight: 800; padding: 5px 13px; border-radius: 50px;
+            letter-spacing: 0.8px; text-transform: uppercase; flex-shrink: 0;
+            background: var(--search-bg); color: var(--text-main);
+            border: 1.5px solid transparent;
+        }
+        .cat-road { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+        .cat-sanitation { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+        .cat-safety { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+        .cat-flooding { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+        .cat-lighting { background: #fef9c3; color: #854d0e; border-color: #fde68a; }
+        
+        body.dark-mode .cat-road { background: #451a03; color: #fcd34d; border-color: #78350f; }
+        body.dark-mode .cat-sanitation { background: #052e16; color: #6ee7b7; border-color: #065f46; }
+        body.dark-mode .cat-safety { background: #450a0a; color: #fca5a5; border-color: #7f1d1d; }
+        body.dark-mode .cat-flooding { background: #172554; color: #93c5fd; border-color: #1e3a8a; }
+        body.dark-mode .cat-lighting { background: #422006; color: #fde68a; border-color: #78350f; }
+
+        /* Image section */
+        .post-img-wrap { position: relative; width: 100%; height: 240px; background: var(--border-color); cursor: pointer; overflow: hidden; }
+        .post-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s ease; }
+        .post-img-wrap:hover img { transform: scale(1.04); }
+        /* ===== FB-STYLE MEDIA COLLAGE (cover + reports_media) ===== */
+        .fb-media-grid { position: relative; width: 100%; background: #000; cursor: pointer; overflow: hidden; }
+        .fb-media-grid.cols-1 .fb-cell { height: 380px; }
+        .fb-media-grid.cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+        .fb-media-grid.cols-2 .fb-cell { height: 240px; }
+        .fb-media-grid.cols-3 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 200px 140px; gap: 2px; }
+        .fb-media-grid.cols-3 .fb-cell:first-child { grid-column: 1 / -1; height: 260px; }
+        .fb-media-grid.cols-3 .fb-cell { height: 140px; }
+        .fb-media-grid.cols-4 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 220px 140px; gap: 2px; }
+        .fb-media-grid.cols-4 .fb-cell:first-child { grid-column: 1 / -1; height: 260px; }
+        .fb-media-grid.cols-4 .fb-cell { height: 140px; }
+        .fb-media-grid.cols-5 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 240px 120px 120px; gap: 2px; }
+        .fb-media-grid.cols-5 .fb-cell:first-child { grid-column: 1 / -1; height: 260px; }
+        .fb-media-grid.cols-5 .fb-cell { height: 120px; }
+        .fb-cell { position: relative; overflow: hidden; background: #111; }
+        .fb-cell img, .fb-cell video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .fb-cell video { background: #000; }
+        .fb-more-badge { position: absolute; inset: 0; background: rgba(0,0,0,0.55); color: #fff; font-size: 28px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+        .fb-play-hint { position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.65); color: #fff; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 12px; pointer-events: none; }
+        .fb-mute-btn { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.65); color: #fff; border: none; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; z-index: 3; }
+        .fb-mute-btn:hover { background: rgba(139,0,0,0.85); }
+        .post-img-placeholder {
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #455a64, #607d8b);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: rgba(255,255,255,0.7); font-weight: 700; font-size: 13px; cursor: default; gap: 8px;
+        }
+        
+        .img-zoom-hint {
+            position: absolute; bottom: 12px; right: 12px;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+            color: white; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 50px;
+            opacity: 0; transition: opacity 0.25s; pointer-events: none;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .post-img-wrap:hover .img-zoom-hint { opacity: 1; }
+
+        /* Status badge */
+        .status-overlay {
+            position: absolute; top: 12px; left: 12px;
+            font-size: 10px; font-weight: 900; letter-spacing: 1.2px;
+            padding: 5px 13px; border-radius: 50px; text-transform: uppercase;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .status-overlay::before {
+            content: '';
+            width: 6px; height: 6px; border-radius: 50%;
+            background: currentColor; opacity: 0.7;
+            animation: statusPulse 2s infinite;
+        }
+        @keyframes statusPulse {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+        .status-pending { background: rgba(251,191,36,0.92); color: #1c1917; }
+        .status-inprogress, .status-progress { background: rgba(59,130,246,0.92); color: white; }
+        .status-resolved { background: rgba(34,197,94,0.92); color: white; }
+        .status-denied, .status-rejected { background: rgba(239,68,68,0.92); color: white; }
+
+        /* Post body */
+        .post-body { padding: 16px 20px 14px; }
+        .post-title {
+            font-size: 17px; font-weight: 800; color: var(--text-main);
+            margin: 0 0 8px 0; line-height: 1.3;
+            letter-spacing: -0.3px;
+        }
+        .post-caption { font-size: 14px; line-height: 1.65; color: var(--text-muted); margin-bottom: 14px; word-break: normal; overflow-wrap: anywhere; }
+        .post-caption.clamped { display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; word-break: normal; overflow-wrap: anywhere; }
+        .read-more-btn {
+            font-size: 12px; font-weight: 700; color: var(--primary-red);
+            background: var(--red-light); border: none; cursor: pointer;
+            padding: 3px 10px; border-radius: 50px; margin-bottom: 12px; display: inline-block;
+            transition: background 0.2s;
+        }
+        .read-more-btn:hover { background: rgba(139,0,0,0.15); }
+        .post-location {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 12px; color: var(--text-muted); font-weight: 600;
+            background: var(--search-bg); padding: 5px 12px; border-radius: 50px;
+            border: 1px solid var(--border-color);
+        }
+        .post-location i { color: var(--primary-red); }
+
+        /* Post footer */
+        .post-footer {
+            display: flex; padding: 10px 16px;
+            border-top: 1px solid var(--border-color);
+            gap: 4px;
+            background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.015));
+        }
+        body.dark-mode .post-footer {
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.015));
+        }
+        .action-btn {
+            display: flex; align-items: center; gap: 6px; padding: 7px 14px;
+            border-radius: 50px; font-size: 13px; font-weight: 700;
+            border: none; background: transparent; color: var(--text-muted);
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .action-btn:hover { background: var(--search-bg); color: var(--text-main); transform: scale(1.03); }
+        .action-btn.upvoted { color: var(--primary-red); background: var(--red-light); }
+        .action-btn.upvoted i { transform: scale(1.2); }
+
+        /* ===== REDESIGNED COMMENT DRAWER ===== */
+        .comment-drawer {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 400px;
+            max-width: 100%;
+            height: 100vh;
+            background: var(--bg-nav-card);
+            z-index: 10000;
+            box-shadow: none;
+            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s;
+            display: flex;
+            flex-direction: column;
+        }
+        .comment-drawer.open { right: 0; box-shadow: -4px 0 24px rgba(0,0,0,0.15); }
+        body.dark-mode .comment-drawer.open { box-shadow: -4px 0 24px rgba(0,0,0,0.5); }
+        
+        .comment-drawer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .comment-drawer-title { font-size: 16px; font-weight: 800; color: var(--text-main); }
+        .comment-drawer-close { font-size: 20px; color: var(--text-muted); cursor: pointer; background: none; border: none; }
+        .comment-drawer-close:hover { color: var(--primary-red); }
+
+        /* Inner shell */
+        .comment-shell {
+            flex: 1;
+            padding: 16px 22px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+        }
+
+        /* Scrollable list */
+        .comment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding-right: 2px;
+        }
+        .comment-list::-webkit-scrollbar { width: 4px; }
+        .comment-list::-webkit-scrollbar-track { background: transparent; }
+        .comment-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        /* Each comment row */
+        .comment-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            animation: commentSlideIn 0.25s ease both;
+        }
+        @keyframes commentSlideIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Monogram avatar with gradient ring */
+        .comment-mono {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-red), #c0392b);
+            color: white;
+            font-size: 11px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 2px var(--bg-nav-card), 0 0 0 3.5px rgba(139,0,0,0.25);
+        }
+
+        /* Bubble */
+        .comment-bubble {
+            background: var(--bg-nav-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0 14px 14px 14px;
+            padding: 9px 13px;
+            flex: 1;
+            position: relative;
+            transition: border-color 0.2s;
+        }
+        .comment-bubble:hover { border-color: rgba(139,0,0,0.2); }
+        .comment-author {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--primary-red);
+            margin-bottom: 3px;
+        }
+        .comment-text {
+            font-size: 13px;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        /* Empty state */
+        .no-comments {
+            text-align: center;
+            padding: 18px 0 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+        }
+        .no-comments-icon {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: var(--search-bg);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            border: 1px dashed var(--border-color);
+        }
+        .no-comments-text { font-size: 12px; font-weight: 600; }
+
+        /* Input bar */
+        .comment-input-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: var(--bg-nav-card);
+            border: 1.5px solid var(--border-color);
+            border-radius: 16px;
+            padding: 8px 8px 8px 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .comment-input-bar:focus-within {
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 3px rgba(139,0,0,0.08);
+        }
+        .comment-input-bar input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            font-family: 'Inter';
+            font-size: 13px;
+            color: var(--text-main);
+        }
+        .comment-input-bar input::placeholder { color: var(--text-muted); }
+        .comment-submit-btn {
+            background: var(--primary-red);
+            color: white;
+            border: none;
+            width: 34px; height: 34px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .comment-submit-btn:hover { background: var(--primary-red-hover); transform: scale(1.08); }
+
+        /* ===== RESIDENT PROGRESS MODAL ===== */
+        .rp-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(4px);
+            z-index: 3000;
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-end;
+        }
+        .rp-backdrop.open { opacity: 1; visibility: visible; }
+
+        .rp-panel {
+            background: var(--bg-nav-card);
+            width: 420px;
+            max-width: 95vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+            box-shadow: -8px 0 40px rgba(0,0,0,0.18);
+        }
+        .rp-backdrop.open .rp-panel { transform: translateX(0); }
+
+        /* Panel header */
+        .rp-header {
+            background: linear-gradient(135deg, #4a0000 0%, #8b0000 55%, #b91c1c 100%);
+            padding: 24px 22px 20px;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .rp-header-deco {
+            position: absolute; top: -30px; right: -30px;
+            width: 120px; height: 120px; border-radius: 50%;
+            border: 24px solid rgba(255,255,255,0.06);
+            pointer-events: none;
+        }
+        .rp-header-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 50px; padding: 4px 12px;
+            font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+            text-transform: uppercase; color: white; margin-bottom: 10px;
+        }
+        .rp-header-title {
+            font-size: 18px; font-weight: 900; color: white;
+            letter-spacing: -0.4px; line-height: 1.25;
+            margin: 0 0 14px 0;
+        }
+        .rp-header-status-row {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .rp-status-label {
+            font-size: 11px; font-weight: 700;
+            color: rgba(255,255,255,0.65);
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .rp-status-badge {
+            font-size: 11px; font-weight: 900;
+            padding: 4px 14px; border-radius: 50px;
+            letter-spacing: 0.6px; text-transform: uppercase;
+        }
+        .rp-status-pending   { background: #fef3c7; color: #92400e; }
+        .rp-status-inprogress{ background: #dbeafe; color: #1e40af; }
+        .rp-status-resolved  { background: #dcfce7; color: #166534; }
+        .rp-status-denied    { background: #fee2e2; color: #991b1b; }
+        .rp-status-dot {
+            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+            animation: statusPulse 2s infinite;
+        }
+        .rp-status-dot.pending    { background: #f59e0b; }
+        .rp-status-dot.inprogress { background: #3b82f6; }
+        .rp-status-dot.resolved   { background: #22c55e; }
+        .rp-status-dot.denied     { background: #ef4444; }
+        .rp-close-btn {
+            position: absolute; top: 18px; right: 18px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.22);
+            color: white; width: 32px; height: 32px;
+            border-radius: 50%; display: flex;
+            align-items: center; justify-content: center;
+            cursor: pointer; font-size: 13px; transition: background 0.2s;
+        }
+        .rp-close-btn:hover { background: rgba(255,255,255,0.3); }
+
+        /* Section label inside panel */
+        .rp-section-label {
+            font-size: 10px; font-weight: 900; text-transform: uppercase;
+            letter-spacing: 1.2px; color: var(--text-muted);
+            display: flex; align-items: center; gap: 8px;
+            padding: 14px 22px 8px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .rp-section-label i { color: var(--primary-red); }
+
+        /* Scrollable timeline body */
+        .rp-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 22px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+        .rp-body::-webkit-scrollbar { width: 4px; }
+        .rp-body::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        /* Timeline update card */
+        .rp-update-card {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            overflow: hidden;
+            animation: commentSlideIn 0.3s ease both;
+            transition: box-shadow 0.2s;
+        }
+        .rp-update-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+        .rp-update-card-head {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(to right, rgba(139,0,0,0.04), transparent);
+        }
+        body.dark-mode .rp-update-card-head {
+            background: linear-gradient(to right, rgba(139,0,0,0.1), transparent);
+        }
+        .rp-lgu-badge {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 10px; flex-shrink: 0;
+            box-shadow: 0 3px 8px rgba(30,58,138,0.35);
+        }
+        .rp-update-meta { flex: 1; min-width: 0; }
+        .rp-update-who {
+            font-size: 12px; font-weight: 800; color: var(--text-main);
+        }
+        .rp-update-when {
+            font-size: 11px; color: var(--text-muted); margin-top: 1px;
+        }
+        .rp-update-tag {
+            background: rgba(139,0,0,0.1); color: var(--primary-red);
+            font-size: 9px; font-weight: 900; padding: 3px 9px;
+            border-radius: 50px; text-transform: uppercase; letter-spacing: 0.6px;
+            flex-shrink: 0;
+        }
+        .rp-update-img {
+            width: 100%; height: 180px;
+            object-fit: cover; display: block; cursor: zoom-in;
+            transition: transform 0.4s ease;
+        }
+        .rp-update-img:hover { transform: scale(1.02); }
+        .rp-update-body {
+            padding: 12px 14px;
+            font-size: 13px; color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* Empty / loading state inside rp-body */
+        .rp-empty-state {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 10px;
+            padding: 40px 20px; text-align: center;
+            color: var(--text-muted);
+        }
+        .rp-empty-icon {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: var(--search-bg);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; border: 1.5px dashed var(--border-color);
+        }
+        .rp-empty-title { font-size: 14px; font-weight: 800; color: var(--text-main); }
+        .rp-empty-sub { font-size: 12px; line-height: 1.5; max-width: 240px; }
+
+        .quick-submit {
+            background: linear-gradient(135deg, #6b0000, #8b0000); border-radius: 18px; padding: 22px 20px; color: white;
+            position: sticky; top: 30px;
+        }
+        .qs-title { font-size: 16px; font-weight: 900; margin-bottom: 6px; }
+        .qs-sub { font-size: 13px; opacity: 0.8; line-height: 1.5; margin-bottom: 18px; }
+        .qs-btn {
+            width: 100%; padding: 12px; border-radius: 50px; background: white; color: #8b0000;
+            border: none; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;
+        }
+        .qs-btn:hover { transform: translateY(-2px); }
+
+        /* ===== REDESIGNED MULTI-STEP MODAL CSS ===== */
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+            z-index: 2000; opacity: 0; visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-backdrop.open { opacity: 1; visibility: visible; }
+
+        .modal {
+            background: var(--bg-nav-card); border-radius: 20px;
+            max-width: 500px; width: 100%; transform: translateY(20px) scale(0.97);
+            transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+            box-shadow: 0 28px 80px rgba(0,0,0,0.28);
+            max-height: 92vh; overflow-y: auto;
+        }
+        .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
+
+        .modal-head {
+            background: linear-gradient(135deg, #5a0000 0%, #8b0000 55%, #b91c1c 100%);
+            padding: 22px 24px 20px; position: relative; overflow: hidden;
+            display: flex; align-items: flex-start; justify-content: space-between;
+            border-radius: 20px 20px 0 0;
+        }
+        .modal-head-deco {
+            position: absolute; top: -24px; right: -24px; width: 130px; height: 130px;
+            border-radius: 50%; border: 24px solid rgba(255,255,255,0.06); pointer-events: none;
+        }
+        .modal-head-deco2 {
+            position: absolute; bottom: -28px; right: 60px; width: 85px; height: 85px;
+            border-radius: 50%; border: 16px solid rgba(255,255,255,0.04); pointer-events: none;
+        }
+        .modal-head-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 50px; padding: 4px 12px; font-size: 10px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.8px; color: white; margin-bottom: 10px;
+        }
+        .modal-head-title { font-size: 22px; font-weight: 900; color: white; letter-spacing: -0.5px; line-height: 1.1; margin: 0; }
+        .modal-head-sub { font-size: 12px; color: rgba(255,255,255,0.72); margin-top: 5px; font-weight: 500; }
+        .modal-close-btn {
+            background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.2);
+            color: white; width: 32px; height: 32px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; cursor: pointer; font-size: 13px;
+            flex-shrink: 0; transition: background 0.2s; line-height: 1;
+        }
+        .modal-close-btn:hover { background: rgba(255,255,255,0.28); }
+
+        .modal-step-bar { display: flex; align-items: center; padding: 16px 24px 0; background: var(--bg-nav-card); }
+        .modal-step-item { display: flex; align-items: center; gap: 8px; flex: 1; }
+        .modal-step-item:last-child { flex: 0; }
+        .modal-step-num {
+            width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800; border: 2px solid var(--border-color); color: var(--text-muted); transition: all 0.3s; flex-shrink: 0;
+        }
+        .modal-step-num.active { background: var(--primary-red); border-color: var(--primary-red); color: white; }
+        .modal-step-num.done   { background: var(--red-light); border-color: var(--primary-red); color: var(--primary-red); }
+        .modal-step-lbl { font-size: 11px; font-weight: 700; color: var(--text-muted); transition: color 0.3s; }
+        .modal-step-lbl.active { color: var(--primary-red); }
+        .modal-step-lbl.done   { color: var(--primary-red); }
+        .modal-step-seg { flex: 1; height: 2px; background: var(--border-color); margin: 0 10px; border-radius: 2px; transition: background 0.3s; }
+        .modal-step-seg.done { background: var(--primary-red); }
+
+        .modal-body { padding: 20px 24px 24px; }
+        .modal-panel { display: none; }
+        .modal-panel.active { display: block; animation: panelFade 0.3s ease; }
+        @keyframes panelFade { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
+        .modal-section-head { font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+        .modal-section-head::after { content: ''; flex: 1; height: 1px; background: var(--border-color); }
+
+        .modal-cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .modal-cat-tile {
+            border: 1.5px solid var(--border-color); border-radius: 12px; padding: 13px 8px; text-align: center;
+            cursor: pointer; transition: all 0.2s; background: var(--search-bg);
+        }
+        .modal-cat-tile:hover { border-color: var(--primary-red); background: var(--red-light); }
+        .modal-cat-tile.selected { border-color: var(--primary-red); background: var(--red-light); }
+        .modal-cat-emoji { font-size: 20px; display: block; margin-bottom: 5px; line-height: 1; }
+        .modal-cat-name { font-size: 11px; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.4px; }
+        .modal-cat-desc { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+        .modal-cat-tile.selected .modal-cat-name { color: var(--primary-red); }
+
+        .modal-form-row { margin-bottom: 14px; }
+        .modal-form-row label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 7px; }
+        .modal-form-row label i { color: var(--primary-red); font-size: 10px; }
+        .modal-finp {
+            width: 100%; padding: 11px 14px; border: 1.5px solid var(--border-color); border-radius: 11px;
+            font-size: 13px; background: var(--search-bg); color: var(--text-main); font-family: 'Inter'; outline: none; transition: border-color 0.2s, background 0.2s;
+        }
+        .modal-finp:focus { border-color: var(--primary-red); background: var(--bg-nav-card); }
+        textarea.modal-finp { resize: vertical; min-height: 90px; }
+
+        /* ===== LOCATION MAP PICKER ===== */
+        /* Layout: show a full-width location input like other fields,
+           then put the map ONLY on the right side (separate from the input column). */
+        .location-grid {
+            display: grid;
+            grid-template-columns: 1fr 190px;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .loc-input-col { grid-column: 1; }
+        .loc-map-col { grid-column: 2; min-width: 190px; }
+
+
+
+        .loc-map-wrap {
+            border: 1.5px solid var(--border-color);
+            border-radius: 11px;
+            background: var(--search-bg);
+            overflow: hidden;
+        }
+        .loc-map-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .loc-map-btn {
+            border: none;
+            border-radius: 9px;
+            padding: 8px 10px;
+            background: var(--primary-red);
+            color: white;
+            cursor: pointer;
+            font-family: 'Inter';
+            font-size: 12px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .loc-map-btn.secondary {
+            background: transparent;
+            border: 1.5px solid var(--border-color);
+            color: var(--text-muted);
+        }
+        .loc-map-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .loc-map-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-left: auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 130px;
+        }
+
+        .loc-map {
+            height: 160px;
+            width: 100%;
+            cursor: crosshair;
+        }
+
+        .loc-map-selected {
+            border-color: rgba(139,0,0,0.55) !important;
+            box-shadow: 0 0 0 3px rgba(139,0,0,0.12);
+        }
+
+        /* Leaflet height helpers */
+        .leaflet-container { font-family: 'Inter', sans-serif; }
+
+
+        .modal-upload-tile {
+            border: 2px dashed var(--border-color); border-radius: 12px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--search-bg); display: block;
+        }
+        .modal-upload-tile:hover { border-color: var(--primary-red); background: var(--red-light); }
+        .modal-upload-tile input { display: none; }
+        .modal-upload-tile i { font-size: 22px; color: var(--text-muted); display: block; margin-bottom: 8px; }
+        .modal-upload-tile p { font-size: 12px; color: var(--text-muted); font-weight: 600; margin: 0 0 4px 0; }
+        .modal-upload-tile small { font-size: 10px; color: var(--text-muted); opacity: 0.7; }
+        .modal-upload-tile.has-file { border-style: solid; border-color: var(--primary-red); background: var(--red-light); padding: 12px 16px; }
+        .modal-upload-tile.has-file i { color: var(--primary-red); font-size: 18px; margin-bottom: 4px; }
+        .modal-upload-tile.has-file p { color: var(--primary-red); }
+
+        .modal-preview-wrap { display: none; position: relative; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .modal-preview-wrap.visible { display: block; }
+        .modal-preview-img { width: 100%; max-height: 170px; object-fit: cover; display: block; }
+        .modal-preview-grid { display: none; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .modal-preview-actions { position: absolute; bottom: 10px; right: 10px; display: flex; gap: 6px; }
+        .modal-preview-btn { background: rgba(0,0,0,0.58); color: white; border: none; border-radius: 50px; padding: 5px 11px; font-size: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: 'Inter'; transition: background 0.2s; }
+        .modal-preview-btn:hover { background: rgba(139,0,0,0.85); }
+
+        .modal-review-box { background: var(--search-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+        .modal-review-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .modal-review-row:last-child { margin-bottom: 0; }
+        .modal-review-key { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); min-width: 72px; padding-top: 1px; }
+        .modal-review-val { font-size: 13px; font-weight: 600; color: var(--text-main); line-height: 1.4; flex: 1; }
+        .modal-review-cat-pill { display: inline-flex; align-items: center; gap: 5px; background: var(--red-light); color: var(--primary-red); padding: 3px 10px; border-radius: 50px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; }
+
+        .modal-disclaimer { display: flex; align-items: flex-start; gap: 9px; background: var(--red-light); border: 1px solid rgba(139,0,0,0.2); border-radius: 11px; padding: 11px 13px; margin-bottom: 16px; }
+        .modal-disclaimer i { color: var(--primary-red); font-size: 12px; margin-top: 2px; flex-shrink: 0; }
+        .modal-disclaimer p { font-size: 11px; color: var(--text-main); line-height: 1.5; font-weight: 500; margin: 0; }
+
+        .modal-action-row { display: flex; gap: 10px; margin-top: 18px; }
+        .modal-btn-back { padding: 11px 18px; border-radius: 50px; border: 1.5px solid var(--border-color); background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Inter'; transition: all 0.2s; display: flex; align-items: center; gap: 7px; }
+        .modal-btn-back:hover { background: var(--search-bg); color: var(--text-main); }
+        .modal-btn-next { flex: 1; padding: 12px 18px; border-radius: 50px; border: none; background: var(--primary-red); color: white; font-size: 13px; font-weight: 800; cursor: pointer; font-family: 'Inter'; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 7px; }
+        .modal-btn-next:hover { background: var(--primary-red-hover); transform: translateY(-1px); }
+        .modal-btn-next:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+        .modal-success { text-align: center; padding: 10px 0 8px; }
+        .modal-success-ring { width: 68px; height: 68px; border-radius: 50%; background: var(--red-light); border: 3px solid var(--primary-red); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px; color: var(--primary-red); }
+        .modal-success-title { font-size: 20px; font-weight: 900; color: var(--text-main); margin-bottom: 7px; }
+        .modal-success-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+        /* ===== LIGHTBOX ===== */
+        .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
+        .lightbox.open { opacity: 1; visibility: visible; }
+        .lightbox-img { max-width: 92vw; max-height: 88vh; border-radius: 12px; object-fit: contain; transform: scale(0.9); transition: transform 0.3s; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .lightbox.open .lightbox-img { transform: scale(1); }
+        .lightbox-close { position: fixed; top: 20px; right: 24px; background: rgba(255,255,255,0.15); border: none; color: white; width: 42px; height: 42px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 10000; }
+        .lightbox-close:hover { background: var(--primary-red); }
+        .lightbox-caption { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: white; font-size: 13px; font-weight: 600; padding: 8px 18px; border-radius: 50px; white-space: nowrap; }
+
+        /* ===== TOAST (bottom-right, playful warning) ===== */
+        .toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 100000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: #fff; border: 2px solid #e74c3c; border-left: 6px solid #e74c3c; border-radius: 14px; padding: 13px 18px; font-size: 14px; font-weight: 700; color: #2c3e50; box-shadow: 0 10px 30px rgba(231,76,60,0.35); display: flex; align-items: center; gap: 10px; transform: translateX(120%); opacity: 0; transition: all 0.35s cubic-bezier(0.16,1,0.3,1); min-width: 240px; max-width: 340px; pointer-events: auto; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast i { color: #e74c3c; font-size: 20px; }
+
+        .no-results-msg { display: none; text-align: center; padding: 60px 20px; background: var(--bg-nav-card); border-radius: 18px; border: 1px solid var(--border-color); }
+        .no-results-msg.visible { display: block; }
+
+        /* ===== LGU PROGRESS MODAL (Resident) ===== */
+        .rp-status-strip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-nav-card);
+        }
+        .rp-status-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .rp-status-badge {
+            font-size: 11px;
+            font-weight: 900;
+            padding: 5px 14px;
+            border-radius: 50px;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+        }
+        .rp-status-pending   { background:#fef3c7; color:#92400e; }
+        .rp-status-inprogress{ background:#dbeafe; color:#1e40af; }
+        .rp-status-resolved  { background:#dcfce7; color:#166534; }
+        .rp-status-denied    { background:#fee2e2; color:#991b1b; }
+        .rp-status-dot {
+            width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+        }
+        .rp-status-dot.pending    { background: #f59e0b; }
+        .rp-status-dot.inprogress { background: #3b82f6; }
+        .rp-status-dot.resolved   { background: #22c55e; }
+        .rp-status-dot.denied     { background: #ef4444; }
+
+        /* ===== REPORT UPDATES (LGU) ===== */
+        .updates-wrap {
+            margin: 0;
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            background: linear-gradient(135deg, rgba(139,0,0,0.03) 0%, transparent 60%);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        body.dark-mode .updates-wrap {
+            background: linear-gradient(135deg, rgba(139,0,0,0.07) 0%, transparent 60%);
+        }
+        .updates-wrap h2 {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary-red);
+            margin: 0 0 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .updates-wrap h2::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, rgba(139,0,0,0.3), transparent);
+        }
+        .update-item {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            background: var(--bg-nav-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 12px;
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+        .update-item:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+            border-color: rgba(139,0,0,0.2);
+        }
+        .update-thumb {
+            width: 100px;
+            height: 76px;
+            border-radius: 10px;
+            background: var(--search-bg);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 800;
+        }
+        .update-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .update-meta {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .update-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.55;
+            margin: 0;
+        }
+        .update-submitted {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--primary-red);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            opacity: 0.85;
+        }
+
+        .mobile-topbar { display: none; }
+        @media (max-width: 900px) {
+            .main-wrap { display: flex; flex-direction: column; width: 100%; box-sizing: border-box; }
+            .main-wrap > div:first-child { order: 2; width: 100%; max-width: 100%; box-sizing: border-box; }
+            .main-wrap > div:last-child { order: 1; width: 100%; max-width: 100%; box-sizing: border-box; }
+            .quick-submit { position: static; margin-bottom: 10px; }
+        }
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow-x: hidden; width: 100%; max-width: 100vw; }
+            .mobile-topbar {
+                display: flex; align-items: center; justify-content: space-between;
+                position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+                background: var(--bg-nav-card); border-bottom: 1px solid var(--border-color);
+                z-index: 2000; padding: 0 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            }
+            .mobile-logo { font-size: 20px; font-weight: 900; color: var(--text-main); text-decoration: none; }
+            .mobile-logo span { color: var(--primary-red); }
+            .mobile-top-actions { display: flex; align-items: center; gap: 10px; }
+            .mobile-action-btn {
+                width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-color);
+                background: var(--search-bg); color: var(--text-muted); display: flex; align-items: center;
+                justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s;
+            }
+            .mobile-action-btn.logout { color: #dc2626; }
+            .mobile-avatar {
+                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #b91c1c);
+                color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; overflow: hidden;
+            }
+            .mobile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+            
+            .sidebar {
+                display: flex !important; width: calc(100% - 32px) !important; max-width: 440px !important; height: 64px !important;
+                top: auto !important; bottom: 16px !important; left: 50% !important; transform: translateX(-50%) !important;
+                flex-direction: row !important; justify-content: space-between !important; align-items: center !important;
+                padding: 0 10px !important; border-right: none !important; border-top: none !important;
+                border: 1.5px solid var(--border-color) !important; border-radius: 50px !important;
+                background: var(--bg-nav-card) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important;
+                box-shadow: 0 14px 38px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.08) !important; z-index: 2000 !important; position: fixed !important;
+            }
+            .sidebar-logo, .sidebar-search, .sidebar-footer { display: none !important; }
+            .sidebar-menu { display: flex !important; flex-direction: row !important; justify-content: space-around !important; align-items: center !important; width: 100% !important; gap: 4px !important; margin: 0 !important; padding: 0 !important; }
+            .sidebar-link {
+                flex: 1 !important; display: flex !important; flex-direction: row !important; justify-content: center !important; align-items: center !important;
+                padding: 12px 0 !important; border-radius: 50px !important; color: var(--text-muted) !important; font-size: 13px !important;
+                font-weight: 800 !important; transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important; height: 44px !important; max-width: none !important; width: auto !important; position: relative !important;
+            }
+            .sidebar-link i { font-size: 20px !important; width: auto !important; margin: 0 !important; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important; }
+            .sidebar-link:not(.active) span:not(.notif-badge) { display: none !important; opacity: 0 !important; width: 0 !important; overflow: hidden !important; }
+            .sidebar-link:not(.active) .notif-badge { position: absolute !important; top: 3px !important; right: calc(50% - 16px) !important; z-index: 5 !important; }
+            .sidebar-link:not(.active):hover i { color: var(--primary-red) !important; transform: scale(1.15) !important; }
+            .sidebar-link.active {
+                flex: 0 1 auto !important; max-width: calc(100% - 140px) !important; background: var(--primary-red) !important; color: #ffffff !important; padding: 0 14px !important;
+                gap: 6px !important; box-shadow: 0 6px 20px rgba(185, 28, 28, 0.42) !important; transform: translateY(-2px) !important; overflow: hidden !important;
+            }
+            .sidebar-link.active i { color: #ffffff !important; font-size: 18px !important; flex-shrink: 0 !important; }
+            .sidebar-link.active span:not(.notif-badge) {
+                display: inline-block !important; opacity: 1 !important; width: auto !important; max-width: 105px !important;
+                overflow: hidden !important; text-overflow: ellipsis !important; font-size: 12px !important; font-weight: 800 !important;
+                letter-spacing: 0.2px !important; white-space: nowrap !important;
+            }
+            .sidebar-link.active .notif-badge {
+                position: static !important; display: inline-flex !important; align-items: center !important; justify-content: center !important;
+                margin-left: 2px !important; background: #ffffff !important; color: var(--primary-red) !important; box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+                padding: 1px 6px !important; border-radius: 50px !important; font-size: 10px !important; font-weight: 800 !important; flex-shrink: 0 !important;
+            }
+            .main-content { margin-left: 0; margin-top: 60px; margin-bottom: 96px; width: 100%; max-width: 100vw; overflow-x: hidden; box-sizing: border-box !important; }
+            .page-header { padding: 24px 16px; width: 100%; box-sizing: border-box; }
+            .page-title { font-size: 26px; margin-bottom: 4px; }
+            .page-subtitle { font-size: 13px; line-height: 1.4; }
+            .main-wrap { display: flex !important; flex-direction: column !important; padding: 14px 12px !important; gap: 16px !important; width: 100% !important; max-width: 100vw !important; box-sizing: border-box !important; overflow-x: hidden !important; }
+            .main-wrap > div:first-child { order: 2; width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; overflow: hidden !important; }
+            .main-wrap > div:last-child { order: 1; width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; }
+            .quick-submit { position: static !important; margin-bottom: 6px !important; width: 100% !important; box-sizing: border-box !important; }
+            .filter-chips { flex-wrap: nowrap !important; overflow-x: auto !important; padding-bottom: 8px !important; margin-bottom: 16px !important; -webkit-overflow-scrolling: touch !important; scrollbar-width: none !important; width: 100% !important; max-width: 100% !important; display: flex !important; }
+            .filter-chips::-webkit-scrollbar { display: none !important; }
+            .chip { white-space: nowrap !important; flex-shrink: 0 !important; padding: 6px 14px !important; font-size: 12px !important; }
+            .concern-feed { width: 100% !important; max-width: 100% !important; min-width: 0 !important; overflow: hidden !important; box-sizing: border-box !important; }
+            .concern-post { border-radius: 16px !important; width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; overflow: hidden !important; }
+            .post-header { padding: 12px 14px 10px !important; gap: 10px !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
+            .post-avatar { width: 36px !important; height: 36px !important; font-size: 13px !important; flex-shrink: 0 !important; }
+            .post-username { font-size: 13px !important; }
+            .post-time { font-size: 11px !important; }
+            .post-category { font-size: 10px !important; padding: 3px 9px !important; }
+            .post-img-wrap { height: 200px !important; width: 100% !important; max-width: 100% !important; }
+            .post-body { padding: 12px 14px !important; width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; overflow: hidden !important; }
+            .post-title { font-size: 15px !important; word-break: break-word !important; overflow-wrap: break-word !important; max-width: 100% !important; }
+            .post-caption { font-size: 13px !important; word-break: break-word !important; overflow-wrap: break-word !important; max-width: 100% !important; }
+            .post-footer { padding: 10px 14px !important; display: flex !important; flex-wrap: wrap !important; gap: 6px !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
+            .action-btn { flex: 1 1 auto !important; justify-content: center !important; padding: 6px 10px !important; font-size: 11.5px !important; margin-left: 0 !important; box-sizing: border-box !important; }
+            .comment-drawer { width: 100% !important; right: -100% !important; }
+            .comment-drawer.open { right: 0 !important; }
+            .toast-container { left: 50% !important; right: auto !important; transform: translateX(-50%) !important; bottom: 80px !important; width: 90% !important; max-width: 340px !important; }
+            
+            /* Responsive Modal Fixes */
+            .modal { max-width: 95vw !important; width: 95% !important; max-height: 88vh !important; }
+            .modal-head { padding: 16px 18px !important; }
+            .modal-head-title { font-size: 18px !important; }
+            .modal-step-bar { padding: 12px 14px 0 !important; }
+            .modal-panel { padding: 16px 16px 14px !important; }
+            .location-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+            .loc-input-col { grid-column: 1 !important; width: 100% !important; }
+            .loc-map-col { grid-column: 1 !important; width: 100% !important; min-width: 100% !important; }
+            .loc-map { height: 180px !important; }
+        }
+        @media (max-width: 480px) {
+            .file-concern-btn { width: 100% !important; justify-content: center !important; }
+            .page-header { padding: 18px 12px !important; }
+            .page-title { font-size: 22px !important; }
+            .main-wrap { padding: 12px 10px !important; }
+            .post-footer { justify-content: space-between; }
+            .action-btn { flex: 1; justify-content: center; padding: 6px 8px; font-size: 11px; }
+            .filter-chips { width: 100%; overflow-x: auto; padding-bottom: 4px; }
+            .chip { white-space: nowrap; flex-shrink: 0; }
+            .modal-cat-grid { grid-template-columns: repeat(2, 1fr); }
+            .modal-step-label { display: none; }
+            .modal-step-item { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+{% set fc_fname = (user.first_name | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.first_name else 'User' %}
+{% set fc_lname = (user.last_name | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.last_name else '' %}
+{% set fc_addr = 'Gen. Mamerto Natividad' %}
+
+<!-- Mobile Topbar Header -->
+<header class="mobile-topbar">
+    <a href="{{ url_for('dashboard') }}" class="mobile-logo" style="display: inline-flex !important; align-items: center !important; gap: 8px !important; text-decoration: none !important;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 34px; height: 34px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+    <div class="mobile-top-actions">
+        <button class="mobile-action-btn" onclick="document.getElementById('theme-toggle-btn')?.click()" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
+        <a href="{{ url_for('logout') }}" class="mobile-action-btn logout" title="Logout"><i class="fas fa-right-from-bracket"></i></a>
+        <div class="mobile-avatar">
+            {% if user and user.profile_photo %}
+            {% set fc_raw = (user.profile_photo | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+            {% set fc_path = fc_raw.replace("static/", "", 1) if fc_raw.startswith("static/") else fc_raw %}
+            <img src="{{ url_for('static', filename=fc_path) }}" alt="DP">
+            {% else %}
+            {{ fc_fname[:1] | upper }}
+            {% endif %}
+        </div>
+    </div>
+</header>
+
+<aside class="sidebar">
+    <a href="#" class="sidebar-logo" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 38px; height: 38px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+    <div class="sidebar-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="sidebar-search-input" placeholder="Search concerns...">
+    </div>
+    <nav class="sidebar-menu">
+        <a href="{{ url_for('dashboard') }}" class="sidebar-link">
+            <i class="fas fa-home"></i> <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('file_concern') }}" class="sidebar-link active">
+            <i class="fas fa-exclamation-circle"></i> <span>Concerns</span>
+        </a>
+        <a href="{{ url_for('announcements') }}" class="sidebar-link">
+            <i class="fas fa-bullhorn"></i> <span>Announcements</span>
+            <span class="notif-badge">3</span>
+        </a>
+        <a href="{{ url_for('barangay_map') }}" class="sidebar-link">
+            <i class="fas fa-map"></i> <span>Map</span>
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <button class="theme-toggle-btn" id="theme-toggle-btn">
+            <i class="fas fa-moon" id="theme-icon"></i> <span id="theme-label">Dark Mode</span>
+        </button>
+        <a href="{{ url_for('logout') }}" class="theme-toggle-btn" style="text-decoration:none; color:#dc2626; display:flex; align-items:center; gap:14px; padding:12px 16px;">
+            <i class="fas fa-right-from-bracket" style="font-size:18px; width:20px; text-align:center;"></i>
+            <span>Logout</span>
+        </a>
+        {% set fc_fname = (user.first_name | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.first_name else 'User' %}
+        {% set fc_lname = (user.last_name | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.last_name else '' %}
+        {% set fc_addr = 'Gen. Mamerto Natividad' %}
+        <div class="user-profile-btn">
+            <div class="user-avatar" style="overflow:hidden;">
+                {% if user and user.profile_photo %}
+                {% set fc_raw = (user.profile_photo | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                {% set fc_path = fc_raw.replace("static/", "", 1) if fc_raw.startswith("static/") else fc_raw %}
+                <img src="{{ url_for('static', filename=fc_path) }}" alt="DP" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                {% else %}
+                {{ fc_fname[:1] | upper }}
+                {% endif %}
+            </div>
+            <div class="user-info">
+                <span class="user-name">{{ fc_fname }} {{ fc_lname }}</span>
+                <span class="user-role">Resident • {{ fc_addr }}</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+    <main class="main-content">
+        <div class="page-header">
+
+        <div class="page-badge"><i class="fas fa-heart"></i> ActBayan Cares</div>
+        <h1 class="page-title">CONCERNS</h1>
+        <p class="page-subtitle">Concern Wall of General Mamerto Natividad — Your voice shapes the community</p>
+    </div>
+
+
+    <div class="main-wrap">
+        <div>
+            <div class="filter-chips" id="filter-chips">
+                <button class="chip active" data-filter="all">All</button>
+                <button class="chip" data-filter="road">Road</button>
+                <button class="chip" data-filter="sanitation">Sanitation</button>
+                <button class="chip" data-filter="flooding">Flooding</button>
+                <button class="chip" data-filter="lighting">Lighting</button>
+            </div>
+
+            <div class="concern-feed" id="concern-feed">
+                {% if concerns %}
+                    {% for c in concerns %}
+                    <div class="concern-post" 
+                         data-id="{{ c.report_id }}"
+                         data-status="{{ c.status }}"
+                         data-category="{{ c.category|lower|replace(' ', '')|replace('/', '') }}"
+                         data-title="{{ c.title|lower }}"
+                         data-location="{{ c.location|lower }}">
+                        <div class="post-header">
+                            <div class="post-avatar" style="overflow:hidden;">
+                                {% if c.profile_photo %}
+                                    {% set raw_pp = (c.profile_photo|string).replace("bytearray(b'","").replace("b'","").replace("')","").replace("'","") %}
+                                    {% set clean_pp = raw_pp.replace("static/","",1) if raw_pp.startswith("static/") else raw_pp %}
+                                    <img src="{{ url_for('static', filename=clean_pp) }}" alt="DP" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                                {% else %}
+                                    {{ c.first_name[0] if c.first_name else '?' }}
+                                {% endif %}
+                            </div>
+                            <div class="post-user">
+                                <div class="post-username">{{ c.first_name }} {{ c.last_name }}</div>
+                                <div class="post-time">{{ c.created_at.strftime('%B %d, %Y') if c.created_at else 'Just now' }}</div>
+                            </div>
+                            <span class="post-category cat-{{ c.category|lower|replace(' ', '')|replace('/', '') }}">{{ c.category }}</span>
+                        </div>
+                        
+                        {% if c.image_url %}
+                        {# ===== FB-STYLE COLLAGE: cover (image_url) + extras (reports_media) ===== #}
+                        {% set _cover = (c.image_url|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                        {% set _cl = _cover.lower() %}
+                        {% set _cover_is_vid = _cl.endswith('.mp4') or _cl.endswith('.mov') or _cl.endswith('.webm') or _cl.endswith('.avi') or _cl.endswith('.mkv') or _cl.endswith('.m4v') or _cl.endswith('.3gp') or _cl.endswith('.ogv') or _cl.endswith('.ogg') or _cl.endswith('.m2ts') or _cl.endswith('.mts') %}
+                        {% set _cover_url = url_for('static', filename=_cover.replace('static/', '')) %}
+                        {% set _extras_raw = media_by_report.get(c.report_id, []) if media_by_report is defined else [] %}
+                        {% set _gallery = [_cover] + _extras_raw %}
+                        {% set _total = _gallery|length %}
+                        {% set _shown = _gallery[:5] %}
+                        {% set _ncols = _shown|length %}
+                        <div class="fb-media-grid cols-{{ _ncols }}" data-id="{{ c.report_id }}" onclick="openLightboxFromFeed(this)">
+                            {% for _p in _shown %}
+                            {% set _ps = (_p|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                            {% set _pl = _ps.lower() %}
+                            {% set _pv = _pl.endswith('.mp4') or _pl.endswith('.mov') or _pl.endswith('.webm') or _pl.endswith('.avi') or _pl.endswith('.mkv') or _pl.endswith('.m4v') or _pl.endswith('.3gp') or _pl.endswith('.ogv') or _pl.endswith('.ogg') or _pl.endswith('.m2ts') or _pl.endswith('.mts') %}
+                            {% set _pu = url_for('static', filename=_ps.replace('static/', '')) %}
+                            <div class="fb-cell" data-full="{{ _pu }}" data-kind="{{ 'video' if _pv else 'image' }}" data-idx="{{ loop.index0 }}">
+                                {% if _pv %}
+                                <video src="{{ _pu }}" muted loop playsinline preload="metadata" disablepictureinpicture></video>
+                                <span class="fb-play-hint"><i class="fas fa-play"></i></span>
+                                <button type="button" class="fb-mute-btn" onclick="event.stopPropagation(); fbToggleMute(this);"><i class="fas fa-volume-mute"></i></button>
+                                {% else %}
+                                <img src="{{ _pu }}" alt="Evidence {{ loop.index }}" loading="lazy">
+                                {% endif %}
+                                {% if loop.last and _total > 5 %}
+                                <div class="fb-more-badge">+{{ _total - 5 }}</div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                            <span class="status-overlay status-{{ c.status|lower|replace(' ', '') }}">{{ c.status }}</span>
+                        </div>
+                        {% else %}
+                        <div class="post-img-wrap" style="cursor:default;">
+                            <div class="post-img-placeholder">
+                                <i class="fas fa-image" style="font-size: 32px; opacity: 0.6; margin-bottom: 8px;"></i>
+                                <span>No photo attached</span>
+                            </div>
+                            <span class="status-overlay status-{{ c.status|lower|replace(' ', '') }}">{{ c.status }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="post-body">
+                            <h3 class="post-title">{{ c.title }}</h3>
+                            <p class="post-caption clamped" id="caption-{{ c.report_id }}">{{ c.description }}</p>
+                            {% if c.description|length > 120 %}
+                            <button class="read-more-btn" data-id="{{ c.report_id }}" onclick="toggleCaption(this)">Read more</button>
+                            {% endif %}
+                            <div class="post-location"><i class="fas fa-map-marker-alt"></i> {{ c.location }}</div>
+                        </div>
+                        
+                        <div class="post-footer">
+                            {% if user and user.account_status == 'Verified' %}
+                            <button class="action-btn {% if c.report_id in user_upvoted %}upvoted{% endif %}" data-id="{{ c.report_id }}" onclick="toggleUpvote(this)">
+                                <i class="fas fa-arrow-up"></i> <span class="upvote-count">{{ upvote_counts.get(c.report_id, 0) }}</span> Upvotes
+                            </button>
+                            {% else %}
+                            <button class="action-btn" onclick="showToast('Your account is pending verification. You cannot upvote.', 'info')">
+                                <i class="fas fa-arrow-up"></i> <span class="upvote-count">{{ upvote_counts.get(c.report_id, 0) }}</span> Upvotes
+                            </button>
+                            {% endif %}
+                            <button class="action-btn" data-id="{{ c.report_id }}" onclick="toggleComments(this)">
+                                <i class="fas fa-comment"></i> <span class="comment-count">{{ feedback_counts_by_report.get(c.report_id, 0) }}</span> Comments
+                            </button>
+                            <button class="action-btn" style="margin-left: auto; color: var(--primary-red);" onclick="openResidentProgressModal('{{ c.report_id }}', '{{ c.title }}', '{{ c.status }}')">
+                                Reports Progress <i class="fas fa-share" style="transform: scaleX(-1);"></i>
+                            </button>
+                        </div>
+
+                        <div class="comment-store" id="drawer-{{ c.report_id }}" style="display:none;">
+                            <div class="comment-shell">
+                                <div class="comment-list" id="comment-list-{{ c.report_id }}">
+                                    {% set fbs = feedbacks_by_report.get(c.report_id, []) %}
+                                    {% if fbs %}
+                                        {% for fb in fbs %}
+                                        <div class="comment-item">
+                                            <div class="comment-mono">
+                                                {% if fb.profile_photo %}
+                                                    {% set raw_path = (fb.profile_photo | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                                                    {% set clean_path = raw_path.replace("static/", "", 1) if raw_path.startswith("static/") else raw_path %}
+                                                    <img src="{{ url_for('static', filename=clean_path) }}" alt="DP" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                                                {% else %}
+                                                    {{ (fb.fullname[0] if fb.fullname else 'U')|upper }}
+                                                {% endif %}
+                                            </div>
+                                            <div style="display:flex; flex-direction:column; flex:1; min-width:0;">
+                                                <div class="comment-bubble">
+                                                    <div class="comment-author">{{ fb.fullname if fb.fullname else 'User' }}</div>
+                                                    <div class="comment-text">{{ fb.feedback }}</div>
+                                                </div>
+                                                <div style="display:flex; gap:12px; margin-top:4px; margin-left:8px; font-size:11px; font-weight:600; color:var(--text-muted);">
+                                                    <span>{{ fb.time_ago }}</span>
+                                                    <span style="cursor:pointer; transition:color 0.2s;" onmouseover="this.style.color='var(--primary-red)'" onmouseout="this.style.color=''" data-author="{{ fb.fullname if fb.fullname else 'User' }}" onclick="replyToComment('{{ c.report_id }}', this.dataset.author)">Reply</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="no-comments">
+                                            <div class="no-comments-icon"><i class="fas fa-comment-slash"></i></div>
+                                            <span class="no-comments-text">No comments yet — be the first to respond!</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% set ups = updates_by_report.get(c.report_id, []) %}
+                        {% if ups %}
+                        <div class="updates-wrap">
+                            <h2>Report Updates</h2>
+                            {% for u in ups %}
+                                <div class="update-item"> 
+
+                                    <div class="update-thumb">
+                                   
+                                        {% if u.image_url %}
+                                            <img src="{{ url_for('static', filename=u.image_url.replace('static/', '')) }}" alt="Update evidence">
+                                        {% else %}
+                                            <i class="fas fa-image" style="opacity:0.35;font-size:24px;"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="update-meta">
+                                        <div class="update-submitted">
+                                            {{ u.fullname }}<br>
+                                            {{ u.submitted_at.strftime('%B %d, %Y') if u.submitted_at else '' }}
+                                        </div>
+                                        <p class="update-desc">{{ u.description }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align:center;padding:60px 20px; background: var(--bg-nav-card); border-radius: 18px; border: 1px solid var(--border-color);">
+                        <i class="fas fa-clipboard-list" style="font-size:40px; color: var(--text-muted); opacity:0.3; margin-bottom:12px;"></i>
+                        <h3 style="margin: 0 0 5px 0;">No concerns found</h3>
+                        <p style="font-size:13px; color: var(--text-muted);">Be the first to submit a report for your community.</p>
+                    </div>
+                {% endif %}
+
+                <div class="no-results-msg" id="no-results-msg">
+                    <i class="fas fa-search" style="font-size:32px; color: var(--text-muted); opacity:0.3; margin-bottom:12px;"></i>
+                    <h3 style="margin: 0 0 5px 0;">No results found</h3>
+                    <p style="font-size:13px; color: var(--text-muted);">Try a different search or category.</p>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="quick-submit">
+                <div class="qs-title">See something wrong?</div>
+                <p class="qs-sub">Report infrastructure issues, sanitation problems, safety hazards, and more. Your report matters.</p>
+                {% if user and user.account_status == 'Verified' %}
+                <button class="qs-btn" onclick="openModal()">
+                    <i class="fas fa-plus"></i> Submit a Concern
+                </button>
+                {% else %}
+                <button class="qs-btn" style="opacity: 0.6; cursor: not-allowed;" onclick="showToast('Your account is pending verification. You cannot submit a concern.', 'info')">
+                    <i class="fas fa-plus"></i> Submit a Concern
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="modal-backdrop" id="submit-modal">
+    <div class="modal">
+        <div class="modal-head">
+            <div class="modal-head-deco"></div>
+            <div class="modal-head-deco2"></div>
+            <div>
+                <div class="modal-head-badge">
+                    <i class="fas fa-exclamation-circle"></i> ActBayan
+                </div>
+                <h2 class="modal-head-title">File a Concern</h2>
+                <p class="modal-head-sub">Help us improve General Mamerto Natividad</p>
+            </div>
+            <button class="modal-close-btn" type="button" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-step-bar" id="modal-step-bar">
+            <div class="modal-step-item">
+                <div class="modal-step-num active" id="msnum-1">1</div>
+                <div class="modal-step-lbl active" id="mslbl-1">Category</div>
+            </div>
+            <div class="modal-step-seg" id="msseg-1"></div>
+            <div class="modal-step-item">
+                <div class="modal-step-num" id="msnum-2">2</div>
+                <div class="modal-step-lbl" id="mslbl-2">Details</div>
+            </div>
+            <div class="modal-step-seg" id="msseg-2"></div>
+            <div class="modal-step-item">
+                <div class="modal-step-num" id="msnum-3">3</div>
+                <div class="modal-step-lbl" id="mslbl-3">Evidence</div>
+            </div>
+            <div class="modal-step-seg" id="msseg-3"></div>
+            <div class="modal-step-item" style="flex:0;">
+                <div class="modal-step-num" id="msnum-4">4</div>
+                <div class="modal-step-lbl" id="mslbl-4">Review</div>
+            </div>
+        </div>
+
+        <div class="modal-body">
+            
+            <div class="modal-panel active" id="mpanel-1">
+                <div class="modal-section-head">What type of concern?</div>
+                <div class="modal-cat-grid">
+                    <div class="modal-cat-tile" data-cat="Road" onclick="mSelectCat(this)">
+                        <span class="modal-cat-emoji">🛣️</span>
+                        <div class="modal-cat-name">Road</div>
+                        <div class="modal-cat-desc">Potholes, damage</div>
+                    </div>
+                    <div class="modal-cat-tile" data-cat="Sanitation" onclick="mSelectCat(this)">
+                        <span class="modal-cat-emoji">🗑️</span>
+                        <div class="modal-cat-name">Sanitation</div>
+                        <div class="modal-cat-desc">Garbage, waste</div>
+                    </div>
+                    <div class="modal-cat-tile" data-cat="Flooding" onclick="mSelectCat(this)">
+                        <span class="modal-cat-emoji">🌊</span>
+                        <div class="modal-cat-name">Flooding</div>
+                        <div class="modal-cat-desc">Drainage issues</div>
+                    </div>
+                    <div class="modal-cat-tile" data-cat="Lighting" onclick="mSelectCat(this)">
+                        <span class="modal-cat-emoji">💡</span>
+                        <div class="modal-cat-name">Lighting</div>
+                        <div class="modal-cat-desc">Broken streetlights</div>
+                    </div>
+                    <div class="modal-cat-tile" data-cat="Other" onclick="mSelectCat(this)">
+                        <span class="modal-cat-emoji">📋</span>
+                        <div class="modal-cat-name">Other</div>
+                        <div class="modal-cat-desc">Misc concerns</div>
+                    </div>
+                </div>
+                <div class="modal-action-row">
+                    <button class="modal-btn-next" id="mbtn-step1" onclick="mGoStep(2)" disabled>
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-panel" id="mpanel-2">
+                <div class="modal-section-head">Describe the issue</div>
+                <div class="modal-form-row">
+                    <label><i class="fas fa-tag"></i> Report Title</label>
+                    <input class="modal-finp" id="modal-inp-title" type="text" placeholder="e.g. Deep Pothole on Main Road" oninput="mValidateStep2()">
+                </div>
+                <div class="modal-form-row">
+                    <label><i class="fas fa-map-marker-alt"></i> Location / Purok</label>
+
+                    <div class="location-grid">
+                        <div class="loc-input-col">
+                            <input class="modal-finp" id="modal-inp-location" type="text" placeholder="e.g. Poblacion, Gen. M. Natividad" oninput="mValidateStep2()">
+                        </div>
+                        <div class="loc-map-col">
+                            <div class="loc-map-wrap loc-map-selected" id="loc-map-wrap">
+                                <div class="loc-map-controls">
+                                    <button type="button" class="loc-map-btn secondary" id="btn-use-my-location" onclick="mUseMyLocation()">
+                                        <i class="fas fa-crosshairs"></i>
+                                    </button>
+                                    <div class="loc-map-hint" id="loc-map-hint">Use my location</div>
+                                </div>
+                                <div id="loc-map" class="loc-map" aria-label="Location map"></div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+
+                <div class="modal-form-row">
+                    <label><i class="fas fa-align-left"></i> Description</label>
+                    <textarea class="modal-finp" id="modal-inp-desc" placeholder="Provide detailed information about the issue..." oninput="mValidateStep2()"></textarea>
+                </div>
+                <div class="modal-action-row">
+                    <button class="modal-btn-back" type="button" onclick="mGoStep(1)"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="modal-btn-next" id="mbtn-step2" onclick="mGoStep(3)" disabled>Continue <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <div class="modal-panel" id="mpanel-3">
+                <div class="modal-section-head">Attach evidence (optional) — up to 5 photos/videos</div>
+                <label class="modal-upload-tile" id="modal-upload-tile">
+                    <input type="file" id="modal-photo-input" accept="image/*,video/*" multiple onclick="if(!this.dataset.prompting){ event.preventDefault(); showCameraGalleryPrompt(this); }" onchange="mPreviewFiles(this)">
+                    <i class="fas fa-camera" id="modal-upload-icon"></i>
+                    <p id="modal-upload-text">Click to upload photos or videos</p>
+                    <small id="modal-upload-hint">Images + any video — max 5 files, no size limit</small>
+                </label>
+                <div class="modal-preview-grid" id="modal-preview-grid" style="display:none;"></div>
+                <div class="modal-preview-actions" id="modal-preview-actions" style="display:none;margin-top:10px;">
+                    <span id="modal-preview-count" style="font-size:11px;font-weight:700;color:var(--text-muted);"></span>
+                    <span style="flex:1;"></span>
+                    <button type="button" class="modal-preview-btn" onclick="mRemoveAllPhotos()"><i class="fas fa-trash"></i> Remove all</button>
+                </div>
+                <div class="modal-action-row">
+                    <button class="modal-btn-back" type="button" onclick="mGoStep(2)"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="modal-btn-next" type="button" onclick="mGoStep(4)"><i class="fas fa-eye"></i> Preview & Review</button>
+                </div>
+            </div>
+
+            <div class="modal-panel" id="mpanel-4">
+                <div class="modal-section-head">Review your report</div>
+                <div class="modal-disclaimer">
+                    <i class="fas fa-shield-alt"></i>
+                    <p>Your report will be submitted to Municipal officials. False or misleading reports may be subject to action.</p>
+                </div>
+                <div class="modal-review-box">
+                    <div class="modal-review-row">
+                        <div class="modal-review-key">Category</div>
+                        <div class="modal-review-val"><span class="modal-review-cat-pill" id="mrv-cat"></span></div>
+                    </div>
+                    <div class="modal-review-row">
+                        <div class="modal-review-key">Title</div>
+                        <div class="modal-review-val" id="mrv-title"></div>
+                    </div>
+                    <div class="modal-review-row">
+                        <div class="modal-review-key">Location</div>
+                        <div class="modal-review-val" id="mrv-loc"></div>
+                    </div>
+                    <div class="modal-review-row">
+                        <div class="modal-review-key">Details</div>
+                        <div class="modal-review-val" id="mrv-desc"></div>
+                    </div>
+                    <div class="modal-review-row" id="mrv-photo-row" style="display:none;">
+                        <div class="modal-review-key">Files <span id="mrv-photo-count"></span></div>
+                        <div class="modal-review-val">
+                            <div id="mrv-photo-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px;"></div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">First file is the cover → saved to <b>reports.image_url</b>; the rest → <b>reports_media</b>.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-action-row">
+                    <button class="modal-btn-back" type="button" onclick="mGoStep(3)"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="modal-btn-next" type="button" onclick="mSubmitConcern()"><i class="fas fa-paper-plane"></i> Post Concern</button>
+                </div>
+            </div>
+
+            <!-- SUCCESS PANEL (missing in this page; prevents blank modal after Post Concern) -->
+            <div class="modal-panel" id="mpanel-5">
+                <div class="modal-success">
+                    <div class="modal-success-ring"><i class="fas fa-check"></i></div>
+                    <div class="modal-success-title">Concern Submitted!</div>
+                    <p class="modal-success-sub">Your report has been received.<br>Please wait while we process it...</p>
+                </div>
+            </div>
+
+            <form id="concern-real-form" action="{{ url_for('file_concern') }}" method="POST" enctype="multipart/form-data" style="display:none;">
+                <input type="hidden" name="category" id="hf-category">
+                <input type="hidden" name="title" id="hf-title">
+                <input type="hidden" name="location" id="hf-location">
+                <input type="hidden" name="geox" id="hf-geox">
+                <input type="hidden" name="geoy" id="hf-geoy">
+                <input type="hidden" name="description" id="hf-description">
+                <input type="file" name="concern_photos" id="hf-photo" accept="image/*,video/*" multiple onclick="if(!this.dataset.prompting){ event.preventDefault(); showCameraGalleryPrompt(this); }">
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<!-- ===== CONCERN DETAILS MODAL (FACEBOOK REFERENCE STYLE) ===== -->
+<style>
+#concern-details-modal.open {
+    display: flex !important;
+    animation: fadeIn 0.2s ease;
+}
+@media (max-width: 768px) {
+    #concern-details-modal {
+        flex-direction: column !important;
+        overflow-y: auto !important;
+    }
+    #concern-details-modal > div:first-child {
+        height: 350px !important;
+        flex: none !important;
+    }
+    .cdm-sidebar {
+        width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow-y: visible !important;
+    }
+}
+</style>
+<div class="modal-backdrop" id="concern-details-modal" onclick="if(event.target===this) closePostModal()" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.9); flex-direction:row; align-items:stretch; justify-content:flex-start; height:100%; max-height:100vh; overflow:hidden;">
+    <!-- LEFT PANEL: PHOTO VIEWER (ONLY ONE CLOSE BUTTON HERE) -->
+    <div style="flex:1; height:100%; max-height:100%; background:#0a0a0a; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; box-sizing:border-box;" onclick="if(event.target===this) closePostModal()">
+        <button type="button" onclick="closePostModal()" style="position:absolute; top:20px; left:20px; width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.15); color:#fff; border:none; font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'" title="Close Window">
+            <i class="fas fa-times"></i>
+        </button>
+        <div id="cdm-photo-container" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:40px; box-sizing:border-box;">
+            <img id="cdm-photo" src="" style="max-width:100%; max-height:100%; object-fit:contain; box-shadow:0 10px 40px rgba(0,0,0,0.5);" alt="Evidence">
+        </div>
+        <div id="cdm-no-photo" style="display:none; flex-direction:column; align-items:center; justify-content:center; color:#555; text-align:center;">
+            <i class="fas fa-file-alt" style="font-size:64px; color:#ef4444; margin-bottom:16px; opacity:0.8;"></i>
+            <div style="font-size:20px; font-weight:700; color:#fff;">ActBayan Community Report</div>
+            <div style="font-size:14px; color:#888; margin-top:4px;">No visual evidence attached to this filing</div>
+        </div>
+    </div>
+    <!-- RIGHT PANEL: DETAILS & COMMENTS SIDEBAR (FIXED HEIGHT 100% SO IT NEVER CUTS OFF AT BOTTOM) -->
+    <div class="cdm-sidebar" style="width:420px; max-width:100%; height:100%; max-height:100%; background:var(--bg-nav-card, #1c1c1e); border-left:1px solid var(--border-color, #2c2c2e); display:flex; flex-direction:column; flex-shrink:0; box-shadow:-5px 0 25px rgba(0,0,0,0.3); z-index:5; box-sizing:border-box; overflow:hidden;" onclick="event.stopPropagation()">
+        <!-- SIDEBAR HEADER (NO SECOND CANCEL BUTTON) -->
+        <div style="padding:16px 20px; border-bottom:1px solid var(--border-color, rgba(255,255,255,0.1)); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; background:var(--bg-nav-card); box-sizing:border-box;">
+            <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+                <div id="cdm-avatar" style="width:40px; height:40px; border-radius:50%; background:var(--primary-red); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; flex-shrink:0; overflow:hidden;"></div>
+                <div style="min-width:0; flex:1;">
+                    <div id="cdm-author-name" style="font-weight:700; font-size:15px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+                    <div style="font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+                        <span id="cdm-time"></span> • <span id="cdm-category-badge" style="color:var(--primary-red); font-weight:700;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- SCROLLABLE BODY -->
+        <div style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:20px; box-sizing:border-box;">
+            <div>
+                <h2 id="cdm-title" style="font-size:18px; font-weight:800; color:var(--text-main); margin:0 0 8px 0; line-height:1.3;"></h2>
+                <p id="cdm-desc" style="font-size:14px; color:var(--text-main); line-height:1.6; margin:0; white-space:pre-wrap; font-family:inherit; opacity:0.95;"></p>
+                <div id="cdm-loc" style="font-size:12px; font-weight:600; color:var(--text-muted); margin-top:10px; display:flex; align-items:center; gap:6px;">
+                    <i class="fas fa-map-marker-alt" style="color:#ef4444;"></i> <span></span>
+                </div>
+            </div>
+            <!-- Progress Stepper -->
+            <div style="background:var(--search-bg); padding:16px; border-radius:12px; border:1px solid var(--border-color);">
+                <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted); margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                    <span><i class="fas fa-tasks" style="color:#ef4444; margin-right:6px;"></i> Resolution Stage</span>
+                    <span id="cdm-stage-badge" style="font-size:11px; font-weight:800; padding:2px 8px; border-radius:12px;"></span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; position:relative; padding:0 8px;">
+                    <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
+                        <div id="step-dot-1" style="width:26px; height:26px; border-radius:50%; background:#ef4444; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">1</div>
+                        <span style="font-size:10px; font-weight:700; margin-top:6px; color:var(--text-main);">Filed</span>
+                    </div>
+                    <div id="step-line-1" style="height:3px; background:var(--border-color); flex:1; margin:0 6px;"></div>
+                    <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
+                        <div id="step-dot-2" style="width:26px; height:26px; border-radius:50%; background:var(--border-color); color:var(--text-muted); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">2</div>
+                        <span id="step-lbl-2" style="font-size:10px; font-weight:600; margin-top:6px; color:var(--text-muted);">In Review</span>
+                    </div>
+                    <div id="step-line-2" style="height:3px; background:var(--border-color); flex:1; margin:0 6px;"></div>
+                    <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
+                        <div id="step-dot-3" style="width:26px; height:26px; border-radius:50%; background:var(--border-color); color:var(--text-muted); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">3</div>
+                        <span id="step-lbl-3" style="font-size:10px; font-weight:600; margin-top:6px; color:var(--text-muted);">Resolved</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Stats -->
+            <div style="display:flex; align-items:center; justify-content:space-between; padding-top:4px; border-bottom:1px solid var(--border-color); padding-bottom:14px; font-size:13px; color:var(--text-muted); font-weight:600;">
+                <span id="cdm-upvote-stat"></span>
+                <span id="cdm-comment-stat"></span>
+            </div>
+            <!-- Comments Section Header -->
+            <div>
+                <div style="font-size:14px; font-weight:800; color:var(--text-main); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                    <span>Comments</span>
+                </div>
+                <div id="cdm-comments-stream" style="display:flex; flex-direction:column; gap:12px; min-height:80px;"></div>
+            </div>
+        </div>
+        <!-- Comment Input Bar (FIXED BOTTOM PADDING SO IT NEVER CUTS OR OVERLAPS) -->
+        <div style="padding:14px 20px 24px 20px; border-top:1px solid var(--border-color); background:var(--bg-nav-card); flex-shrink:0; box-sizing:border-box;">
+            {% if user.account_status == 'Verified' %}
+            <form action="/file_concern" method="POST" id="cdm-comment-form" style="display:flex; gap:10px; align-items:center; margin:0;">
+                <input type="hidden" name="fn" value="pc">
+                <input type="hidden" name="report_id" id="cdm-form-report-id" value="">
+                <div style="position:relative; flex:1; display:flex; align-items:center;">
+                    <button type="button" class="emoji-btn" onclick="toggleEmoji(this)" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;display:flex;align-items:center;justify-content:center;padding:8px 12px;transition:color 0.2s;"><i class="far fa-smile"></i></button>
+                    <div class="emoji-popup" style="display:none;position:absolute;bottom:50px;left:0;z-index:10005;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.3);">
+                        <emoji-picker></emoji-picker>
+                    </div>
+                    <input type="text" name="comment" placeholder="Write a comment..." required autocomplete="off" style="width:100%; padding:10px 16px; border-radius:20px; border:1px solid var(--border-color); background:var(--search-bg); color:var(--text-main); font-size:13px; outline:none; transition:border-color 0.2s;">
+                </div>
+                <button type="submit" class="comment-submit-btn" style="background:var(--primary-red); color:white; border:none; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; flex-shrink:0; box-shadow:0 3px 10px rgba(231,76,60,0.3); transition:transform 0.2s;" title="Send Comment" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+            {% else %}
+            <div style="width:100%; padding:10px 16px; border-radius:20px; background:#fff3f3; color:#d32f2f; font-size:13px; text-align:center; border: 1px solid #ffdcdc;">
+                <i class="fas fa-lock" style="margin-right:5px;"></i> You must be a verified user to comment.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ===== RESIDENT REPORT PROGRESS PANEL ===== -->
+<div class="rp-backdrop" id="resident-progress-modal" onclick="closeResidentProgressModal(event)">
+    <div class="rp-panel" onclick="event.stopPropagation()">
+        <div class="rp-header">
+            <div class="rp-header-deco"></div>
+            <div class="rp-header-badge"><i class="fas fa-chart-line"></i> Report Progress</div>
+            <div class="rp-header-title" id="rp-title">Concern Title</div>
+            <div class="rp-header-status-row">
+                <div class="rp-status-dot" id="rp-status-dot"></div>
+                <span class="rp-status-label">Current Status:</span>
+                <span class="rp-status-badge" id="rp-status-badge">Pending</span>
+            </div>
+            <button class="rp-close-btn" onclick="document.getElementById('resident-progress-modal').classList.remove('open'); document.body.style.overflow=''">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="rp-section-label">
+            <i class="fas fa-history"></i> LGU Activity Timeline
+        </div>
+        <div class="rp-body" id="rp-timeline">
+            <div class="rp-empty-state">
+                <div class="rp-empty-icon"><i class="fas fa-clock"></i></div>
+                <div class="rp-empty-title">Awaiting Updates</div>
+                <p class="rp-empty-sub">The LGU has not posted any progress documentation yet.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== DUPLICATE WARNING MODAL ===== -->
+<div class="modal-backdrop" id="duplicate-modal" onclick="if(event.target===this)closeDuplicateModalDirect()">
+    <div class="modal" style="max-width:600px;">
+        <div class="modal-head">
+            <div class="modal-head-deco"></div>
+            <div class="modal-head-deco2"></div>
+            <div>
+                <div class="modal-head-badge">
+                    <i class="fas fa-exclamation-triangle"></i> Duplicate Notice
+                </div>
+                <h2 class="modal-head-title">Similar Concern Found</h2>
+                <p class="modal-head-sub">A report with a similar title and nearby location already exists.</p>
+            </div>
+            <button class="modal-close-btn" type="button" onclick="closeDuplicateModalDirect()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-section-head">Matching Reports</div>
+            <div id="duplicate-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
+            <div class="modal-disclaimer" style="border-color:rgba(234,179,8,0.4);background:rgba(234,179,8,0.08);">
+                <i class="fas fa-info-circle" style="color:#a16207;"></i>
+                <p style="color:var(--text-main);">Submitting a duplicate report may cause confusion. Please verify if your concern has already been filed before proceeding.</p>
+            </div>
+            <div class="modal-action-row" style="flex-wrap:wrap;gap:8px;">
+                <button class="modal-btn-back" type="button" onclick="closeDuplicateModalDirect()" style="flex:1;justify-content:center;">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="modal-btn-next" type="button" onclick="mSubmitConcernForce()" style="flex:1;background:#92400e;">
+                    <i class="fas fa-paper-plane"></i> Submit Anyway
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightboxOnBackdrop(event)">
+    <button class="lightbox-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+    <img class="lightbox-img" id="lightbox-img" src="" alt="">
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+{# ===== FLASH FALLBACK: profanity warning after plain form POST (page reload) ===== #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<script>
+(function() {
+    function flashToast(msg, icon) {
+        var container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+        }
+        var t = document.createElement('div');
+        t.className = 'toast';
+        t.innerHTML = '<i class="fas ' + (icon || 'fa-exclamation-triangle') + '"></i> ' + msg;
+        container.appendChild(t);
+        requestAnimationFrame(function() { requestAnimationFrame(function() { t.classList.add('show'); }); });
+        setTimeout(function() { t.classList.remove('show'); setTimeout(function() { t.remove(); }, 400); }, 3500);
+    }
+    {% for category, message in messages %}
+    flashToast({{ message|tojson }}, {{ ('fa-ban' if category == 'error' else 'fa-info-circle')|tojson }});
+    {% endfor %}
+})();
+</script>
+{% endif %}
+{% endwith %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<script>
+    // ===== THEME =====
+
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    const themeLabel = document.getElementById('theme-label');
+    const themeIcon = document.getElementById('theme-icon');
+
+    function applyTheme(dark) {
+        document.body.classList.toggle('dark-mode', dark);
+        if(themeLabel) themeLabel.textContent = dark ? 'Light Mode' : 'Dark Mode';
+        themeIcon.className = dark ? 'fas fa-sun' : 'fas fa-moon';
+    }
+    applyTheme(localStorage.getItem('theme') === 'dark');
+    themeBtn.addEventListener('click', () => {
+        const isDark = !document.body.classList.contains('dark-mode');
+        applyTheme(isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+
+    // ===== MULTI-STEP MODAL LOGIC =====
+    const mState = { cat: '', title: '', loc: '', desc: '', imgSrcs: [], imgFiles: [], imgSrc: '', imgFile: null, geox: 0, geoy: 0 };
+    const M_MAX_FILES = 5;
+    let mCurStep = 1;
+
+    const mCatEmojis = {
+        Road: '🛣️', Sanitation: '🗑️', Flooding: '🌊',
+        Lighting: '💡', Other: '📋'
+    };
+
+    function openModal() {
+        document.getElementById('submit-modal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeModal() {
+        if(mCurStep === 5) return; // Block closing if currently submitting
+        document.getElementById('submit-modal').classList.remove('open');
+        document.body.style.overflow = '';
+        setTimeout(mResetModal, 300); // Reset form after transition finishes
+    }
+
+    document.getElementById('submit-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    function mGoStep(n) {
+        document.getElementById('mpanel-' + mCurStep).classList.remove('active');
+        document.getElementById('mpanel-' + n).classList.add('active');
+
+        for (let i = 1; i <= 4; i++) {
+            const num = document.getElementById('msnum-' + i);
+            const lbl = document.getElementById('mslbl-' + i);
+            if (i < n) {
+                num.className = 'modal-step-num done';
+                lbl.className = 'modal-step-lbl done';
+            } else if (i === n) {
+                num.className = 'modal-step-num active';
+                lbl.className = 'modal-step-lbl active';
+            } else {
+                num.className = 'modal-step-num';
+                lbl.className = 'modal-step-lbl';
+            }
+            if (i < 4) {
+                document.getElementById('msseg-' + i).className = 'modal-step-seg' + (i < n ? ' done' : '');
+            }
+        }
+        if (n === 4) mFillReview();
+        mCurStep = n;
+
+        // Auto-detect user location when reaching the Details step (Step 2)
+        if (n === 2) {
+            setTimeout(() => {
+                mEnsureLocationMap();
+                mUseMyLocation();
+            }, 400);
+        }
+    }
+
+    function mSelectCat(el) {
+        document.querySelectorAll('.modal-cat-tile').forEach(t => t.classList.remove('selected'));
+        el.classList.add('selected');
+        mState.cat = el.dataset.cat;
+        document.getElementById('mbtn-step1').disabled = false;
+    }
+
+    let mLeaflet = { map: null, marker: null, tileLayer: null, lastSetBy: null };
+
+    function mValidateStep2() {
+        mState.title = document.getElementById('modal-inp-title').value.trim();
+        mState.loc   = document.getElementById('modal-inp-location').value.trim();
+        mState.desc  = document.getElementById('modal-inp-desc').value.trim();
+        document.getElementById('mbtn-step2').disabled = !(mState.title && mState.loc && mState.desc);
+    }
+
+    function mSetLocationText(text, setBy = 'map') {
+        const locInput = document.getElementById('modal-inp-location');
+        if (!locInput) return;
+        locInput.value = text || '';
+        mState.loc = locInput.value.trim();
+        mLeaflet.lastSetBy = setBy;
+        mValidateStep2();
+    }
+
+    function mSetCoords(lat, lng) {
+        mState.geox = Number(lat);
+        mState.geoy = Number(lng);
+        document.getElementById('hf-geox').value = mState.geox;
+        document.getElementById('hf-geoy').value = mState.geoy;
+    }
+
+    async function mReverseGeocode(lat, lng) {
+        // Nominatim reverse geocoding
+        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=18&addressdetails=1`;
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error('Reverse geocode failed');
+        const data = await res.json();
+
+        const a = data.address || {};
+        // Best-effort mapping to a human readable “Purok/Location”.
+        const parts = [];
+        if (a.neighbourhood) parts.push(a.neighbourhood);
+        if (a.suburb) parts.push(a.suburb);
+        if (a.road) parts.push(a.road);
+        if (a.city) parts.push(a.city);
+        if (a.town) parts.push(a.town);
+        if (a.village) parts.push(a.village);
+        if (a.county) parts.push(a.county);
+        if (a.state) parts.push(a.state);
+
+        const readable = parts.filter(Boolean).join(', ');
+        return readable || data.display_name || `Lat ${lat.toFixed(5)}, Lng ${lng.toFixed(5)}`;
+    }
+
+    function mEnsureLocationMap() {
+        if (mLeaflet.map) return;
+        const mapEl = document.getElementById('loc-map');
+        if (!mapEl) return;
+
+        // Default center: General Mamerto Natividad, Poblacion
+        const defaultLat = 15.6015;
+        const defaultLng = 121.0503;
+
+        mLeaflet.map = L.map('loc-map', { zoomControl: true }).setView([defaultLat, defaultLng], 14);
+
+        // OSM tiles
+        mLeaflet.tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(mLeaflet.map);
+
+        mLeaflet.marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(mLeaflet.map);
+        mLeaflet.marker.setOpacity(0); // hide until chosen
+
+        mLeaflet.marker.on('dragend', async (e) => {
+            const pos = e.target.getLatLng();
+            mSetCoords(pos.lat, pos.lng);
+            showToast('Pin moved.', 'fa-map-marker-alt');
+            try {
+                const txt = await mReverseGeocode(pos.lat, pos.lng);
+                mSetLocationText(txt, 'map-drag');
+                document.getElementById('loc-map-hint').textContent = 'Selected (Drag to adjust)';
+            } catch (err) {
+                mSetLocationText(`Lat ${pos.lat.toFixed(5)}, Lng ${pos.lng.toFixed(5)}`, 'map-drag');
+                document.getElementById('loc-map-hint').textContent = 'Coordinates selected';
+            }
+        });
+
+        mLeaflet.map.on('click', async (e) => {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            mLeaflet.marker.setLatLng([lat, lng]);
+            mLeaflet.marker.setOpacity(1);
+            mSetCoords(lat, lng);
+            showToast('Location selected.', 'fa-map-marker-alt');
+            try {
+                const txt = await mReverseGeocode(lat, lng);
+                mSetLocationText(txt, 'map-click');
+                document.getElementById('loc-map-hint').textContent = 'Selected';
+            } catch (err) {
+                mSetLocationText(`Lat ${lat.toFixed(5)}, Lng ${lng.toFixed(5)}`, 'map-click');
+                document.getElementById('loc-map-hint').textContent = 'Coordinates selected';
+            }
+        });
+
+        // When modal shows, map needs to resize properly
+        setTimeout(() => {
+            try { mLeaflet.map.invalidateSize(); } catch (e) {}
+        }, 200);
+    }
+
+    function mUseMyLocation() {
+        mEnsureLocationMap();
+
+        if (!navigator.geolocation) {
+            showToast('Geolocation is not supported by your browser.', 'fa-exclamation-circle');
+            return;
+        }
+
+        showToast('Getting your GPS location...', 'fa-crosshairs');
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+
+                if (mLeaflet.map) {
+                    mLeaflet.map.setView([lat, lng], 17);
+                    mLeaflet.marker.setLatLng([lat, lng]);
+                    mLeaflet.marker.setOpacity(1);
+                }
+
+                mSetCoords(lat, lng);
+
+                try {
+                    const txt = await mReverseGeocode(lat, lng);
+                    mSetLocationText(txt, 'geolocation');
+                    const hint = document.getElementById('loc-map-hint');
+                    if (hint) hint.textContent = 'GPS Location Selected';
+                    showToast('Location detected via GPS!', 'fa-check-circle');
+                } catch (err) {
+                    mSetLocationText(`Lat ${lat.toFixed(5)}, Lng ${lng.toFixed(5)}`, 'geolocation');
+                    showToast('GPS coordinates added.', 'fa-check-circle');
+                }
+            },
+            async (err) => {
+                // GPS failed — likely running over HTTP (not HTTPS).
+                // DO NOT fall back to IP geolocation (ipapi.co etc.) as it gives
+                // inaccurate ISP-level coordinates that mislead users.
+                // Instead, let the user manually place the pin on the map.
+                showToast('GPS unavailable over HTTP. Please click or drag the pin on the map to set your exact location.', 'fa-exclamation-circle');
+                const hint = document.getElementById('loc-map-hint');
+                if (hint) hint.textContent = '⚠ Click map to pin location';
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+        );
+    }
+
+
+    // ===== STEP 3: MULTIPLE PHOTOS/VIDEOS (1st=cover, rest=reports_media) =====
+    function mIsVideoFile(f) {
+        if (f && f.type && f.type.indexOf('video/') === 0) return true;
+        return /\.(mp4|mov|avi|mkv|webm|flv|wmv|m4v|3gp|3g2|ogv|ogg|mts|m2ts|ts|mxf|vob|rm|rmvb|asf|f4v|mpg|mpeg)$/i.test((f && f.name) || '');
+    }
+
+    function mPreviewFiles(input) {
+        if (!input.files || !input.files.length) return;
+        const incoming = Array.prototype.slice.call(input.files);
+        const room = M_MAX_FILES - mState.imgFiles.length;
+        if (room <= 0) {
+            showToast('Maximum of ' + M_MAX_FILES + ' files reached.', 'fa-exclamation-circle');
+            input.value = '';
+            return;
+        }
+        const accepted = incoming.slice(0, room);
+        if (incoming.length > room) showToast('Only first ' + room + ' added (max ' + M_MAX_FILES + ').', 'fa-info-circle');
+        accepted.forEach((file) => {
+            mState.imgFiles.push(file);
+            if (mIsVideoFile(file)) {
+                mState.imgSrcs.push('__VIDEO__:' + file.name);
+                mRenderPreviewGrid(); mSyncUploadTile();
+            } else {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mState.imgSrcs.push(e.target.result);
+                    mRenderPreviewGrid(); mSyncUploadTile();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        mState.imgFile = mState.imgFiles[0] || null;
+        mState.imgSrc = mState.imgSrcs[0] || '';
+        input.value = '';
+    }
+    function mPreviewFile(input) { mPreviewFiles(input); }
+
+    function mRenderPreviewGrid() {
+        const grid = document.getElementById('modal-preview-grid');
+        const bar = document.getElementById('modal-preview-actions');
+        const cnt = document.getElementById('modal-preview-count');
+        if (!grid) return;
+        if (!mState.imgFiles.length) {
+            grid.style.display = 'none'; grid.innerHTML = '';
+            if (bar) bar.style.display = 'none';
+            return;
+        }
+        grid.style.display = 'grid';
+        let html = '';
+        for (let i = 0; i < mState.imgFiles.length; i++) {
+            const f = mState.imgFiles[i];
+            const src = mState.imgSrcs[i] || '';
+            const isVid = (src.indexOf('__VIDEO__:') === 0) || mIsVideoFile(f);
+            let thumb;
+            if (isVid) {
+                thumb = '<div style="width:100%;height:90px;border-radius:10px;background:#111;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;"><i class="fas fa-video" style="font-size:20px;color:#e74c3c;"></i><span style="font-size:9px;font-weight:700;">VIDEO</span></div>';
+            } else {
+                thumb = '<img src="' + src + '" style="width:100%;height:90px;object-fit:cover;border-radius:10px;display:block;">';
+            }
+            const tag = (i === 0) ? '<span style="position:absolute;top:6px;left:6px;background:var(--primary-red);color:#fff;font-size:9px;font-weight:800;padding:2px 8px;border-radius:50px;">COVER</span>' : '';
+            html += '<div style="position:relative;border-radius:10px;overflow:hidden;border:' + (i===0 ? '2px solid var(--primary-red)' : '1px solid var(--border-color)') + ';">' + tag + thumb
+                + '<button type="button" onclick="mRemovePhotoAt(' + i + ')" title="Remove" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:none;background:rgba(0,0,0,0.65);color:#fff;font-size:12px;cursor:pointer;line-height:1;">x</button>'
+                + '<div style="font-size:9px;font-weight:600;color:var(--text-muted);padding:3px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (f.name || ('File ' + (i+1))) + '</div></div>';
+        }
+        grid.innerHTML = html;
+        if (bar) { bar.style.display = 'flex'; bar.style.alignItems = 'center'; }
+        if (cnt) cnt.textContent = mState.imgFiles.length + '/' + M_MAX_FILES + ' (1st = cover)';
+        mState.imgFile = mState.imgFiles[0] || null;
+        mState.imgSrc = mState.imgSrcs[0] || '';
+    }
+
+    function mSyncUploadTile() {
+        const tile = document.getElementById('modal-upload-tile');
+        const icon = document.getElementById('modal-upload-icon');
+        const txt = document.getElementById('modal-upload-text');
+        if (!tile) return;
+        if (mState.imgFiles.length) {
+            tile.classList.add('has-file');
+            if (icon) icon.className = 'fas fa-check-circle';
+            if (txt) txt.textContent = mState.imgFiles.length + ' file(s) selected — click to add more';
+        } else {
+            tile.classList.remove('has-file');
+            if (icon) icon.className = 'fas fa-camera';
+            if (txt) txt.textContent = 'Click to upload photos or videos';
+        }
+    }
+
+    function mRemovePhotoAt(idx) {
+        if (idx < 0 || idx >= mState.imgFiles.length) return;
+        mState.imgFiles.splice(idx, 1);
+        mState.imgSrcs.splice(idx, 1);
+        mState.imgFile = mState.imgFiles[0] || null;
+        mState.imgSrc = mState.imgSrcs[0] || '';
+        mRenderPreviewGrid(); mSyncUploadTile();
+        showToast('File removed.', 'fa-trash');
+    }
+
+    function mRemoveAllPhotos() { mRemovePhoto(); }
+
+    function mRemovePhoto() {
+        mState.imgSrcs = []; mState.imgFiles = [];
+        mState.imgSrc = ''; mState.imgFile = null;
+        const grid = document.getElementById('modal-preview-grid');
+        if (grid) { grid.style.display = 'none'; grid.innerHTML = ''; }
+        const bar = document.getElementById('modal-preview-actions');
+        if (bar) bar.style.display = 'none';
+        const tile = document.getElementById('modal-upload-tile');
+        if (tile) tile.classList.remove('has-file');
+        const icon = document.getElementById('modal-upload-icon');
+        if (icon) icon.className = 'fas fa-camera';
+        const txt = document.getElementById('modal-upload-text');
+        if (txt) txt.textContent = 'Click to upload photos or videos';
+        const inp = document.getElementById('modal-photo-input');
+        if (inp) inp.value = '';
+        const hf = document.getElementById('hf-photo');
+        if (hf) hf.value = '';
+    }
+
+    function mFillReview() {
+        document.getElementById('mrv-cat').textContent = (mCatEmojis[mState.cat] || '') + ' ' + mState.cat;
+        document.getElementById('mrv-title').textContent = mState.title;
+        document.getElementById('mrv-loc').textContent   = mState.loc;
+        document.getElementById('mrv-desc').textContent  = mState.desc;
+
+        const photoRow = document.getElementById('mrv-photo-row');
+        const grid = document.getElementById('mrv-photo-grid');
+        const cnt = document.getElementById('mrv-photo-count');
+        if (mState.imgFiles.length && grid) {
+            let html = '';
+            for (let i = 0; i < mState.imgFiles.length; i++) {
+                const src = mState.imgSrcs[i] || '';
+                const isVid = (src.indexOf('__VIDEO__:') === 0);
+                if (isVid) {
+                    html += '<div style="background:#111;color:#fff;border-radius:8px;height:64px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;">VIDEO' + (i===0 ? ' (COVER)' : '') + '</div>';
+                } else {
+                    html += '<img src="' + src + '" style="width:100%;height:64px;object-fit:cover;border-radius:8px;' + (i===0 ? 'outline:2px solid var(--primary-red);' : '') + '">';
+                }
+            }
+            grid.innerHTML = html;
+            if (cnt) cnt.textContent = '(' + mState.imgFiles.length + ')';
+            photoRow.style.display = 'flex';
+        } else {
+            photoRow.style.display = 'none';
+        }
+    }
+
+    // ===== DUPLICATE DETECTION =====
+    let mDuplicateCheckInProgress = false;
+
+    function closeDuplicateModalDirect() {
+        document.getElementById('duplicate-modal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function mSubmitConcernForce() {
+        closeDuplicateModalDirect();
+        mDoSubmitConcern();
+    }
+
+    function mDoSubmitConcern() {
+        // Populating the hidden form fields that interact with Flask
+        document.getElementById('hf-category').value    = mState.cat;
+        document.getElementById('hf-title').value       = mState.title;
+        document.getElementById('hf-location').value    = mState.loc;
+        document.getElementById('hf-description').value = mState.desc;
+
+        // Multi-file: copy ALL selected files (1st=cover, rest=reports_media)
+        const hfPhoto = document.getElementById('hf-photo');
+        if (mState.imgFiles.length && hfPhoto) {
+            const dt = new DataTransfer();
+            mState.imgFiles.forEach((f) => { try { dt.items.add(f); } catch (e) {} });
+            hfPhoto.files = dt.files;
+        }
+
+        // Hide the steps indicator and show the Success panel
+        document.getElementById('modal-step-bar').style.display = 'none';
+        mGoStep(5); 
+
+        // Actual form submission to Python backend after briefly showing the success message
+        setTimeout(() => {
+            document.getElementById('concern-real-form').submit();
+        }, 1500);
+    }
+
+    async function mCheckDuplicate() {
+        if (mDuplicateCheckInProgress) return;
+        mDuplicateCheckInProgress = true;
+
+        // Populate hidden fields first so we can read them if needed
+        document.getElementById('hf-category').value    = mState.cat;
+        document.getElementById('hf-title').value       = mState.title;
+        document.getElementById('hf-location').value    = mState.loc;
+        document.getElementById('hf-description').value = mState.desc;
+
+        // Build payload
+        const payload = {
+            title: mState.title,
+            description: mState.desc,
+            geox: mState.geox,
+            geoy: mState.geoy
+        };
+
+        try {
+            const res = await fetch('/api/check_duplicate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if (data.duplicates && data.duplicates.length > 0) {
+                // Show duplicate warning modal
+                const listEl = document.getElementById('duplicate-list');
+                listEl.innerHTML = data.duplicates.map(d => {
+                    const similarityPct = Math.round(d.similarity * 100);
+                    const distText = d.distance_m !== null ? `${Math.round(d.distance_m)}m away` : '';
+                    const similarityClass = similarityPct >= 85 ? 'cat-safety' : (similarityPct >= 70 ? 'cat-road' : 'cat-sanitation');
+                    const publicKey = d.public_key || '';
+                    return `
+                        <div style="background:var(--search-bg);border:1px solid var(--border-color);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;" onclick="closeDuplicateModalDirect();openPostModalByPublicKey('${publicKey}')">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <strong style="font-size:13px;color:var(--text-main);">${d.title}</strong>
+                                <span style="font-size:11px;font-weight:800;padding:2px 10px;border-radius:50px;background:var(--${similarityClass === 'cat-safety' ? 'red-light' : 'search-bg'});color:${similarityClass === 'cat-safety' ? 'var(--primary-red)' : 'var(--text-muted)'};">${similarityPct}% match</span>
+                            </div>
+                            ${distText ? `<div style="font-size:11px;color:var(--text-muted);"><i class="fas fa-map-marker-alt" style="color:var(--primary-red);font-size:10px;"></i> ${distText}</div>` : ''}
+                            <div style="font-size:11px;color:var(--text-muted);display:flex;gap:10px;">
+                                <span>Status: ${d.status}</span>
+                                <span>Category: ${d.category}</span>
+                            </div>
+                            <div style="font-size:10px;font-weight:600;color:var(--primary-red);margin-top:4px;">Click to view details →</div>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('duplicate-modal').classList.add('open');
+                document.body.style.overflow = 'hidden';
+            } else {
+                // No duplicates found — submit normally
+                mDoSubmitConcern();
+            }
+        } catch (err) {
+            console.error('Duplicate check failed:', err);
+            // On error, still allow submission
+            mDoSubmitConcern();
+        } finally {
+            mDuplicateCheckInProgress = false;
+        }
+    }
+
+    function mSubmitConcern() {
+        // Populating the hidden form fields that interact with Flask
+        document.getElementById('hf-category').value    = mState.cat;
+        document.getElementById('hf-title').value       = mState.title;
+        document.getElementById('hf-location').value    = mState.loc;
+        document.getElementById('hf-description').value = mState.desc;
+
+        // Multi-file: copy ALL selected files (1st=cover, rest=reports_media)
+        const hfPhoto2 = document.getElementById('hf-photo');
+        if (mState.imgFiles.length && hfPhoto2) {
+            const dt = new DataTransfer();
+            mState.imgFiles.forEach((f) => { try { dt.items.add(f); } catch (e) {} });
+            hfPhoto2.files = dt.files;
+        }
+
+        // First check for duplicates via the API
+        mCheckDuplicate();
+    }
+
+    function mResetModal() {
+        Object.assign(mState, { cat:'', title:'', loc:'', desc:'', imgSrc:'', imgFile: null, imgSrcs: [], imgFiles: [] });
+
+        document.querySelectorAll('.modal-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('mpanel-1').classList.add('active');
+        mCurStep = 1;
+
+        document.getElementById('modal-step-bar').style.display = 'flex';
+        for (let i = 1; i <= 4; i++) {
+            document.getElementById('msnum-' + i).className = 'modal-step-num' + (i === 1 ? ' active' : '');
+            document.getElementById('mslbl-' + i).className = 'modal-step-lbl' + (i === 1 ? ' active' : '');
+            if (i < 4) document.getElementById('msseg-' + i).className = 'modal-step-seg';
+        }
+
+        document.querySelectorAll('.modal-cat-tile').forEach(t => t.classList.remove('selected'));
+        document.getElementById('mbtn-step1').disabled = true;
+        document.getElementById('mbtn-step2').disabled = true;
+        document.getElementById('modal-inp-title').value    = '';
+        document.getElementById('modal-inp-location').value = '';
+        document.getElementById('modal-inp-desc').value     = '';
+        mRemovePhoto();
+    }
+
+    // ===== LIGHTBOX (image + video aware) =====
+    function openLightboxFromFeed(el) {
+        // FB-grid click: if user tapped a video cell, open modal but keep
+        // inline autoplay running; image cells open the details modal.
+        if (el && el.classList && el.classList.contains('fb-media-grid')) {
+            const cell = (window.event && window.event.target && window.event.target.closest)
+                ? window.event.target.closest('.fb-cell') : null;
+            // Tapping any cell opens the full details modal (FB-style viewer)
+            const post = el.closest('.concern-post');
+            if (post && typeof openPostModalForCard === 'function') {
+                openPostModalForCard(post);
+                return;
+            }
+            if (cell) { openLightbox(cell.dataset.full, '', cell.dataset.kind); return; }
+        }
+        const post = el.closest ? el.closest('.concern-post') : null;
+        if (post && typeof openPostModalForCard === 'function') {
+            openPostModalForCard(post);
+        } else {
+            openLightbox(el.dataset.img, el.dataset.title);
+        }
+    }
+    let _lbVideo = null;
+    function openLightbox(src, caption, kind) {
+        const lb = document.getElementById('lightbox');
+        const img = document.getElementById('lightbox-img');
+        const cap = document.getElementById('lightbox-caption');
+        const isVid = kind === 'video' || /\.(mp4|mov|webm|avi|mkv|m4v|3gp|ogv|ogg)(\?|#|$)/i.test(src || '');
+        // Remove any previous inline video
+        if (_lbVideo && _lbVideo.parentNode) _lbVideo.parentNode.removeChild(_lbVideo);
+        _lbVideo = null;
+        if (img) img.style.display = '';
+        if (isVid) {
+            if (img) img.style.display = 'none';
+            _lbVideo = document.createElement('video');
+            _lbVideo.src = src;
+            _lbVideo.controls = true;
+            _lbVideo.autoplay = true;
+            _lbVideo.playsInline = true;
+            _lbVideo.style.cssText = 'max-width:88vw;max-height:82vh;background:#000;border-radius:8px;';
+            img.parentNode.insertBefore(_lbVideo, img);
+        } else if (img) {
+            img.src = src;
+        }
+        if (cap) cap.textContent = caption || '';
+        lb.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+        if (_lbVideo) { try { _lbVideo.pause(); } catch (e) {} }
+        document.getElementById('lightbox').classList.remove('open');
+        if (!document.getElementById('submit-modal').classList.contains('open')) {
+            document.body.style.overflow = '';
+        }
+    }
+    function closeLightboxOnBackdrop(e) {
+        if (e.target === document.getElementById('lightbox')) closeLightbox();
+    }
+
+    // ===== FB-STYLE SCROLL AUTOPLAY: play video when in view, pause when out =====
+    function fbToggleMute(btn) {
+        const cell = btn.closest('.fb-cell');
+        const vid = cell ? cell.querySelector('video') : null;
+        if (!vid) return;
+        vid.muted = !vid.muted;
+        btn.innerHTML = vid.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+    }
+    let _fbObserver = null;
+    function fbInitAutoplay() {
+        const vids = document.querySelectorAll('.fb-media-grid video');
+        if (!('IntersectionObserver' in window) || !vids.length) {
+            // Fallback: play first visible video muted
+            vids.forEach((v) => { v.muted = true; try { v.play().catch(function(){}); } catch (e) {} });
+            return;
+        }
+        if (_fbObserver) _fbObserver.disconnect();
+        _fbObserver = new IntersectionObserver((entries) => {
+            entries.forEach((en) => {
+                const v = en.target;
+                if (en.isIntersecting && en.intersectionRatio >= 0.35) {
+                    v.muted = v.muted !== false; // keep FB-style muted autoplay
+                    const p = v.play();
+                    if (p && p.catch) p.catch(function(){});
+                    const hint = v.parentElement ? v.parentElement.querySelector('.fb-play-hint') : null;
+                    if (hint) hint.style.display = 'none';
+                } else {
+                    try { v.pause(); } catch (e) {}
+                    const hint = v.parentElement ? v.parentElement.querySelector('.fb-play-hint') : null;
+                    if (hint) hint.style.display = 'flex';
+                }
+            });
+        }, { threshold: [0, 0.35, 0.6, 1] });
+        vids.forEach((v) => _fbObserver.observe(v));
+    }
+    // Defer until DOM painted; re-run after dynamic renders
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() { setTimeout(fbInitAutoplay, 300); });
+    } else {
+        setTimeout(fbInitAutoplay, 300);
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (document.getElementById('lightbox').classList.contains('open')) closeLightbox();
+            else if (document.getElementById('submit-modal').classList.contains('open')) closeModal();
+        }
+    });
+
+    // ===== UPVOTE AND COMMENTS =====
+    async function toggleUpvote(btn) {
+        const reportId = btn.dataset.id;
+        const isUpvoted = btn.classList.contains('upvoted');
+        const countEl = btn.querySelector('.upvote-count');
+        let count = parseInt(countEl.textContent);
+        
+        if (isUpvoted) {
+            btn.classList.remove('upvoted');
+            countEl.textContent = count - 1;
+            showToast('Upvote removed.', 'fa-arrow-down');
+        } else {
+            btn.classList.add('upvoted');
+            countEl.textContent = count + 1;
+            showToast('Upvoted! Thanks for your support.', 'fa-arrow-up');
+        }
+
+        try {
+            const res = await fetch('/api/upvote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ report_id: reportId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                countEl.textContent = data.count;
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (err) {
+            if (isUpvoted) {
+                btn.classList.add('upvoted');
+                countEl.textContent = count;
+            } else {
+                btn.classList.remove('upvoted');
+                countEl.textContent = count;
+            }
+            showToast('Error updating vote', 'fa-exclamation-circle');
+        }
+    }
+
+    const CURRENT_USER_FULLNAME = "{{ (user.first_name ~ ' ' ~ user.last_name)|trim if user and user.first_name else 'Resident' }}";
+    const CURRENT_USER_AVATAR = `
+        {% if user and user.profile_photo %}
+            {% set raw_path = (user.profile_photo | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+            {% set clean_path = raw_path.replace("static/", "", 1) if raw_path.startswith("static/") else raw_path %}
+            <img src="{{ url_for('static', filename=clean_path) }}" alt="DP" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+        {% else %}
+            {{ (user.first_name[0] if user and user.first_name else 'R')|upper }}
+        {% endif %}
+    `.trim();
+
+    function toggleCommentsById(idx) {
+        const card = document.querySelector(`.concern-post[data-id="${idx}"]`) || document.querySelector(`.action-btn[data-id="${idx}"]`)?.closest('.concern-post');
+        if (card && typeof openPostModalForCard === 'function') {
+            openPostModalForCard(card);
+            setTimeout(() => {
+                const inp = document.querySelector('#cdm-comment-form input[name="comment"]');
+                if (inp) inp.focus();
+            }, 200);
+        }
+    }
+
+    function toggleComments(btn) {
+        const post = btn.closest('.concern-post');
+        if (post && typeof openPostModalForCard === 'function') {
+            openPostModalForCard(post);
+            setTimeout(() => {
+                const inp = document.querySelector('#cdm-comment-form input[name="comment"]');
+                if (inp) inp.focus();
+            }, 200);
+        } else {
+            toggleCommentsById(btn.dataset.id);
+        }
+    }
+
+    function closeAllDrawers() {
+        document.querySelectorAll('.comment-drawer.open').forEach(d => d.classList.remove('open'));
+        const backdrop = document.getElementById('comments-backdrop');
+        if (backdrop) {
+            backdrop.style.opacity = '0';
+            backdrop.style.pointerEvents = 'none';
+        }
+    }
+
+    function handleCommentKey(e, inputEl) {
+        if (e.key === 'Enter') { e.preventDefault(); postCommentById(inputEl.dataset.id); }
+    }
+
+    function replyToComment(idx, authorName) {
+        const modal = document.getElementById('concern-details-modal');
+        if (!modal || !modal.classList.contains('open') || modal.dataset.activeReportId !== String(idx)) {
+            const card = document.querySelector(`.concern-post[data-id="${idx}"]`) || document.querySelector(`.action-btn[data-id="${idx}"]`)?.closest('.concern-post');
+            if (card && typeof openPostModalForCard === 'function') {
+                openPostModalForCard(card);
+            }
+        }
+        setTimeout(() => {
+            const input = document.querySelector('#cdm-comment-form input[name="comment"]');
+            if (input) {
+                input.focus();
+                const cleanName = authorName.replace(/^@/, '');
+                if (!input.value.includes(`@${cleanName}`)) {
+                    input.value = `@${cleanName} ` + input.value;
+                }
+            }
+        }, 150);
+    }
+
+    function postComment(btn) {
+        postCommentById(btn.dataset.id);
+    }
+
+    function postCommentById(idx) {
+        // Route through the modal form so it hits the server (profanity check + JSON toast).
+        const form = document.getElementById('cdm-comment-form');
+        if (form) {
+            const ridEl = document.getElementById('cdm-form-report-id');
+            if (ridEl && idx) ridEl.value = idx;
+            form.requestSubmit();
+            return;
+        }
+        const input = document.querySelector('#cdm-comment-form input[name="comment"]');
+        if (!input) return;
+        const text = input.value.trim();
+        if (!text) return;
+
+        const list = document.getElementById(`comment-list-${idx}`);
+        if (!list) return;
+        const placeholder = list.querySelector('.no-comments');
+        if (placeholder) placeholder.remove();
+
+        const item = document.createElement('div');
+        item.className = 'comment-item';
+        const safeAuthor = CURRENT_USER_FULLNAME.replace(/'/g, "\\'");
+        item.innerHTML = `
+            <div class="comment-mono">${CURRENT_USER_AVATAR}</div>
+            <div style="display:flex; flex-direction:column; flex:1; min-width:0;">
+                <div class="comment-bubble">
+                    <div class="comment-author">${CURRENT_USER_FULLNAME}</div>
+                    <div class="comment-text">${escapeHtml(text)}</div>
+                </div>
+                <div style="display:flex; gap:12px; margin-top:4px; margin-left:8px; font-size:11px; font-weight:600; color:var(--text-muted);">
+                    <span>Just now</span>
+                    <span style="cursor:pointer; transition:color 0.2s;" onmouseover="this.style.color='var(--primary-red)'" onmouseout="this.style.color=''" onclick="replyToComment('${idx}', '${safeAuthor}')">Reply</span>
+                </div>
+            </div>
+        `;
+        list.appendChild(item);
+        list.scrollTop = list.scrollHeight;
+
+        const countEl = document.querySelector(`.action-btn[data-id="${idx}"] .comment-count`);
+        if (countEl) {
+            countEl.textContent = parseInt(countEl.textContent || 0) + 1;
+        }
+
+        input.value = '';
+        showToast('Comment posted!', 'fa-comment');
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+        function toggleCaption(btn) {
+        const idx = btn.dataset.id;
+        const cap = document.getElementById(`caption-${idx}`);
+        if (cap.classList.contains('clamped')) {
+            cap.classList.remove('clamped');
+            btn.textContent = 'Show less';
+        } else {
+            cap.classList.add('clamped');
+            btn.textContent = 'Read more';
+        }
+    }
+
+    // ===== LGU RESIDENT PROGRESS MODAL =====
+    function openResidentProgressModal(reportId, title, status) {
+        const modalEl = document.getElementById('resident-progress-modal');
+        if (!modalEl) {
+            showToast('LGU progress modal not available on this page.', 'fa-info-circle');
+            return;
+        }
+
+
+        document.getElementById('rp-title').textContent = title || '';
+
+        const rawStatus = (status || 'Pending').trim();
+        const key = rawStatus.toLowerCase().replace(/\s+/g, '');
+
+        const dotEl = document.getElementById('rp-status-dot');
+        const badgeEl = document.getElementById('rp-status-badge');
+        if (dotEl) dotEl.className = 'rp-status-dot ' + key;
+        if (badgeEl) {
+            badgeEl.className = 'rp-status-badge rp-status-' + key;
+            badgeEl.textContent = rawStatus;
+        }
+
+        const timeline = document.getElementById('rp-timeline');
+        if (timeline) {
+            timeline.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Loading LGU responses...</div>';
+        }
+
+        document.getElementById('resident-progress-modal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        fetch(`/api/report_updates/${reportId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (!Array.isArray(data) || data.length === 0) {
+                    if (timeline) {
+                        timeline.innerHTML = `
+                            <div class="rp-empty-state">
+                                <div class="rp-empty-icon"><i class="fas fa-clock"></i></div>
+                                <div class="rp-empty-title">No Updates Yet</div>
+                                <p class="rp-empty-sub">The LGU has not posted any progress documentation for this report yet.</p>
+                            </div>`;
+                    }
+                    return;
+                }
+
+                function cleanStr(val) {
+                    if (!val) return '';
+                    return String(val)
+                        .replace(/^bytearray\(b['"]/, '')
+                        .replace(/['"]\)$/, '')
+                        .replace(/^b['"]/, '')
+                        .replace(/['"]$/, '');
+                }
+
+                if (!timeline) return;
+                timeline.innerHTML = '';
+
+                data.forEach(update => {
+                    const updateText = cleanStr(update.update_text);
+                    const imageUrl = cleanStr(update.image_url);
+
+                    let imgHtml = '';
+                    if (imageUrl) {
+                        imgHtml = `<img src="/${imageUrl}" class="rp-update-img" onclick="openLightbox('/${imageUrl}', 'LGU Documentation')" alt="LGU Update Evidence">`;
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'rp-update-card';
+                    card.innerHTML = `
+                        <div class="rp-update-card-head">
+                            <div class="rp-lgu-badge">LGU</div>
+                            <div class="rp-update-meta">
+                                <div class="rp-update-who">Barangay Official</div>
+                                <div class="rp-update-when">${update.created_at_formatted || ''}</div>
+                            </div>
+                            <span class="rp-update-tag">Status Update</span>
+                        </div>
+                        ${imgHtml}
+                        <div class="rp-update-body">${updateText}</div>
+                    `;
+                    timeline.appendChild(card);
+                });
+            })
+            .catch(err => {
+                console.error('Progress load error:', err);
+                if (timeline) {
+                    timeline.innerHTML = '<div style="color:#dc2626; text-align:center; padding:20px;">Failed to load progress. Please try again.</div>';
+                }
+            });
+    }
+
+
+    function closeResidentProgressModal(event) {
+        // Only close when clicking the backdrop itself
+        if (event && event.target !== document.getElementById('resident-progress-modal')) return;
+        document.getElementById('resident-progress-modal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    // ===== SEARCH FILTER =====
+    const searchInput = document.getElementById('sidebar-search-input');
+    searchInput.addEventListener('input', runFilter);
+
+    let activeFilter = 'all';
+    document.getElementById('filter-chips').addEventListener('click', function(e) {
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeFilter = chip.dataset.filter;
+        runFilter();
+    });
+
+    function runFilter() {
+        const query = searchInput.value.toLowerCase().trim();
+        const posts = document.querySelectorAll('.concern-post');
+        let visibleCount = 0;
+
+        posts.forEach(post => {
+            const cat = post.dataset.category || '';
+            const title = post.dataset.title || '';
+            const location = post.dataset.location || '';
+
+            const matchesCategory = activeFilter === 'all' || cat.includes(activeFilter);
+            const matchesSearch = !query || title.includes(query) || location.includes(query) || cat.includes(query);
+
+            if (matchesCategory && matchesSearch) {
+                post.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                post.classList.add('hidden');
+            }
+        });
+        document.getElementById('no-results-msg').classList.toggle('visible', visibleCount === 0);
+    }
+
+    // ===== OPEN POST MODAL VIA PUBLIC KEY API =====
+    async function openPostModalByPublicKey(publicKey) {
+        if (!publicKey) {
+            showToast('Cannot load details: missing public key.', 'fa-exclamation-circle');
+            return;
+        }
+        try {
+            const res = await fetch(`/api/report/${publicKey}`);
+            const data = await res.json();
+            if (!data.success || !data.report) {
+                showToast('Report not found.', 'fa-exclamation-circle');
+                return;
+            }
+            
+            const r = data.report;
+            
+            // Close any existing modals
+            closePostModal();
+            
+            // Populate modal elements
+            const modal = document.getElementById('concern-details-modal');
+            if (!modal) return;
+            
+            // Avatar
+            const cdmAvatar = document.getElementById('cdm-avatar');
+            if (cdmAvatar) {
+                if (r.profile_photo) {
+                    const photoStr = String(r.profile_photo).replace(/\bbytearray\(b['"]/g, '').replace(/['"]\)$/g, '').replace(/^b['"]/, '').replace(/['"]$/, '');
+                    const clean = photoStr.replace('static/', '');
+                    cdmAvatar.innerHTML = `<img src="/static/${clean}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                } else {
+                    cdmAvatar.textContent = (r.first_name || '?')[0].toUpperCase();
+                }
+            }
+            
+            // Header
+            const cdmAuthor = document.getElementById('cdm-author-name');
+            if (cdmAuthor) cdmAuthor.textContent = `${r.first_name || ''} ${r.last_name || ''}`.trim() || 'Anonymous';
+            
+            const cdmTime = document.getElementById('cdm-time');
+            if (cdmTime) cdmTime.textContent = r.created_at || '';
+            
+            const cdmCatBadge = document.getElementById('cdm-category-badge');
+            if (cdmCatBadge) cdmCatBadge.textContent = r.category || 'Other';
+            
+            // Body
+            document.getElementById('cdm-title').textContent = r.title || '';
+            document.getElementById('cdm-desc').textContent = r.description || 'No additional details provided.';
+            const locEl = document.getElementById('cdm-loc');
+            if (locEl) locEl.innerHTML = r.locname ? `<i class="fas fa-map-marker-alt" style="color:#ef4444;"></i> ${r.locname}` : '';
+            
+            // Set report ID for comment form
+            const formIdInput = document.getElementById('cdm-form-report-id');
+            if (formIdInput) formIdInput.value = r.report_id || '';
+            if (modal) modal.dataset.activeReportId = r.report_id || '';
+            
+            // Stats
+            const cdmUp = document.getElementById('cdm-upvote-stat');
+            const cdmCom = document.getElementById('cdm-comment-stat');
+            if (cdmUp) cdmUp.innerHTML = `<i class="fas fa-arrow-up" style="color:var(--primary-red);"></i> ${r.upvote_count || 0} Upvotes`;
+            if (cdmCom) cdmCom.innerHTML = `<i class="fas fa-comment" style="color:var(--primary-red);"></i> ${r.comment_count || 0} Comments`;
+            
+            // Stepper
+            const stLower = (r.status || '').toLowerCase();
+            const stageBadge = document.getElementById('cdm-stage-badge');
+            const dot1 = document.getElementById('step-dot-1');
+            const dot2 = document.getElementById('step-dot-2');
+            const dot3 = document.getElementById('step-dot-3');
+            const line1 = document.getElementById('step-line-1');
+            const line2 = document.getElementById('step-line-2');
+            const lbl2 = document.getElementById('step-lbl-2');
+            const lbl3 = document.getElementById('step-lbl-3');
+            
+            // Reset
+            if (dot1) { dot1.style.background = '#ef4444'; dot1.style.color = 'white'; dot1.style.boxShadow = '0 0 0 5px rgba(239,68,68,0.2)'; dot1.innerHTML = '1'; }
+            if (dot2) { dot2.style.background = 'var(--border-color)'; dot2.style.color = 'var(--text-muted)'; dot2.style.boxShadow = 'none'; dot2.innerHTML = '2'; }
+            if (lbl2) { lbl2.style.color = 'var(--text-muted)'; lbl2.textContent = 'In Review'; lbl2.style.fontWeight = '600'; }
+            if (dot3) { dot3.style.background = 'var(--border-color)'; dot3.style.color = 'var(--text-muted)'; dot3.style.boxShadow = 'none'; dot3.innerHTML = '3'; }
+            if (lbl3) { lbl3.style.color = 'var(--text-muted)'; lbl3.textContent = 'Resolved'; lbl3.style.fontWeight = '600'; }
+            if (line1) line1.style.background = 'var(--border-color)';
+            if (line2) line2.style.background = 'var(--border-color)';
+            
+            if (stLower === 'resolved' || stLower === 'completed') {
+                if (stageBadge) { stageBadge.innerHTML = '✓ Resolved'; stageBadge.style.background = '#dcfce7'; stageBadge.style.color = '#166534'; }
+                if (dot1) dot1.style.background = '#22c55e';
+                if (line1) line1.style.background = '#22c55e';
+                if (dot2) { dot2.style.background = '#22c55e'; dot2.style.color = 'white'; }
+                if (lbl2) lbl2.style.color = 'var(--text-main)';
+                if (line2) line2.style.background = '#22c55e';
+                if (dot3) { dot3.style.background = '#22c55e'; dot3.style.color = 'white'; dot3.style.boxShadow = '0 0 0 5px rgba(34,197,94,0.25)'; }
+                if (lbl3) { lbl3.style.color = '#166534'; }
+            } else if (stLower.includes('deny') || stLower.includes('denied') || stLower.includes('reject') || stLower.includes('declin') || stLower.includes('cancel') || stLower.includes('spam') || stLower.includes('invalid')) {
+                const labelText = stLower.includes('deny') || stLower.includes('denied') ? 'Denied' : 'Rejected';
+                if (stageBadge) { stageBadge.innerHTML = '✖ ' + labelText; stageBadge.style.background = '#fee2e2'; stageBadge.style.color = '#dc2626'; }
+                if (dot1) dot1.style.background = '#64748b';
+                if (line1) line1.style.background = '#f87171';
+                if (dot2) { dot2.style.background = '#64748b'; dot2.style.color = 'white'; }
+                if (lbl2) { lbl2.style.color = 'var(--text-muted)'; lbl2.textContent = 'Reviewed'; }
+                if (line2) line2.style.background = '#f87171';
+                if (dot3) { dot3.style.background = '#dc2626'; dot3.style.color = 'white'; dot3.style.boxShadow = '0 0 0 5px rgba(220,38,38,0.25)'; dot3.innerHTML = '<i class="fas fa-times"></i>'; }
+                if (lbl3) { lbl3.textContent = labelText; lbl3.style.color = '#dc2626'; lbl3.style.fontWeight = '800'; }
+            } else if (stLower.includes('prog') || stLower.includes('review') || stLower.includes('process') || stLower.includes('investigat')) {
+                if (stageBadge) { stageBadge.innerHTML = '⚡ In Progress'; stageBadge.style.background = '#dbeafe'; stageBadge.style.color = '#1d4ed8'; }
+                if (dot1) dot1.style.background = '#3b82f6';
+                if (line1) line1.style.background = '#3b82f6';
+                if (dot2) { dot2.style.background = '#3b82f6'; dot2.style.color = 'white'; dot2.style.boxShadow = '0 0 0 5px rgba(59,130,246,0.25)'; }
+                if (lbl2) lbl2.style.color = '#1d4ed8';
+            } else {
+                if (stageBadge) { stageBadge.innerHTML = '⏳ Pending Review'; stageBadge.style.background = '#fef3c7'; stageBadge.style.color = '#d97706'; }
+            }
+            
+            // Photo + extra media gallery (cover + reports_media)
+            const photoCont = document.getElementById('cdm-photo-container');
+            const photoImg = document.getElementById('cdm-photo');
+            const noPhoto = document.getElementById('cdm-no-photo');
+            let gallery = r.gallery || [];
+            if ((!gallery || !gallery.length) && r.image_url) gallery = [r.image_url];
+            if (!gallery.length && r.extra_media) gallery = r.extra_media;
+            const isVidUrl = (u) => /\.(mp4|mov|avi|mkv|webm|m4v|3gp|ogv|ogg|mts|m2ts|ts|mxf|vob|asf|f4v|mpg|mpeg)$/i.test(String(u || ''));
+            const toUrl = (p) => p.startsWith('static/') ? '/' + p : (p.startsWith('/') ? p : '/static/' + p);
+            if (gallery.length) {
+                if (photoCont) photoCont.style.display = 'flex';
+                if (noPhoto) noPhoto.style.display = 'none';
+                const first = toUrl(String(gallery[0]).replace(/^bytearray\(b['"]/, '').replace(/['"]\)$/, ''));
+                if (isVidUrl(first)) {
+                    if (photoCont) photoCont.innerHTML = '<video src="' + first + '" style="max-width:100%;max-height:100%;box-shadow:0 10px 40px rgba(0,0,0,0.5);" controls preload="metadata"></video>' + (gallery.length > 1 ? '<div style="position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,0.7);color:#fff;font-size:11px;font-weight:800;padding:4px 12px;border-radius:50px;">1/' + gallery.length + ' (+' + (gallery.length-1) + ' more)</div>' : '');
+                } else {
+                    if (photoCont) photoCont.innerHTML = '<img id="cdm-photo" src="' + first + '" style="max-width:100%;max-height:100%;object-fit:contain;box-shadow:0 10px 40px rgba(0,0,0,0.5);cursor:zoom-in;" alt="Evidence" onclick="openLightbox(\'' + first + '\', \'Evidence\')">' + (gallery.length > 1 ? '<div style="position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,0.7);color:#fff;font-size:11px;font-weight:800;padding:4px 12px;border-radius:50px;">1/' + gallery.length + ' (+' + (gallery.length-1) + ' more)</div>' : '');
+                }
+            } else {
+                if (photoCont) photoCont.style.display = 'none';
+                if (noPhoto) noPhoto.style.display = 'flex';
+            }
+            
+            // Comments
+            const stream = document.getElementById('cdm-comments-stream');
+            if (stream) {
+                stream.innerHTML = '';
+                if (r.comments && r.comments.length > 0) {
+                    r.comments.forEach(c => {
+                        const initials = (c.fullname || 'U')[0].toUpperCase();
+                        let avatarHtml = initials;
+                        if (c.profile_photo) {
+                            const photoStr = String(c.profile_photo).replace(/\bbytearray\(b['"]/g, '').replace(/['"]\)$/g, '').replace(/^b['"]/, '').replace(/['"]$/, '');
+                            const clean = photoStr.replace('static/', '');
+                            avatarHtml = `<img src="/static/${clean}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                        }
+                        stream.innerHTML += `
+                            <div class="comment-item">
+                                <div class="comment-mono">${avatarHtml}</div>
+                                <div style="display:flex;flex-direction:column;flex:1;min-width:0;">
+                                    <div class="comment-bubble">
+                                        <div class="comment-author">${c.fullname || 'User'}</div>
+                                        <div class="comment-text">${c.feedback || ''}</div>
+                                    </div>
+                                    <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-top:4px;margin-left:8px;">${c.uploaded_at || ''}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    stream.innerHTML = `<div class="no-comments"><div class="no-comments-icon"><i class="fas fa-comment-slash"></i></div><span class="no-comments-text">No comments yet</span></div>`;
+                }
+            }
+            
+            modal.classList.add('open');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        } catch (err) {
+            console.error('Failed to load report details:', err);
+            showToast('Failed to load report details.', 'fa-exclamation-circle');
+        }
+    }
+
+    // ===== CONCERN CARD CLICK TO OPEN FACEBOOK-STYLE DETAILS MODAL =====
+    function openPostModalForCard(postEl) {
+        if (!postEl) return;
+        const reportId = postEl.dataset.id || postEl.querySelector('[data-id]')?.dataset.id || '';
+        const title = postEl.querySelector('.post-title')?.textContent || '';
+        const desc = postEl.querySelector('.post-caption')?.textContent || '';
+        const author = postEl.querySelector('.post-username')?.textContent || '';
+        const time = postEl.querySelector('.post-time')?.textContent || '';
+        const loc = postEl.querySelector('.post-location')?.textContent || '';
+        const statusEl = postEl.querySelector('.status-overlay');
+        const statusText = postEl.dataset.status || (statusEl ? statusEl.textContent.trim() : 'Pending');
+        const catEl = postEl.querySelector('.post-category');
+        
+        const grid = postEl.querySelector('.fb-media-grid');
+        const imgWrap = postEl.querySelector('.post-img-wrap[data-img]');
+        
+        // Avatar
+        const avatarEl = postEl.querySelector('.post-avatar');
+        const cdmAvatar = document.getElementById('cdm-avatar');
+        if (cdmAvatar) cdmAvatar.innerHTML = avatarEl ? avatarEl.innerHTML : '?';
+        
+        // Header info
+        const cdmAuthor = document.getElementById('cdm-author-name');
+        if (cdmAuthor) cdmAuthor.textContent = author;
+        const cdmTime = document.getElementById('cdm-time');
+        if (cdmTime) cdmTime.textContent = time;
+        const cdmCatBadge = document.getElementById('cdm-category-badge');
+        if (cdmCatBadge) cdmCatBadge.textContent = catEl ? catEl.textContent : '';
+        
+        // Body
+        document.getElementById('cdm-title').textContent = title;
+        document.getElementById('cdm-desc').textContent = desc || 'No additional details provided.';
+        document.getElementById('cdm-loc').innerHTML = loc.replace('📍 ', '');
+        
+        // Stats bar
+        const upvoteBtn = Array.from(postEl.querySelectorAll('.action-btn')).find(b => b.textContent.includes('Upvotes'));
+        const commentBtn = Array.from(postEl.querySelectorAll('.action-btn')).find(b => b.textContent.includes('Comments'));
+        const cdmUp = document.getElementById('cdm-upvote-stat');
+        const cdmCom = document.getElementById('cdm-comment-stat');
+        if (cdmUp && upvoteBtn) cdmUp.innerHTML = upvoteBtn.innerHTML;
+        if (cdmCom && commentBtn) cdmCom.innerHTML = commentBtn.innerHTML;
+        
+        // Stepper and Status Badge logic
+        const stLower = statusText.toLowerCase();
+        const stageBadge = document.getElementById('cdm-stage-badge');
+        const dot1 = document.getElementById('step-dot-1');
+        const dot2 = document.getElementById('step-dot-2');
+        const dot3 = document.getElementById('step-dot-3');
+        const line1 = document.getElementById('step-line-1');
+        const line2 = document.getElementById('step-line-2');
+        const lbl2 = document.getElementById('step-lbl-2');
+        const lbl3 = document.getElementById('step-lbl-3');
+        
+        // Reset stepper to clean defaults
+        if (dot1) { dot1.style.background = '#ef4444'; dot1.style.color = 'white'; dot1.style.boxShadow = '0 0 0 5px rgba(239,68,68,0.2)'; dot1.innerHTML = '1'; }
+        if (dot2) { dot2.style.background = 'var(--border-color)'; dot2.style.color = 'var(--text-muted)'; dot2.style.boxShadow = 'none'; dot2.innerHTML = '2'; }
+        if (lbl2) { lbl2.style.color = 'var(--text-muted)'; lbl2.textContent = 'In Review'; lbl2.style.fontWeight = '600'; }
+        if (dot3) { dot3.style.background = 'var(--border-color)'; dot3.style.color = 'var(--text-muted)'; dot3.style.boxShadow = 'none'; dot3.innerHTML = '3'; }
+        if (lbl3) { lbl3.style.color = 'var(--text-muted)'; lbl3.textContent = 'Resolved'; lbl3.style.fontWeight = '600'; }
+        if (line1) line1.style.background = 'var(--border-color)';
+        if (line2) line2.style.background = 'var(--border-color)';
+        
+        if (stLower === 'resolved' || stLower === 'completed') {
+            if (stageBadge) { stageBadge.innerHTML = '✓ Resolved'; stageBadge.style.background = '#dcfce7'; stageBadge.style.color = '#166534'; }
+            if (dot1) { dot1.style.background = '#22c55e'; dot1.style.boxShadow = 'none'; }
+            if (line1) line1.style.background = '#22c55e';
+            if (dot2) { dot2.style.background = '#22c55e'; dot2.style.color = 'white'; }
+            if (lbl2) lbl2.style.color = 'var(--text-main)';
+            if (line2) line2.style.background = '#22c55e';
+            if (dot3) { dot3.style.background = '#22c55e'; dot3.style.color = 'white'; dot3.style.boxShadow = '0 0 0 5px rgba(34,197,94,0.25)'; }
+            if (lbl3) lbl3.style.color = '#166534';
+        } else if (stLower.includes('deny') || stLower.includes('denied') || stLower.includes('reject') || stLower.includes('declin') || stLower.includes('cancel') || stLower.includes('spam') || stLower.includes('invalid')) {
+            const isDenied = stLower.includes('deny') || stLower.includes('denied');
+            const labelText = isDenied ? 'Denied' : 'Rejected';
+            if (stageBadge) { stageBadge.innerHTML = '✖ ' + labelText; stageBadge.style.background = '#fee2e2'; stageBadge.style.color = '#dc2626'; }
+            if (dot1) { dot1.style.background = '#64748b'; dot1.style.boxShadow = 'none'; }
+            if (line1) line1.style.background = '#f87171';
+            if (dot2) { dot2.style.background = '#64748b'; dot2.style.color = 'white'; }
+            if (lbl2) { lbl2.style.color = 'var(--text-muted)'; lbl2.textContent = 'Reviewed'; }
+            if (line2) line2.style.background = '#f87171';
+            if (dot3) { dot3.style.background = '#dc2626'; dot3.style.color = 'white'; dot3.style.boxShadow = '0 0 0 5px rgba(220,38,38,0.25)'; dot3.innerHTML = '<i class="fas fa-times"></i>'; }
+            if (lbl3) { lbl3.textContent = labelText; lbl3.style.color = '#dc2626'; lbl3.style.fontWeight = '800'; }
+        } else if (stLower.includes('prog') || stLower.includes('review') || stLower.includes('process') || stLower.includes('investigat')) {
+            if (stageBadge) { stageBadge.innerHTML = '⚡ In Progress'; stageBadge.style.background = '#dbeafe'; stageBadge.style.color = '#1d4ed8'; }
+            if (dot1) { dot1.style.background = '#3b82f6'; dot1.style.boxShadow = 'none'; }
+            if (line1) line1.style.background = '#3b82f6';
+            if (dot2) { dot2.style.background = '#3b82f6'; dot2.style.color = 'white'; dot2.style.boxShadow = '0 0 0 5px rgba(59,130,246,0.25)'; }
+            if (lbl2) lbl2.style.color = '#1d4ed8';
+        } else {
+            if (stageBadge) { stageBadge.innerHTML = '⏳ Pending Review'; stageBadge.style.background = '#fef3c7'; stageBadge.style.color = '#d97706'; }
+        }
+        
+        const photoCont = document.getElementById('cdm-photo-container');
+        const photoImg = document.getElementById('cdm-photo');
+        const noPhoto = document.getElementById('cdm-no-photo');
+        // FB-grid cells carry every file (cover + reports_media extras)
+        const cells = grid ? Array.from(grid.querySelectorAll('.fb-cell')) : [];
+        if (cells.length && photoCont) {
+            photoCont.style.display = 'flex';
+            photoCont.style.position = 'relative';
+            if (noPhoto) noPhoto.style.display = 'none';
+            const items = cells.map((cl) => ({ full: cl.dataset.full, kind: cl.dataset.kind }));
+            const isVid = (u) => /\.(mp4|mov|avi|mkv|webm|m4v|3gp|ogv|ogg)(\?|#|$)/i.test(u || '');
+            // Main viewer = first file, with clickable thumbnail strip below
+            const showMain = (idx) => {
+                const it = items[idx];
+                if (!it) return;
+                let main = document.getElementById('cdm-photo');
+                let mainVid = document.getElementById('cdm-video');
+                if (isVid(it.full)) {
+                    if (main) main.style.display = 'none';
+                    if (!mainVid) {
+                        mainVid = document.createElement('video');
+                        mainVid.id = 'cdm-video';
+                        mainVid.controls = true;
+                        mainVid.autoplay = true;
+                        mainVid.muted = true;
+                        mainVid.loop = true;
+                        mainVid.playsInline = true;
+                        mainVid.style.cssText = 'max-width:100%;max-height:100%;background:#000;';
+                        photoCont.insertBefore(mainVid, photoCont.firstChild);
+                    }
+                    mainVid.style.display = 'block';
+                    if (mainVid.getAttribute('src') !== it.full) mainVid.src = it.full;
+                    try { const p = mainVid.play(); if (p && p.catch) p.catch(function(){}); } catch (e) {}
+                } else {
+                    if (mainVid) mainVid.style.display = 'none';
+                    if (!main) {
+                        main = document.createElement('img');
+                        main.id = 'cdm-photo';
+                        main.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;box-shadow:0 10px 40px rgba(0,0,0,0.5);cursor:zoom-in;';
+                        photoCont.insertBefore(main, photoCont.firstChild);
+                    }
+                    main.style.display = 'block';
+                    main.src = it.full;
+                    main.onclick = function() { openLightbox(it.full, title || 'Evidence', 'image'); };
+                }
+                // Highlight active thumb
+                const strip = document.getElementById('cdm-thumb-strip');
+                if (strip) Array.from(strip.children).forEach((t, ti) => {
+                    t.style.outline = ti === idx ? '2px solid var(--primary-red)' : 'none';
+                });
+            };
+            // Build main + strip once per open
+            photoCont.innerHTML = '<img id="cdm-photo" src="" style="max-width:100%;max-height:100%;object-fit:contain;box-shadow:0 10px 40px rgba(0,0,0,0.5);" alt="Evidence">'
+                + '<div id="cdm-thumb-strip" style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:rgba(0,0,0,0.55);padding:6px;border-radius:12px;max-width:92%;overflow-x:auto;"></div>';
+            const strip = document.getElementById('cdm-thumb-strip');
+            items.forEach((it, i) => {
+                const th = document.createElement('div');
+                th.style.cssText = 'width:52px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;cursor:pointer;background:#222;position:relative;';
+                th.innerHTML = isVid(it.full)
+                    ? '<video src="' + it.full + '" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;"><i class="fas fa-play"></i></span>'
+                    : '<img src="' + it.full + '" style="width:100%;height:100%;object-fit:cover;">';
+                th.onclick = function(e) { e.stopPropagation(); showMain(i); };
+                strip.appendChild(th);
+            });
+            if (strip && items.length < 2) strip.style.display = 'none';
+            showMain(0);
+        } else if (imgWrap && photoCont) {
+            photoCont.style.display = 'flex';
+            if (noPhoto) noPhoto.style.display = 'none';
+            // Collect card extras (thumbnail strip under cover) for count badge
+            const cardExtras = Array.from(postEl.querySelectorAll('video[src], img[alt="Extra evidence"]')).map(el => el.getAttribute('src') || '').filter(Boolean);
+            const coverUrl = imgWrap.dataset.img || '';
+            const isVidCover = /\.(mp4|mov|avi|mkv|webm|m4v|3gp|ogv|ogg)$/i.test(coverUrl);
+            if (isVidCover) {
+                photoCont.innerHTML = '<video src="' + coverUrl + '" style="max-width:100%;max-height:100%;" controls preload="metadata"></video>'
+                    + (cardExtras.length ? '<div style="position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,0.7);color:#fff;font-size:11px;font-weight:800;padding:4px 12px;border-radius:50px;">1/' + (cardExtras.length + 1) + ' (+' + cardExtras.length + ' more)</div>' : '');
+            } else if (photoImg) {
+                // keep existing img node, point at cover
+                if (!document.getElementById('cdm-photo')) {
+                    photoCont.innerHTML = '<img id="cdm-photo" src="" style="max-width:100%;max-height:100%;object-fit:contain;box-shadow:0 10px 40px rgba(0,0,0,0.5);" alt="Evidence">';
+                }
+                const freshImg = document.getElementById('cdm-photo');
+                if (freshImg) {
+                    freshImg.src = coverUrl;
+                    freshImg.onclick = function() { openLightbox(coverUrl, title || 'Evidence'); };
+                    freshImg.style.cursor = 'zoom-in';
+                }
+                // Clear any stale count badge then re-add
+                Array.from(photoCont.querySelectorAll('div[style*="position:absolute"]')).forEach(d => d.remove());
+                if (cardExtras.length) {
+                    const badge = document.createElement('div');
+                    badge.style.cssText = 'position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,0.7);color:#fff;font-size:11px;font-weight:800;padding:4px 12px;border-radius:50px;';
+                    badge.textContent = '1/' + (cardExtras.length + 1) + ' (+' + cardExtras.length + ' more)';
+                    photoCont.style.position = 'relative';
+                    photoCont.appendChild(badge);
+                }
+            } else {
+                photoImg.src = coverUrl;
+            }
+        } else {
+            if (photoCont) photoCont.style.display = 'none';
+            if (noPhoto) noPhoto.style.display = 'flex';
+        }
+        
+        // Comments Stream integration
+        const stream = document.getElementById('cdm-comments-stream');
+        const commentList = document.getElementById('comment-list-' + reportId);
+        const modal = document.getElementById('concern-details-modal');
+        if (modal) modal.dataset.activeReportId = reportId;
+        const formIdInput = document.getElementById('cdm-form-report-id');
+        if (formIdInput) formIdInput.value = reportId;
+        if (commentList && stream) {
+            stream.innerHTML = '';
+            stream.appendChild(commentList);
+            commentList.style.display = 'block';
+        }
+        
+        if (modal) {
+            modal.classList.add('open');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closePostModal() {
+        const modal = document.getElementById('concern-details-modal');
+        if (!modal) return;
+        modal.classList.remove('open');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        
+        const reportId = modal.dataset.activeReportId;
+        if (reportId) {
+            const commentList = document.getElementById('comment-list-' + reportId);
+            const originalShell = document.querySelector('#drawer-' + reportId + ' .comment-shell');
+            if (commentList && originalShell) {
+                originalShell.appendChild(commentList);
+            }
+        }
+    }
+
+    document.querySelectorAll('.concern-post').forEach(post => {
+        post.addEventListener('click', function(e) {
+            if (e.target.closest('button, .post-img-wrap, .fb-media-grid, .comment-drawer, .post-avatar')) return;
+            openPostModalForCard(this);
+        });
+    });
+    // ===== MOVE DRAWERS TO BODY =====
+    document.querySelectorAll('.comment-drawer').forEach(drawer => {
+        document.body.appendChild(drawer);
+    });
+
+    // ===== TOAST (bottom-right) =====
+    function showToast(message, icon = 'fa-info-circle') {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+        container.appendChild(toast);
+        requestAnimationFrame(() => { requestAnimationFrame(() => { toast.classList.add('show'); }); });
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
+        }, 3500);
+    }
+
+    // ===== AJAX COMMENT SUBMISSION (SMOOTH & NO PAGE RESET) =====
+    document.addEventListener('submit', async function(e) {
+        const form = e.target.closest('form');
+        if (!form) return;
+        const action = form.getAttribute('action') || '';
+        const input = form.querySelector('input[name="comment"]');
+        if (!input || (!action.includes('/file_concern') && !action.includes('/lgu'))) return;
+
+        e.preventDefault();
+        const commentText = input.value.trim();
+        if (!commentText) return;
+
+        const reportIdEl = form.querySelector('input[name="report_id"]');
+        const reportId = reportIdEl ? reportIdEl.value : '';
+        const submitBtn = form.querySelector('button[type="submit"], button.comment-submit-btn');
+        if (submitBtn) submitBtn.disabled = true;
+
+        const formData = new FormData(form);
+        if (!formData.has('fn')) formData.append('fn', 'pc');
+
+        try {
+            const response = await fetch('/file_concern', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            });
+            let data = null;
+            try { data = await response.clone().json(); }
+            catch (err2) {
+                try { data = JSON.parse(await response.text()); }
+                catch (err3) { data = null; }
+            }
+
+            // ===== PROFANITY BLOCK: bottom-right JSON toast, do NOT pass comment =====
+            // NOTE: non-OK status = blocked (400 strike 1/2, 403 banned).
+            // Never trust empty JSON — fall back to playful defaults per status.
+            if (!response.ok || (data && data.blocked)) {
+                const strikes = (data && data.strikes) || (response.status === 403 ? 3 : 0);
+                let icon = 'fa-exclamation-triangle';
+                let msg = (data && data.message) || '';
+                if (response.status === 403 || (data && data.banned)) {
+                    icon = 'fa-ban';
+                    if (!msg) msg = 'Banned for 5 minutes: 3x profanity. Time-out for you!';
+                } else if (strikes === 1) {
+                    icon = 'fa-angry';
+                    if (!msg) msg = "Hey! Don't you dare. Watch your words! (1/3)";
+                } else if (strikes === 2) {
+                    icon = 'fa-exclamation-circle';
+                    if (!msg) msg = 'You trying again huh? Last warning! (2/3)';
+                } else if (!msg) {
+                    msg = "Hey! Don't you dare. Watch your words!";
+                }
+                showToast(msg, icon);
+                if (response.status === 403 || (data && data.banned)) {
+                    setTimeout(() => showToast('Banned for 5 minutes for spamming profanity.', 'fa-ban'), 400);
+                }
+                if (submitBtn) submitBtn.disabled = false;
+                return;
+            }
+
+            input.value = '';
+
+            const list = document.getElementById('comment-list-' + reportId);
+            if (list) {
+                const noComm = list.querySelector('.no-comments');
+                if (noComm) noComm.remove();
+
+                const newComm = document.createElement('div');
+                newComm.className = 'comment-item';
+                newComm.style.animation = 'fadeIn 0.4s ease';
+                const safeAuthor = CURRENT_USER_FULLNAME.replace(/'/g, "\\'");
+                newComm.innerHTML = `
+                    <div class="comment-mono">${CURRENT_USER_AVATAR}</div>
+                    <div style="display:flex;flex-direction:column;flex:1;min-width:0;">
+                        <div class="comment-bubble">
+                            <div class="comment-author">${CURRENT_USER_FULLNAME}</div>
+                            <div class="comment-text">${commentText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+                        </div>
+                        <div style="display:flex; gap:12px; margin-top:4px; margin-left:8px; font-size:11px; font-weight:600; color:var(--text-muted);">
+                            <span>Just now</span>
+                            <span style="cursor:pointer; transition:color 0.2s;" onmouseover="this.style.color='var(--primary-red)'" onmouseout="this.style.color=''" onclick="replyToComment('${reportId}', '${safeAuthor}')">Reply</span>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(newComm);
+                list.scrollTop = list.scrollHeight;
+            }
+
+            const countEl = document.querySelector(`.action-btn[data-id="${reportId}"] .comment-count`);
+            if (countEl) {
+                let count = parseInt(countEl.textContent) || 0;
+                countEl.textContent = count + 1;
+            }
+
+            showToast('Comment sent successfully!', 'fa-check-circle');
+        } catch (err) {
+            showToast('Failed to send comment.', 'fa-exclamation-circle');
+        } finally {
+            if (submitBtn) submitBtn.disabled = false;
+        }
+    });
+</script>
+<div id="comments-backdrop" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:9998; opacity:0; pointer-events:none; transition:opacity 0.3s;" onclick="closeAllDrawers()"></div>
+
+<script>
+function showCameraGalleryPrompt(inputElement) {
+    if (inputElement.dataset.prompting) return;
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999999;display:flex;align-items:flex-end;justify-content:center;transition:opacity 0.3s;opacity:0;';
+    const sheet = document.createElement('div');
+    sheet.style.cssText = 'background:#fff;width:100%;max-width:500px;border-radius:24px 24px 0 0;padding:24px;box-shadow:0 -5px 25px rgba(0,0,0,0.15);transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.1, 0.8, 0.3, 1);font-family:inherit;';
+    
+    const title = document.createElement('div');
+    title.innerText = 'Upload Photo';
+    title.style.cssText = 'font-size:18px;font-weight:700;margin-bottom:20px;color:#2c3e50;text-align:center;';
+    
+    const btnStyle = 'display:flex;align-items:center;width:100%;padding:16px 20px;margin-bottom:12px;border:none;border-radius:16px;background:#f4f6f8;color:#2c3e50;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.2s;';
+    const iconStyle = 'margin-right:16px;font-size:22px;width:24px;text-align:center;';
+    
+    const btnCamera = document.createElement('button');
+    btnCamera.style.cssText = btnStyle;
+    btnCamera.innerHTML = '<i class="fas fa-camera" style="' + iconStyle + 'color:#3498db;"></i> Take a Photo';
+    
+    const btnGallery = document.createElement('button');
+    btnGallery.style.cssText = btnStyle;
+    btnGallery.innerHTML = '<i class="fas fa-images" style="' + iconStyle + 'color:#2ecc71;"></i> Choose from Gallery';
+    
+    const btnCancel = document.createElement('button');
+    btnCancel.style.cssText = btnStyle + 'background:#fff;color:#e74c3c;justify-content:center;margin-bottom:0;border:1px solid #fee2e2;';
+    btnCancel.innerText = 'Cancel';
+    
+    sheet.appendChild(title);
+    sheet.appendChild(btnCamera);
+    sheet.appendChild(btnGallery);
+    sheet.appendChild(btnCancel);
+    overlay.appendChild(sheet);
+    document.body.appendChild(overlay);
+    
+    void overlay.offsetWidth;
+    overlay.style.opacity = '1';
+    sheet.style.transform = 'translateY(0)';
+    
+    function closeSheet() {
+        sheet.style.transform = 'translateY(100%)';
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 300);
+    }
+    
+    btnCamera.onclick = () => {
+        inputElement.setAttribute('capture', inputElement.id === 'profile-photo' ? 'user' : 'environment');
+        inputElement.dataset.prompting = '1';
+        inputElement.click();
+        delete inputElement.dataset.prompting;
+        closeSheet();
+    };
+    
+    btnGallery.onclick = () => {
+        inputElement.removeAttribute('capture');
+        inputElement.dataset.prompting = '1';
+        inputElement.click();
+        delete inputElement.dataset.prompting;
+        closeSheet();
+    };
+    
+    btnCancel.onclick = closeSheet;
+    overlay.onclick = (e) => { if(e.target === overlay) closeSheet(); };
+}
+</script>
+<!-- ===== EMOJI PICKER SCRIPT ===== -->
+<script type="module" src="https://unpkg.com/emoji-picker-element@1"></script>
+<script>
+    function toggleEmoji(btn) {
+        // Find the wrapper if it's placed differently
+        const popup = btn.nextElementSibling;
+        const allPopups = document.querySelectorAll('.emoji-popup');
+        allPopups.forEach(p => { if (p !== popup) p.style.display = 'none'; });
+        popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
+        
+        if (!popup.dataset.initialized) {
+            popup.dataset.initialized = "true";
+            const picker = popup.querySelector('emoji-picker');
+            if (document.body.classList.contains('dark-mode')) {
+                picker.classList.add('dark');
+            }
+            picker.addEventListener('emoji-click', event => {
+                const form = btn.closest('form') || btn.closest('.comment-input-bar').parentElement;
+                const input = form.querySelector('input[name="comment"]');
+                input.value += event.detail.unicode;
+                popup.style.display = 'none';
+                input.focus();
+            });
+        }
+    }
+    
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.emoji-popup') && !e.target.closest('.emoji-btn')) {
+            document.querySelectorAll('.emoji-popup').forEach(p => p.style.display = 'none');
+        }
+    });
+</script>
+</body>
+</html>
