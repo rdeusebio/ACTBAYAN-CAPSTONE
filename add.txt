@@ -1,0 +1,7 @@
+- add search on user accounts,login attempt
+- if i click on user accounts, show a modal that includes a table of login attempts and activities
+
+LGU:
+- prioritize upvoted on top, also maybe add an filter based on date or upvoted
+
+also on action submitting, add a loading animation while ai takes time to detect duplication, also on update reports

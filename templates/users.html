@@ -1,0 +1,1175 @@
+```html
+{% extends "admin_base.html" %}
+
+{% block extra_css %}
+<style>
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 16px;
+    }
+
+    .header h1 {
+        font-size: 24px;
+        margin: 0;
+        font-weight: 900;
+        letter-spacing: -0.5px;
+        color: var(--main);
+    }
+
+    .header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--red-lt);
+        color: var(--red);
+        border-radius: 50px;
+        padding: 5px 12px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .table-container {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: var(--sh-sm);
+        overflow: hidden;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead th {
+        text-align: left;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--muted);
+        background: var(--search);
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr {
+        transition: background 0.15s;
+    }
+
+    tbody tr:hover {
+        background: var(--hover-bg);
+    }
+
+    tbody td {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13.5px;
+        vertical-align: middle;
+        color: var(--main);
+    }
+
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .u-pic {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--red), #b91c1c);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .u-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .u-fullname {
+        font-weight: 700;
+        color: var(--main);
+    }
+
+    .u-email {
+        font-size: 11.5px;
+        color: var(--muted);
+        margin-top: 2px;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 50px;
+        font-size: 10.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: var(--search);
+        color: var(--muted);
+    }
+
+    .role-resident {
+        background: rgba(59,130,246,0.1);
+        color: #2563eb;
+    }
+
+    .role-lgu {
+        background: rgba(16,185,129,0.1);
+        color: #059669;
+    }
+
+    .role-admin {
+        background: var(--red-lt);
+        color: var(--red);
+    }
+
+    .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        border: none;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11.5px;
+        transition: all 0.2s;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .btn-danger {
+        background: var(--red-lt);
+        color: var(--red);
+    }
+
+    .btn-danger:hover {
+        background: var(--red);
+        color: #fff;
+    }
+
+    .btn-warn {
+        background: rgba(245,158,11,0.15);
+        color: #d97706;
+    }
+
+    .btn-warn:hover {
+        background: #d97706;
+        color: #fff;
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--muted);
+    }
+
+    .btn-outline:hover {
+        background: var(--hover-bg);
+        color: var(--main);
+        border-color: var(--muted);
+    }
+
+    .btn-primary {
+        background: var(--red);
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 11.5px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .btn-primary:hover {
+        background: var(--red-h);
+    }
+
+    .form-select {
+        padding: 6px 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg);
+        color: var(--main);
+        font-size: 12px;
+        font-family: 'Inter', sans-serif;
+        outline: none;
+        min-width: 140px;
+    }
+
+    .form-select:focus {
+        border-color: var(--red);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--muted);
+    }
+
+    .empty-state i {
+        font-size: 32px;
+        opacity: 0.3;
+        display: block;
+        margin-bottom: 12px;
+    }
+
+    .empty-state p {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .search-container {
+        margin-bottom: 16px;
+    }
+
+    .search-container input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 16px;
+        font-size: 13.5px;
+        font-family: 'Inter', sans-serif;
+        background: var(--search);
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        outline: none;
+        color: var(--main);
+        transition: border-color 0.2s;
+    }
+
+    .search-container input:focus {
+        border-color: var(--red);
+    }
+
+    /* USER HISTORY MODAL */
+
+    .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        z-index: 9000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+
+    .modal-backdrop.open {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .modal-container {
+        background: var(--card);
+        border-radius: 18px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+        width: 92%;
+        max-width: 1200px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transform: scale(0.95);
+        transition: transform 0.25s ease;
+    }
+
+    .modal-backdrop.open .modal-container {
+        transform: scale(1);
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+    }
+
+    .modal-header h2 {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--main);
+        margin: 0;
+    }
+
+    .modal-close {
+        border: none;
+        background: var(--search);
+        color: var(--muted);
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .modal-close:hover {
+        background: var(--hover-bg);
+        color: var(--main);
+    }
+
+    .modal-body {
+        padding: 20px 24px 24px;
+        overflow-y: auto;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .modal-split-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    .modal-panel {
+        background: var(--search);
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 18px;
+        background: var(--main);
+        color: var(--card);
+        border-radius: 12px 12px 0 0;
+        flex-shrink: 0;
+    }
+
+    .user-modal-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 24px;
+        background: var(--main);
+        color: var(--card);
+        border-radius: 18px 18px 0 0;
+        flex-shrink: 0;
+    }
+
+    .user-modal-head .u-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.18);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .user-modal-head h3 {
+        font-size: 18px;
+        font-weight: 800;
+        margin: 0;
+        color: var(--card);
+    }
+
+    .panel-header h3 {
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        margin: 0;
+        color: var(--card);
+    }
+
+    .panel-count {
+        font-size: 12px;
+        font-weight: 700;
+        background: rgba(255,255,255,0.2);
+        padding: 2px 10px;
+        border-radius: 20px;
+    }
+
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12.5px;
+    }
+
+    .history-table thead th {
+        text-align: left;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--muted);
+        background: var(--border);
+        padding: 11px 14px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .history-table tbody tr {
+        transition: background 0.15s;
+    }
+
+    .history-table tbody tr:hover {
+        background: rgba(139,0,0,0.06);
+    }
+
+    .history-table tbody td {
+        padding: 13px 14px;
+        border-bottom: 1px solid var(--border);
+        color: var(--main);
+        vertical-align: middle;
+    }
+
+    .history-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .history-table .muted {
+        color: var(--muted);
+        font-size: 11.5px;
+    }
+
+    .history-table .status-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .status-success {
+        background: rgba(16,185,129,0.15);
+        color: #047857;
+    }
+
+    .status-failed,
+    .status-Failed {
+        background: rgba(239,68,68,0.12);
+        color: #b91c1c;
+    }
+
+    .status-logout {
+        background: rgba(14,165,233,0.12);
+        color: #1d4ed8;
+    }
+
+    @media (max-width: 860px) {
+        .modal-split-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .table-container table {
+            min-width: 800px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .modal-container {
+            width: 96%;
+            max-height: 95vh;
+        }
+
+        .modal-header,
+        .modal-body {
+            padding: 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- PAGE HEADER -->
+
+<div class="header">
+    <div>
+        <h1>User Management</h1>
+
+        <div class="header-badge" style="margin-top:6px;">
+            <i class="fas fa-shield-halved"></i>
+            Admin Tools
+        </div>
+    </div>
+</div>
+
+
+<!-- SEARCH BAR -->
+
+<div class="search-container">
+    <input
+        type="text"
+        id="user-search"
+        placeholder="Search by name or email..."
+    >
+</div>
+
+
+<!-- USER MANAGEMENT TABLE -->
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>User Details</th>
+                <th>Phone Number</th>
+                <th>Role</th>
+                <th>ID</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% if users %}
+
+                {% for u in users %}
+
+                <tr onclick="openUserModal({{ u.account_id }})">
+
+                    <!-- USER DETAILS -->
+
+                    <td>
+                        <div class="user-cell">
+
+                            {% if u.profile_photo %}
+
+                                {% set pp_str = (u.profile_photo|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                                {% set cp = pp_str.replace('static/', '', 1) if pp_str.startswith('static/') else pp_str %}
+
+                                <div class="u-pic" style="padding:0;overflow:hidden;background:var(--search);border:1px solid var(--border);">
+
+                                    <img
+                                        src="{{ url_for('static', filename=cp) }}"
+                                        alt="{{ u.fullname }}"
+                                        style="width:100%;height:100%;object-fit:cover;"
+                                        onerror="this.parentElement.innerHTML='{{ u.fullname[0]|upper if u.fullname else '?' }}'"
+                                    >
+
+                                </div>
+
+                            {% else %}
+
+                                <div class="u-pic">
+                                    {{ u.fullname[0]|upper if u.fullname else '?' }}
+                                </div>
+
+                            {% endif %}
+
+                            <div class="u-details">
+                                <span class="u-fullname">
+                                    {{ u.fullname }}
+                                </span>
+
+                                <span class="u-email">
+                                    {{ u.email }}
+                                </span>
+                            </div>
+
+                        </div>
+                    </td>
+
+
+                    <!-- PHONE NUMBER -->
+
+                    <td>
+                        <span style="font-family:monospace;font-size:13px;color:var(--muted);">
+                            {{ u.phone_number }}
+                        </span>
+                    </td>
+
+
+                    <!-- ROLE MANAGEMENT -->
+
+                    <td>
+                        <form
+                            action="/users"
+                            method="POST"
+                            style="display:flex;align-items:center;gap:6px;"
+                            onclick="event.stopPropagation();"
+                        >
+
+                            <input type="hidden" name="act" value="change_role">
+
+                            <input
+                                type="hidden"
+                                name="usercreds_user_id"
+                                value="{{ u.usercreds_user_id }}"
+                            >
+
+                            <select name="role_id" class="form-select">
+
+                                {% for r in roles %}
+
+                                <option
+                                    value="{{ r.role_id }}"
+                                    {% if u.role_id == r.role_id %}selected{% endif %}
+                                >
+                                    {{ r.role | title }}
+                                </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                            <button class="btn-primary" type="submit">
+                                Update
+                            </button>
+
+                        </form>
+                    </td>
+
+
+                    <!-- ACCOUNT ID -->
+
+                    <td>
+                        <span style="font-size:12px;color:var(--muted);font-weight:700;">
+                            #{{ u.account_id }}
+                        </span>
+                    </td>
+
+
+                    <!-- USER ACTIONS -->
+
+                    <td style="text-align:right;">
+
+                        <div
+                            class="actions"
+                            style="justify-content:flex-end;"
+                            onclick="event.stopPropagation();"
+                        >
+
+                            <!-- BAN -->
+
+                            <form action="/users" method="POST" style="display:inline;">
+                                <input type="hidden" name="act" value="ban">
+
+                                <input
+                                    type="hidden"
+                                    name="account_id"
+                                    value="{{ u.account_id }}"
+                                >
+
+                                <button
+                                    class="btn btn-outline"
+                                    type="submit"
+                                    onclick="return confirm('Lock this account?');"
+                                    title="Ban User"
+                                >
+                                    <i class="fas fa-lock"></i>
+                                </button>
+                            </form>
+
+
+                            <!-- UNBAN -->
+
+                            <form action="/users" method="POST" style="display:inline;">
+                                <input type="hidden" name="act" value="unban">
+
+                                <input
+                                    type="hidden"
+                                    name="account_id"
+                                    value="{{ u.account_id }}"
+                                >
+
+                                <button
+                                    class="btn btn-outline"
+                                    type="submit"
+                                    onclick="return confirm('Unlock this account?');"
+                                    title="Unban User"
+                                >
+                                    <i class="fas fa-unlock"></i>
+                                </button>
+                            </form>
+
+
+                            <!-- RESTRICT -->
+
+                            <form action="/users" method="POST" style="display:inline;">
+                                <input type="hidden" name="act" value="restrict">
+
+                                <input
+                                    type="hidden"
+                                    name="account_id"
+                                    value="{{ u.account_id }}"
+                                >
+
+                                <button
+                                    class="btn btn-warn"
+                                    type="submit"
+                                    title="Restrict User"
+                                >
+                                    <i class="fas fa-user-slash"></i>
+                                </button>
+                            </form>
+
+
+                            <!-- REMOVE -->
+
+                            <form action="/users" method="POST" style="display:inline;">
+                                <input type="hidden" name="act" value="remove">
+
+                                <input
+                                    type="hidden"
+                                    name="account_id"
+                                    value="{{ u.account_id }}"
+                                >
+
+                                <button
+                                    class="btn btn-danger"
+                                    type="submit"
+                                    onclick="return confirm('Permanently remove this user? This action cannot be undone.');"
+                                    title="Remove User"
+                                >
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            {% else %}
+
+                <tr>
+                    <td colspan="5">
+
+                        <div class="empty-state">
+                            <i class="fas fa-users-slash"></i>
+                            <p>No user accounts found.</p>
+                        </div>
+
+                    </td>
+                </tr>
+
+            {% endif %}
+
+        </tbody>
+    </table>
+</div>
+
+
+<!-- USER HISTORY MODAL -->
+
+<div
+    id="user-history-modal"
+    class="modal-backdrop"
+    onclick="if(event.target === this) closeUserModal();"
+>
+
+    <div class="modal-container">
+
+        <!-- MODAL HEADER -->
+
+        <div class="modal-header">
+
+            <h2>User History</h2>
+
+            <button
+                class="modal-close"
+                onclick="closeUserModal()"
+                aria-label="Close"
+            >
+                <i class="fas fa-times"></i>
+            </button>
+
+        </div>
+
+        <!-- USER HEADER -->
+
+        <div class="user-modal-head" id="user-modal-head">
+            <div class="u-avatar" id="user-avatar">N</div>
+            <h3 id="user-name"></h3>
+            <span class="panel-count" id="user-role" style="background:rgba(255,255,255,0.25);"></span>
+        </div>
+
+        <!-- LOGIN ATTEMPTS -->
+
+        <div class="modal-panel">
+
+
+        <!-- MODAL BODY -->
+
+        <div class="modal-body">
+
+
+            <div class="modal-split-layout">
+
+
+                <!-- LOGIN ATTEMPTS -->
+
+                <div class="modal-panel">
+
+                    <div class="panel-header">
+
+                        <h3>Login Attempts</h3>
+
+                        <span class="panel-count" id="login-count">
+                            0
+                        </span>
+
+                    </div>
+
+                    <table class="history-table">
+
+                        <thead>
+                            <tr>
+                                <th>Date/Time</th>
+                                <th>Credential</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="login-tbody"></tbody>
+
+                    </table>
+
+                </div>
+
+
+                <!-- RECENT ACTIVITIES -->
+
+                <div class="modal-panel">
+
+                    <div class="panel-header">
+
+                        <h3>Recent Activities</h3>
+
+                        <span class="panel-count" id="activity-count">
+                            0
+                        </span>
+
+                    </div>
+
+                    <table class="history-table">
+
+                        <thead>
+                            <tr>
+                                <th>Date/Time</th>
+                                <th>Action</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="activity-tbody"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- JAVASCRIPT -->
+
+<script>
+
+    // CLIENT-SIDE USER SEARCH
+
+    const userSearchInput = document.getElementById('user-search');
+
+    userSearchInput.addEventListener('input', function(e) {
+
+        const q = e.target.value.toLowerCase().trim();
+
+        const rows = document.querySelectorAll(
+            '.table-container tbody tr'
+        );
+
+        rows.forEach(row => {
+
+            const cell = row.querySelector('.user-cell');
+
+            if (cell) {
+
+                const text = cell.innerText.toLowerCase();
+
+                row.style.display = text.includes(q) ? '' : 'none';
+
+            }
+
+        });
+
+    });
+
+
+    // OPEN USER HISTORY MODAL
+
+    function openUserModal(accountId) {
+
+        const modal = document.getElementById('user-history-modal');
+
+        const loginBody = document.getElementById('login-tbody');
+
+        const activityBody = document.getElementById('activity-tbody');
+
+        const loginCount = document.getElementById('login-count');
+
+        const activityCount = document.getElementById('activity-count');
+        const userName = document.getElementById('user-name');
+        const userAvatar = document.getElementById('user-avatar');
+
+        // RESET USER DETAILS WHILE THE API REQUEST IS RUNNING
+        userName.textContent = 'Loading...';
+        userAvatar.textContent = '?';
+
+        // FETCH THE SELECTED USER'S FULL NAME USING THE ACCOUNT ID
+        fetch(`/api/getfullname/${accountId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to retrieve user fullname.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data.success) {
+                    throw new Error('Unable to retrieve user fullname.');
+                }
+
+                const fullname = data.fullname || 'Unknown User';
+                userName.textContent = fullname;
+                userAvatar.textContent = fullname.charAt(0).toUpperCase() || '?';
+            })
+            .catch(error => {
+                console.error('Fullname fetch error:', error);
+                userName.textContent = 'Unknown User';
+                userAvatar.textContent = '?';
+            });
+
+        // CLEAR PREVIOUS DATA
+
+        loginBody.innerHTML = '';
+
+        activityBody.innerHTML = '';
+
+        loginCount.textContent = '0';
+
+        activityCount.textContent = '0';
+
+
+        fetch(`/api/user_history/${accountId}`)
+
+            .then(response => {
+
+                if (!response.ok) {
+                    throw new Error('Failed to retrieve user history.');
+                }
+
+                return response.json();
+
+            })
+
+            .then(data => {
+
+                if (!data.success) {
+                    throw new Error('Unable to load user history.');
+                }
+
+
+                // LOGIN ATTEMPTS
+
+                const loginRows = data.logins || [];
+
+                loginCount.textContent = loginRows.length;
+
+
+                if (loginRows.length === 0) {
+
+                    loginBody.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="muted">
+                                No login attempts recorded.
+                            </td>
+                        </tr>
+                    `;
+
+                } else {
+
+                    loginRows.forEach(function(login) {
+
+                        const tr = document.createElement('tr');
+
+                        const date = (login.attempted_at || '').toString();
+
+                        const credential = (login.credential_used || '').toString();
+
+                        const status = (login.status || '').toString();
+
+                        tr.innerHTML =
+
+                            `<td>${escapeHtml(date)}</td>` +
+
+                            `<td>${escapeHtml(credential)}</td>` +
+
+                            `<td>
+                                <span class="status-badge status-${status.toLowerCase().replace(/[^a-z0-9]/g, '')}">
+                                    ${escapeHtml(status)}
+                                </span>
+                            </td>`;
+
+                        loginBody.appendChild(tr);
+
+                    });
+
+                }
+
+
+                // RECENT ACTIVITIES
+
+                const activityRows = data.activities || [];
+
+                activityCount.textContent = activityRows.length;
+
+
+                if (activityRows.length === 0) {
+
+                    activityBody.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="muted">
+                                No recent activities.
+                            </td>
+                        </tr>
+                    `;
+
+                } else {
+
+                    activityRows.forEach(function(act) {
+
+                        const tr = document.createElement('tr');
+
+                        const date = (
+                            act.activity_time || act.dt || ''
+                        ).toString();
+
+                        const action = (
+                            act.activity_type || ''
+                        ).toString();
+
+                        const details = (
+                            act.content || ''
+                        ).toString();
+
+                        tr.innerHTML =
+
+                            `<td>${escapeHtml(date)}</td>` +
+
+                            `<td>${escapeHtml(action)}</td>` +
+
+                            `<td>${escapeHtml(details)}</td>`;
+
+                        activityBody.appendChild(tr);
+
+                    });
+
+                }
+
+
+                // SHOW MODAL AFTER LOADING
+
+                modal.classList.add('open');
+
+            })
+
+            .catch(function(error) {
+
+                console.error(error);
+
+                alert('Unable to load user history. Please try again.');
+
+            });
+
+    }
+
+
+    // CLOSE USER HISTORY MODAL
+
+    function closeUserModal() {
+
+        const modal = document.getElementById('user-history-modal');
+
+        modal.classList.remove('open');
+
+    }
+
+
+    // ESCAPE HTML TO PREVENT HTML INJECTION
+
+    function escapeHtml(text) {
+
+        const div = document.createElement('div');
+
+        div.textContent = text == null ? '' : String(text);
+
+        return div.innerHTML;
+
+    }
+
+
+    // CLOSE MODAL USING ESCAPE KEY
+
+    document.addEventListener('keydown', function(e) {
+
+        if (e.key === 'Escape') {
+
+            closeUserModal();
+
+        }
+
+    });
+
+</script>
+
+{% endblock %}
+```

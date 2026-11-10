@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACTBAYAN — A Participatory Public Works Monitoring System for General Mamerto Natividad</title>
+    <meta name="description"
+        content="ACTBAYAN is a participatory public works monitoring system designed to connect residents of General Mamerto Natividad, Nueva Ecija with their local government units through real-time infrastructure reporting and analytics.">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet GIS Map Library CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Landing Page Light Mode CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+    <style>
+        /* Index Background Photo Override */
+        body::before {
+            background-image: url("{{ url_for('static', filename='img/indexbg.png') }}") !important;
+        }
+
+        /* =====================================================
+           MISSION CARD SECTION
+           ===================================================== */
+        .mission-wrapper {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #5c0a1e;
+            border-radius: 24px;
+            box-shadow: 0 32px 80px -16px rgba(92, 10, 30, 0.45), 0 8px 24px -4px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        /* Ambient orb top-right */
+        .mission-card::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 65%);
+            pointer-events: none;
+        }
+
+        /* LEFT column */
+        .mission-left {
+            padding: 52px 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #5c0a1e;
+            border-right: 16px solid #fdf8eb;
+            position: relative;
+        }
+
+        .mission-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 50px;
+            border: 1px solid rgba(212, 175, 80, 0.5);
+            color: #d4af50;
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 28px;
+            width: fit-content;
+        }
+
+        .mission-badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #d4af50;
+            box-shadow: 0 0 7px #d4af50;
+        }
+
+        .mission-quote {
+            font-size: 26px;
+            font-style: italic;
+            font-weight: 700;
+            color: #f5e6c8;
+            line-height: 1.35;
+            margin-bottom: 28px;
+            letter-spacing: -0.3px;
+        }
+
+        .mission-desc {
+            font-size: 14px;
+            color: rgba(245, 230, 200, 0.65);
+            line-height: 1.75;
+            margin-bottom: 40px;
+        }
+
+        .mission-desc strong {
+            color: #f5e6c8;
+            font-weight: 700;
+        }
+
+        /* Stats row */
+        .mission-stats {
+            display: flex;
+            gap: 36px;
+        }
+
+        .mission-stat-num {
+            font-size: 28px;
+            font-weight: 900;
+            color: #f5e6c8;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .mission-stat-label {
+            font-size: 11.5px;
+            color: rgba(245, 230, 200, 0.55);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* RIGHT column */
+        .mission-right {
+            display: flex;
+            flex-direction: column;
+            background: #fdf8eb;
+            gap: 16px;
+        }
+
+        .mission-item {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            background: #5c0a1e;
+            padding: 36px 44px;
+            flex: 1;
+        }
+
+        .mission-num {
+            flex-shrink: 0;
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: rgba(212, 175, 80, 0.15);
+            border: 1px solid rgba(212, 175, 80, 0.4);
+            color: #d4af50;
+            font-size: 14px;
+            font-weight: 900;
+            font-style: italic;
+            font-family: Georgia, serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 0.5px;
+            transition: background 0.25s ease;
+        }
+
+        .mission-item:hover .mission-num {
+            background: rgba(212, 175, 80, 0.28);
+        }
+
+        .mission-item-body h4 {
+            font-size: 15.5px;
+            font-weight: 800;
+            color: #f5e6c8;
+            margin-bottom: 7px;
+            letter-spacing: -0.2px;
+        }
+
+        .mission-item-body p {
+            font-size: 13.5px;
+            color: rgba(245, 230, 200, 0.6);
+            line-height: 1.65;
+            margin: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 860px) {
+            .mission-wrapper {
+                grid-template-columns: 1fr;
+                border-radius: 24px;
+                background: transparent;
+                box-shadow: none;
+                overflow: visible;
+                gap: 16px;
+            }
+
+            .mission-left {
+                border-right: none;
+                border-radius: 20px;
+                box-shadow: 0 16px 40px -16px rgba(92, 10, 30, 0.45);
+                padding: 40px 32px;
+            }
+
+            .mission-right {
+                background: transparent;
+                gap: 16px;
+            }
+
+            .mission-item {
+                border-radius: 20px;
+                box-shadow: 0 16px 40px -16px rgba(92, 10, 30, 0.45);
+            }
+
+            .mission-quote {
+                font-size: 21px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .mission-stats {
+                gap: 20px;
+                flex-wrap: wrap;
+            }
+        }
+
+        /* Full-width backgrounds fix */
+        #about-study,
+        #preview,
+        #features {
+            max-width: 100% !important;
+        }
+
+        .preview-showcase-container {
+            max-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Reports Ticker CSS */
+        .reports-ticker-wrapper {
+            width: 100%;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px 0;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            display: flex;
+        }
+
+        .reports-ticker-track {
+            display: flex;
+            width: max-content;
+            /* Scroll from -50% to 0% to move right */
+            animation: scrollRight 40s linear infinite;
+        }
+
+        .ticker-set {
+            display: flex;
+            gap: 20px;
+            padding-right: 20px; /* match the gap so it's uniform */
+        }
+
+        .ticker-card {
+            width: 300px;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .ticker-card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+        }
+
+        .ticker-no-img {
+            width: 100%;
+            height: 160px;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .ticker-card-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: 100%;
+        }
+
+        .ticker-category {
+            font-size: 12px;
+            color: #d97706;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .ticker-title {
+            font-size: 16px;
+            color: #0f172a;
+            margin: 0;
+            font-weight: 800;
+            line-height: 1.3;
+        }
+
+        .ticker-desc {
+            font-size: 13px;
+            color: #475569;
+            margin: 0;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .ticker-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: auto;
+            align-self: flex-start;
+        }
+
+        .ticker-status.status-pending { background: #fef08a; color: #854d0e; }
+        .ticker-status.status-resolved { background: #bbf7d0; color: #166534; }
+        .ticker-status.status-rejected { background: #fecaca; color: #991b1b; }
+        .ticker-status.status-in-progress { background: #bfdbfe; color: #1e40af; }
+        .ticker-status.status-assessment { background: #fed7aa; color: #9a3412; }
+
+        @keyframes scrollRight {
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(0%); }
+        }
+
+        /* Core Features Horizontal Carousel */
+        .core-features-carousel {
+            display: flex;
+            gap: 24px;
+            overflow-x: auto;
+            padding: 20px 0 40px 0;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .core-features-carousel::-webkit-scrollbar {
+            display: none;
+        }
+
+        .core-feature-card {
+            flex: 0 0 340px;
+            background: #fff;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .core-feature-img {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #e2e8f0;
+            object-fit: cover;
+            display: block;
+        }
+
+        .core-feature-text h3 {
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .core-feature-text p {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.6;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Top Government Banner Above Navbar (Scrolls away while navbar sticks!) -->
+    <!-- INSTRUCTIONS:
+         1. For background image: drop "headeri.png" into "static/img/" (or "static/").
+         2. For logo seal: drop "logo.png" into "static/img/" (or "static/"). -->
+    <div class="top-gov-banner" id="topGovBanner"
+        style="background-image: url('{{ url_for('static', filename='img/headeri.png') }}'), url('{{ url_for('static', filename='headeri.png') }}'), linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+
+        <div class="top-gov-content">
+            <div class="gov-left">
+                <img src="{{ url_for('static', filename='img/logo.png') }}"
+                    onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logo.png') }}'; } else { this.src='{{ url_for('static', filename='img/mamerta.png') }}'; }"
+                    class="gov-logo" alt="Seal">
+                <div class="gov-titles">
+                    <span class="gov-rep">Republic of the Philippines</span>
+                    <h2 class="gov-muni">Municipality of Gen. Mamerto Natividad</h2>
+                    <span class="gov-prov">Province of Nueva Ecija</span>
+                </div>
+            </div>
+            <div class="gov-right">
+                <div class="time-label">Philippine Standard Time</div>
+                <div class="time-val" id="pstTimeDisplay">Loading time...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Light Mode Header -->
+    <header class="landing-header" id="navbar">
+        <a href="/" class="logo-container"
+            style="display: inline-flex !important; align-items: center !important; gap: 10px !important; text-decoration: none !important;">
+            <img src="{{ url_for('static', filename='img/logobes.png') }}"
+                onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }"
+                class="logobes"
+                style="width: 42px; height: 42px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo">
+            <div>
+                <div class="logo-text" style="font-size: 26px;">ActBayan<span>.</span></div>
+                <span class="logo-subtext">Gen. Mamerto Natividad Portal</span>
+            </div>
+        </a>
+
+        <nav class="nav-links">
+            <a href="#about-study" class="nav-link">The Study & Objectives</a>
+            <a href="#preview" class="nav-link">Live System Simulation</a>
+            <a href="#features" class="nav-link">Core Features</a>
+            <a href="#how-it-works" class="nav-link">How It Works</a>
+            <a href="#footer" class="nav-link">Contact LGU</a>
+        </nav>
+
+        <div class="header-actions">
+            {% if user %}
+            <a href="/dashboard" class="btn btn-outline">
+                <i class="fas fa-user-circle"></i> {{ user.first_name }}
+            </a>
+            <a href="/activities" class="btn btn-primary">
+                <i class="fas fa-columns"></i> Citizen Portal
+            </a>
+            {% else %}
+            <a href="/login" class="btn btn-ghost">Sign In</a>
+            <a href="/register" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Get Started
+            </a>
+            {% endif %}
+        </div>
+
+        <button class="mobile-toggle" onclick="toggleMobileMenu()">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Hero Section with Dynamic Background Slideshow (Modeled after GovPH Portal) -->
+    <!-- INSTRUCTION: Simply drop your photos named "bg1.png" (or .jpg), "bg2.png", "bg3.png", "bg4.png" into "static/img/" (or "static/"). -->
+    <section class="hero-section" id="heroSection">
+        <!-- Background Slideshow Container -->
+        <div class="hero-bg-slider">
+            <div class="hero-slide active"
+                style="background-image: url('{{ url_for('static', filename='img/bg1.png') }}'), url('{{ url_for('static', filename='img/bg1.jpg') }}'), url('{{ url_for('static', filename='bg1.png') }}'), url('{{ url_for('static', filename='bg1.jpg') }}'), url('{{ url_for('static', filename='img/mamerta.png') }}');">
+            </div>
+            <div class="hero-slide"
+                style="background-image: url('{{ url_for('static', filename='img/bg2.png') }}'), url('{{ url_for('static', filename='img/bg2.jpg') }}'), url('{{ url_for('static', filename='bg2.png') }}'), url('{{ url_for('static', filename='bg2.jpg') }}'), url('{{ url_for('static', filename='img/indexbg.png') }}');">
+            </div>
+            <div class="hero-slide"
+                style="background-image: url('{{ url_for('static', filename='img/bg3.png') }}'), url('{{ url_for('static', filename='img/bg3.jpg') }}'), url('{{ url_for('static', filename='bg3.png') }}'), url('{{ url_for('static', filename='bg3.jpg') }}'), url('{{ url_for('static', filename='img/mamerta.png') }}');">
+            </div>
+            <div class="hero-slide"
+                style="background-image: url('{{ url_for('static', filename='img/bg4.png') }}'), url('{{ url_for('static', filename='img/bg4.jpg') }}'), url('{{ url_for('static', filename='bg4.png') }}'), url('{{ url_for('static', filename='bg4.jpg') }}'), url('{{ url_for('static', filename='img/indexbg.png') }}');">
+            </div>
+
+            <!-- Soft Overlay: Keeps "current bg for general" text legibility while showcasing dynamic changing photos! -->
+            <div class="hero-slide-overlay"></div>
+        </div>
+
+        <!-- Horizontal Slide Indicator Bars (Modeled after Photo 2) -->
+        <div class="hero-slider-indicators" id="heroIndicators">
+            <span class="indicator active" onclick="jumpToHeroSlide(0)" title="Slide 1"></span>
+            <span class="indicator" onclick="jumpToHeroSlide(1)" title="Slide 2"></span>
+            <span class="indicator" onclick="jumpToHeroSlide(2)" title="Slide 3"></span>
+            <span class="indicator" onclick="jumpToHeroSlide(3)" title="Slide 4"></span>
+        </div>
+
+        <!-- Hero Content Wrapper (kept in front of slider) -->
+        <div class="hero-content-wrapper">
+
+            <h1 class="hero-title">
+                Empowering Citizens.<br>
+                <span>Monitoring Public Works in Gen. Mamerto Natividad.</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                ACTBAYAN connects residents of General Mamerto Natividad with their local government. Report
+                infrastructure
+                issues in real-time, track repair progress with precision GPS mapping, and support data-driven municipal
+                development.
+            </p>
+
+            <div class="hero-cta-group">
+                {% if user %}
+                <a href="/activities" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket"></i> Open Resident Portal
+                </a>
+                {% else %}
+                <a href="/register" class="btn btn-primary btn-lg">
+                    <i class="fas fa-user-plus"></i> Join ACTBAYAN Today
+                </a>
+                <a href="/login" class="btn btn-outline btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Resident & LGU Login
+                </a>
+                {% endif %}
+                <a href="#preview" class="btn btn-ghost btn-lg" style="border-color: #d1d5db;">
+                    <i class="fas fa-laptop"></i> Try Interactive System
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================
+         BACKGROUND OF THE STUDY & OBJECTIVES SECTION
+         ======================================================== -->
+    <section class="section-padding" id="about-study"
+        style="background: #fdf8eb; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div class="section-header">
+            <span class="section-tag"><i class="fas fa-book-open"></i> Background of the Study</span>
+            <h2 class="section-title">Why General Mamerto Natividad Chose ACTBAYAN</h2>
+            <p class="section-desc">A participatory digital platform designed to connect community observations with
+                municipal action.</p>
+        </div>
+
+        <div class="mission-wrapper">
+
+            <!-- LEFT: Quote + Stats -->
+            <div class="mission-left">
+                <div>
+                    <div class="mission-badge">
+                        <span class="mission-badge-dot"></span> The Mission
+                    </div>
+                    <p class="mission-quote">
+                        &ldquo;Every pothole reported. Every repair tracked. Every barangay heard.&rdquo;
+                    </p>
+                    <p class="mission-desc">
+                        Residents of General Mamerto Natividad are often the very first to notice infrastructure
+                        needs &mdash; a pothole forming, a streetlight out, a drain clogging.
+                        <strong>ACTBAYAN</strong> gives that everyday awareness a direct, structured channel to the
+                        municipal government, replacing scattered paper notes with a single participatory
+                        digital system built for evidence-based, faster local governance.
+                    </p>
+                </div>
+                <div class="mission-stats">
+                    <div>
+                        <div class="mission-stat-num">20</div>
+                        <div class="mission-stat-label">Barangays Connected</div>
+                    </div>
+                    <div>
+                        <div class="mission-stat-num">24/7</div>
+                        <div class="mission-stat-label">Resident Reporting</div>
+                    </div>
+                    <div>
+                        <div class="mission-stat-num">GPS</div>
+                        <div class="mission-stat-label">Verified Locations</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Numbered Mission Items -->
+            <div class="mission-right">
+                <div class="mission-item">
+                    <div class="mission-num">I</div>
+                    <div class="mission-item-body">
+                        <h4>Real-Time Reporting</h4>
+                        <p>Residents submit infrastructure concerns the moment they&rsquo;re spotted, routed straight to
+                            the municipal office.</p>
+                    </div>
+                </div>
+                <div class="mission-item">
+                    <div class="mission-num">II</div>
+                    <div class="mission-item-body">
+                        <h4>GPS Tagging &amp; Consolidation</h4>
+                        <p>Every report is location-verified and automatically merged with duplicates for one accurate
+                            record.</p>
+                    </div>
+                </div>
+                <div class="mission-item">
+                    <div class="mission-num">III</div>
+                    <div class="mission-item-body">
+                        <h4>Data-Driven Response</h4>
+                        <p>Analytics dashboards help officials prioritize repairs and respond faster across all
+                            barangays.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /mission-wrapper -->
+    </section>
+
+    <!-- ========================================================
+         INTERACTIVE LIVE PREVIEW SECTION
+         ======================================================== -->
+    <section class="section-padding" id="preview" style="background: #5c0a1e; color: #f5e6c8; border-top: none;">
+        <div class="section-header" style="color: #f5e6c8;">
+            <h2 class="section-title" style="color: #f5e6c8; font-size: 36px; font-weight: 800; margin-bottom: 12px;">
+                Preview the ACTBAYAN System</h2>
+            <p class="section-desc" style="color: rgba(245, 230, 200, 0.85); font-size: 15px;">
+                Explore the major interface concepts of the ACTBAYAN monitoring platform.
+            </p>
+        </div>
+
+        <div class="preview-showcase-container">
+            <!-- Window Title Bar -->
+            <div class="preview-window-top">
+                <div class="window-title">
+                    <i class="fas fa-desktop"></i>
+                    <span>ACTBAYAN Municipal Portal — Live System Simulation</span>
+                </div>
+                <div class="window-url-bar">
+                    <i class="fas fa-lock"></i>
+                    <span>https://actbayan.gennatividad.gov.ph/public-works</span>
+                </div>
+                <div class="preview-status-badge">
+                    <div class="live-dot"></div>
+                    <span>Live Simulation</span>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="preview-tabs-nav">
+                <button class="preview-tab-btn prevreps" onclick="switchPreviewTab('reports', this)">
+                    <i class="fas fa-file-alt"></i> Reports Section
+                </button>
+                <button class="preview-tab-btn active" onclick="switchPreviewTab('gis', this)">
+                    <i class="fas fa-map-marked-alt"></i> Geolocation Mapping
+                </button>
+                <button class="preview-tab-btn" onclick="switchPreviewTab('bulletins', this)">
+                    <i class="fas fa-bullhorn"></i> Municipal Bulletins
+                </button>
+                <button class="preview-tab-btn" onclick="switchPreviewTab('analytics', this)">
+                    <i class="fas fa-chart-line"></i> Centralized Analytics
+                </button>
+                <button class="preview-tab-btn" onclick="switchPreviewTab('verification', this)">
+                    <i class="fas fa-layer-group"></i> Report Consolidation
+                </button>
+            </div>
+
+            <!-- Preview Content Panels -->
+            <div class="preview-body">
+                <!-- Panel: Reports Section -->
+                <div class="preview-panel" id="panel-reports">
+                    <!-- Reports Ticker -->
+                    <div class="reports-ticker-wrapper" style="margin-bottom: 0;">
+                        <div class="reports-ticker-track">
+                            <!-- Original Set -->
+                            <div class="ticker-set">
+                                {% for report in reports %}
+                                <div class="ticker-card">
+                                    {% if report.image_url %}
+                                        {% set img_path = report.image_url.split('static/', 1)[-1] if 'static/' in report.image_url else report.image_url %}
+                                        <img src="{{ url_for('static', filename=img_path) }}" alt="Report Image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="ticker-no-img" style="display: none;">No Image</div>
+                                    {% else %}
+                                        <div class="ticker-no-img">No Image</div>
+                                    {% endif %}
+                                    <div class="ticker-card-body">
+                                        <span class="ticker-category">{{ report.category }}</span>
+                                        <h4 class="ticker-title">{{ report.title }}</h4>
+                                        <p class="ticker-desc">{{ report.description[:60] }}...</p>
+                                        <span class="ticker-status status-{{ report.status|lower|replace(' ', '-') }}">{{ report.status }}</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <!-- Duplicate Set for Seamless Loop -->
+                            <div class="ticker-set">
+                                {% for report in reports %}
+                                <div class="ticker-card">
+                                    {% if report.image_url %}
+                                        {% set img_path = report.image_url.split('static/', 1)[-1] if 'static/' in report.image_url else report.image_url %}
+                                        <img src="{{ url_for('static', filename=img_path) }}" alt="Report Image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="ticker-no-img" style="display: none;">No Image</div>
+                                    {% else %}
+                                        <div class="ticker-no-img">No Image</div>
+                                    {% endif %}
+                                    <div class="ticker-card-body">
+                                        <span class="ticker-category">{{ report.category }}</span>
+                                        <h4 class="ticker-title">{{ report.title }}</h4>
+                                        <p class="ticker-desc">{{ report.description[:60] }}...</p>
+                                        <span class="ticker-status status-{{ report.status|lower|replace(' ', '-') }}">{{ report.status }}</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 1: Geolocation Mapping -->
+                <div class="preview-panel active" id="panel-gis">
+                    <div class="gis-mockup-grid">
+                        <div class="gis-sidebar">
+                            <div class="sidebar-title">
+                                <span>Recent Municipal Reports</span>
+                                <span class="badge-count">Live GPS Feed</span>
+                            </div>
+                            
+
+                            <div class="incident-card selected" onclick="selectPin('sampaloc', this)">
+                                <div class="incident-header">
+                                    <span class="incident-tag tag-infra">🛣️ Road Hazard</span>
+                                    <span class="incident-time">15 mins ago</span>
+                                </div>
+                                <div class="incident-title">Damaged Asphalt & Pothole</div>
+                                <div class="incident-loc"><i class="fas fa-map-marker-alt"></i> Brgy. Mag-asawang
+                                    Sampaloc</div>
+                                <div class="incident-footer">
+                                    <span style="color: #d97706; font-weight: 700;">● Under Assessment</span>
+                                    <span class="upvote-badge"><i class="fas fa-thumbs-up"></i> 18 Upvotes</span>
+                                </div>
+                            </div>
+
+                            <div class="incident-card" onclick="selectPin('poblacion', this)">
+                                <div class="incident-header">
+                                    <span class="incident-tag tag-safety">💡 Public Lighting</span>
+                                    <span class="incident-time">1 hr ago</span>
+                                </div>
+                                <div class="incident-title">Broken Solar Streetlight</div>
+                                <div class="incident-loc"><i class="fas fa-map-marker-alt"></i> Brgy. Poblacion Central
+                                </div>
+                                <div class="incident-footer">
+                                    <span style="color: #059669; font-weight: 700;">● Resolved ✅</span>
+                                    <span class="upvote-badge"><i class="fas fa-thumbs-up"></i> 32 Upvotes</span>
+                                </div>
+                            </div>
+
+                            <div class="incident-card" onclick="selectPin('platero', this)">
+                                <div class="incident-header">
+                                    <span class="incident-tag tag-env">🌾 Drainage System</span>
+                                    <span class="incident-time">3 hrs ago</span>
+                                </div>
+                                <div class="incident-title">Clogged Agricultural Drain</div>
+                                <div class="incident-loc"><i class="fas fa-map-marker-alt"></i> Brgy. Platero Sector 2
+                                </div>
+                                <div class="incident-footer">
+                                    <span style="color: #2563eb; font-weight: 700;">● Engineering Dispatched</span>
+                                    <span class="upvote-badge"><i class="fas fa-thumbs-up"></i> 24 Upvotes</span>
+                                </div>
+                            </div>
+
+                            <div class="incident-card" onclick="selectPin('balangkare', this)">
+                                <div class="incident-header">
+                                    <span class="incident-tag tag-infra">🚧 Bridge Approach</span>
+                                    <span class="incident-time">5 hrs ago</span>
+                                </div>
+                                <div class="incident-title">Shoulder Erosion Repair</div>
+                                <div class="incident-loc"><i class="fas fa-map-marker-alt"></i> Brgy. Balangkare Sur
+                                </div>
+                                <div class="incident-footer">
+                                    <span style="color: #6b7280; font-weight: 700;">● Pending Review</span>
+                                    <span class="upvote-badge"><i class="fas fa-thumbs-up"></i> 14 Upvotes</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Real GIS Interactive Map Container -->
+                        <div class="gis-map-container">
+                            <div class="gis-map-header">
+                                <div class="map-badge"><i class="fas fa-satellite"></i> Live LGU Cartography Feed • Gen.
+                                    Mamerto Natividad</div>
+                                <div class="map-coords" id="live-coords"><i class="fas fa-crosshairs"
+                                        style="color: #8b0000;"></i> 15.6015° N, 121.0503° E</div>
+                            </div>
+                            <div id="real-gis-map" style="width: 100%; flex: 1; min-height: 400px; z-index: 1;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 2: Municipal Bulletins -->
+                <div class="preview-panel" id="panel-bulletins">
+                    <div class="bulletins-mockup">
+                        <div class="bulletin-filters">
+                            <span class="filter-pill active" onclick="filterBulletins('all', this)">All Advisories
+                                📢</span>
+                            <span class="filter-pill" onclick="filterBulletins('health', this)">Public Health 🏥</span>
+                            <span class="filter-pill" onclick="filterBulletins('infra', this)">Public Works 🛣️</span>
+                        </div>
+
+                        <div class="bulletins-grid" id="bulletins-container">
+                            <div class="bulletin-card" data-cat="infra">
+                                <div>
+                                    <div class="bulletin-top">
+                                        <div class="bulletin-emoji">🛣️</div>
+                                        <span class="bulletin-date">July 1, 2026</span>
+                                    </div>
+                                    <h3 class="bulletin-h3">Municipal Road Reblocking & Maintenance Notice</h3>
+                                    <p class="bulletin-p">The Municipal Engineering Office will conduct scheduled
+                                        asphalt overlaying along arterial corridors connecting Balangkare and Poblacion.
+                                    </p>
+                                </div>
+                                <div class="bulletin-author">
+                                    <div class="author-avatar">LGU</div>
+                                    <div class="author-info">
+                                        <h5>Engineering Department</h5>
+                                        <span>Public Works Bulletin</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bulletin-card" data-cat="health">
+                                <div>
+                                    <div class="bulletin-top">
+                                        <div class="bulletin-emoji">🏥</div>
+                                        <span class="bulletin-date">June 28, 2026</span>
+                                    </div>
+                                    <h3 class="bulletin-h3">Rural Health Center Renovation Update</h3>
+                                    <p class="bulletin-p">Upgrades to the primary health facilities in Talabutab and
+                                        Manarog are now 85% completed, providing better healthcare access.</p>
+                                </div>
+                                <div class="bulletin-author">
+                                    <div class="author-avatar">RHU</div>
+                                    <div class="author-info">
+                                        <h5>Gen. Natividad RHU</h5>
+                                        <span>Facility Advisory</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bulletin-card" data-cat="safety">
+                                <div>
+                                    <div class="bulletin-top">
+                                        <div class="bulletin-emoji">🚨</div>
+                                        <span class="bulletin-date">June 25, 2026</span>
+                                    </div>
+                                    <h3 class="bulletin-h3">MDRRMO Flood Control & Clearing Operations</h3>
+                                    <p class="bulletin-p">In preparation for the rainy season, municipal disaster
+                                        response teams are actively clearing drainage networks across low-lying
+                                        barangays.</p>
+                                </div>
+                                <div class="bulletin-author">
+                                    <div class="author-avatar">DRRM</div>
+                                    <div class="author-info">
+                                        <h5>MDRRMO Gen. Natividad</h5>
+                                        <span>Disaster Preparedness</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 3: Centralized Analytics -->
+                <div class="preview-panel" id="panel-analytics">
+                    <div class="analytics-mockup">
+                        <div class="analytics-card">
+                            <div class="analytics-title">
+                                <span>Total Public Works Solved</span>
+                                <i class="fas fa-check-circle" style="color: #059669; font-size: 16px;"></i>
+                            </div>
+                            <div class="analytics-big-val">1,248</div>
+                            <div class="analytics-trend">
+                                <i class="fas fa-arrow-up"></i> Data-driven repair prioritization
+                            </div>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-fill" style="width: 95%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="analytics-card">
+                            <div class="analytics-title">
+                                <span>Average Inspection Response</span>
+                                <i class="fas fa-clock" style="color: #d97706; font-size: 16px;"></i>
+                            </div>
+                            <div class="analytics-big-val">2.4 <span
+                                    style="font-size: 18px; font-weight: 600;">Hours</span></div>
+                            <div class="analytics-trend" style="color: #2563eb;">
+                                <i class="fas fa-bolt"></i> Structured LGU dispatch
+                            </div>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-fill"
+                                    style="width: 88%; background: linear-gradient(90deg, #2563eb, #3b82f6);"></div>
+                            </div>
+                        </div>
+
+                        <div class="analytics-card">
+                            <div class="analytics-title">
+                                <span>Participatory Upvotes</span>
+                                <i class="fas fa-users" style="color: #8b0000; font-size: 16px;"></i>
+                            </div>
+                            <div class="analytics-big-val">8,920</div>
+                            <div class="analytics-trend" style="color: #8b0000;">
+                                <i class="fas fa-heart"></i> Strong resident engagement
+                            </div>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-fill"
+                                    style="width: 90%; background: linear-gradient(90deg, #8b0000, #dc2626);"></div>
+                            </div>
+                        </div>
+
+                        <div class="analytics-card span-3">
+                            <div class="analytics-title" style="margin-bottom: 0;">
+                                <span>Monthly Infrastructure Repairs Completed across General Mamerto Natividad</span>
+                                <span style="color: #8b0000; font-weight: 800; font-size: 12px;">EVIDENCE-BASED
+                                    ANALYTICS</span>
+                            </div>
+                            <div class="chart-bars-container">
+                                <div class="chart-bar-col">
+                                    <div class="chart-bar" style="height: 40%;" title="Jan: 95 Resolved"></div>
+                                    <span class="chart-label">JAN</span>
+                                </div>
+                                <div class="chart-bar-col">
+                                    <div class="chart-bar" style="height: 52%;" title="Feb: 120 Resolved"></div>
+                                    <span class="chart-label">FEB</span>
+                                </div>
+                                <div class="chart-bar-col">
+                                    <div class="chart-bar" style="height: 65%;" title="Mar: 155 Resolved"></div>
+                                    <span class="chart-label">MAR</span>
+                                </div>
+                                <div class="chart-bar-col">
+                                    <div class="chart-bar" style="height: 78%;" title="Apr: 185 Resolved"></div>
+                                    <span class="chart-label">APR</span>
+                                </div>
+                                <div class="chart-bar-col">
+                                    <div class="chart-bar" style="height: 88%;" title="May: 210 Resolved"></div>
+                                    <span class="chart-label">MAY</span>
+                                </div>
+                                <div class="chart-bar-col">
+                                    <div class="chart-bar" style="height: 98%; background: var(--red);"
+                                        title="Jun: 235 Resolved"></div>
+                                    <span class="chart-label" style="color: var(--red); font-weight: 800;">JUN</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 4: Report Consolidation -->
+                <div class="preview-panel" id="panel-verification">
+                    <div class="workflow-mockup">
+                        <div class="workflow-steps">
+                            <h3 style="font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">
+                                Report Consolidation & Summarization</h3>
+                            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 14px;">
+                                One of ACTBAYAN's key innovations is preventing system backlog when multiple residents
+                                report the same infrastructure defect.
+                            </p>
+
+                            <div class="step-box">
+                                <div class="step-icon"><i class="fas fa-compress-arrows-alt"></i></div>
+                                <div class="step-content">
+                                    <h4>1. Automated Duplicate Detection</h4>
+                                    <p>When 10 residents report a pothole on the same street, the system groups them by
+                                        GPS proximity instead of creating 10 cluttered tickets.</p>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <div class="step-icon"><i class="fas fa-file-alt"></i></div>
+                                <div class="step-content">
+                                    <h4>2. Concise AI/System Summaries</h4>
+                                    <p>Generates a single unified report summary with consolidated photographic
+                                        evidence, streamlining evaluation for LGU engineers.</p>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <div class="step-icon"><i class="fas fa-check-circle"></i></div>
+                                <div class="step-content">
+                                    <h4>3. Synchronized Community Updates</h4>
+                                    <p>When the municipal repair team marks the consolidated ticket as resolved, all
+                                        participating reporters receive instant verification.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="simulated-notification">
+                            <div class="noti-header">
+                                <div class="noti-badge-icon"><i class="fas fa-layer-group"></i></div>
+                                <div>
+                                    <h4 style="font-size: 15px; font-weight: 800; color: var(--text-main);">Consolidated
+                                        Report Summary</h4>
+                                    <span style="font-size: 11.5px; color: var(--text-muted);">LGU Assessment
+                                        Optimization Tool</span>
+                                </div>
+                            </div>
+                            <div class="noti-body">
+                                <strong><i class="fas fa-info-circle"></i> SYSTEM CONSOLIDATION ALERT</strong><br><br>
+                                <strong>Location:</strong> Brgy. Poblacion, Market Road<br>
+                                <strong>Merged Reports:</strong> 14 Resident Submissions<br>
+                                <strong>Summary:</strong> Severe drainage overflow during afternoon downpour causing
+                                road obstruction.<br><br>
+                                <em>Status: Merged into Single Priority Ticket #GEN-2026-104. Engineering dispatch
+                                    assigned.</em>
+                            </div>
+                            <div style="margin-top: 18px; text-align: right;">
+                                <a href="/register" class="btn btn-primary"
+                                    style="padding: 8px 18px; font-size: 13px;">Experience Resident Portal <i
+                                        class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================
+         SYSTEM'S MAIN FEATURES SECTION (THE 6 CORE MODULES)
+         ======================================================== -->
+    <section class="section-padding" id="features" style="background: #fdf8eb; border-top: none; border-bottom: none;">
+        <div class="section-header">
+            <span class="section-tag"
+                style="background: transparent; color: #b91c1c; padding: 0; letter-spacing: 1.5px;">CAPSTONE
+                INNOVATION</span>
+            <h2 class="section-title" style="margin-top: 8px;">ACTBAYAN's Six Core System Features</h2>
+            <p class="section-desc">
+                Designed to address municipal infrastructure monitoring challenges through technology and participatory
+                governance.
+            </p>
+        </div>
+
+        <div class="core-features-carousel">
+            <div class="core-feature-card">
+                <img src="{{ url_for('static', filename='img/actfe1.png') }}"
+                    onerror="if(!this.getAttribute('data-tried')){this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='actfe1.png') }}';}"
+                    class="core-feature-img" alt="Feature 1">
+                <div class="core-feature-text">
+                    <h3>1. Resident Reporting Module</h3>
+                    <p>Residents can report potholes, damaged roads, broken streetlights, clogged drains, and other
+                        infrastructure concerns.</p>
+                </div>
+            </div>
+
+            <div class="core-feature-card">
+                <img src="{{ url_for('static', filename='img/actfe2.png') }}"
+                    onerror="if(!this.getAttribute('data-tried')){this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='actfe2.png') }}';}"
+                    class="core-feature-img" alt="Feature 2">
+                <div class="core-feature-text">
+                    <h3>2. LGU Management System</h3>
+                    <p>A dedicated portal for local officials and engineers to manage, prioritize, and respond to
+                        reports submitted by the community.</p>
+                </div>
+            </div>
+
+            <div class="core-feature-card">
+                <img src="{{ url_for('static', filename='img/actfe3.png') }}"
+                    onerror="if(!this.getAttribute('data-tried')){this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='actfe3.png') }}';}"
+                    class="core-feature-img" alt="Feature 3">
+                <div class="core-feature-text">
+                    <h3>3. Centralized Data Analytics</h3>
+                    <p>Integrated analytical tools that track infrastructure decay patterns and help municipal leaders
+                        make data-driven decisions.</p>
+                </div>
+            </div>
+
+            <div class="core-feature-card">
+                <img src="{{ url_for('static', filename='img/actfe4.png') }}"
+                    onerror="if(!this.getAttribute('data-tried')){this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='actfe4.png') }}';}"
+                    class="core-feature-img" alt="Feature 4">
+                <div class="core-feature-text">
+                    <h3>4. Transparency Dashboard</h3>
+                    <p>Public-facing visibility features providing community members with real-time updates into the
+                        progress of public works.</p>
+                </div>
+            </div>
+
+            <div class="core-feature-card">
+                <img src="{{ url_for('static', filename='img/actfe5.png') }}"
+                    onerror="if(!this.getAttribute('data-tried')){this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='actfe5.png') }}';}"
+                    class="core-feature-img" alt="Feature 5">
+                <div class="core-feature-text">
+                    <h3>5. Geolocation Mapping</h3>
+                    <p>Integration with GPS services to capture exact coordinates of reported hazards, enabling precise
+                        tracking and dispatch.</p>
+                </div>
+            </div>
+
+            <div class="core-feature-card">
+                <img src="{{ url_for('static', filename='img/actfe6.png') }}"
+                    onerror="if(!this.getAttribute('data-tried')){this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='actfe6.png') }}';}"
+                    class="core-feature-img" alt="Feature 6">
+                <div class="core-feature-text">
+                    <h3>6. Report Consolidation</h3>
+                    <p>An automated tool that identifies and groups duplicate reports from the same area into concise
+                        summaries to prevent backlog.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================
+         HOW IT WORKS (PARTICIPATORY WORKFLOW)
+         ======================================================== -->
+    <section class="section-padding" id="how-it-works"
+        style="background: #ffffff; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div class="section-header">
+            <span class="section-tag"><i class="fas fa-sync-alt"></i> Participatory Process</span>
+            <h2 class="section-title">How the Monitoring Process Works</h2>
+            <p class="section-desc">
+                Connecting community vigilance with municipal action in three structured steps.
+            </p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-box">
+                <div class="feature-icon-wrapper">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <h3>1. Identify & GPS Tag</h3>
+                <p>
+                    A resident notices a public works issue in General Mamerto Natividad, snaps a photo, and submits it.
+                    GPS coordinates are captured automatically.
+                </p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon-wrapper">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <h3>2. Consolidate & Dispatch</h3>
+                <p>
+                    The system groups any duplicate reports and routes a clean, summarized priority ticket directly to
+                    the responsible LGU engineering or maintenance team.
+                </p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon-wrapper">
+                    <i class="fas fa-check-double"></i>
+                </div>
+                <h3>3. Resolve & Update</h3>
+                <p>
+                    Repair crews complete the public works restoration. The Transparency Dashboard updates instantly,
+                    notifying all participating community members.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Banner -->
+    <div class="cta-banner-wrapper">
+        <div class="cta-banner">
+            <h2>Participate in General Mamerto Natividad's Progress</h2>
+            <p>Join local officials and engaged community members in building a safer, more responsive, and digitally
+                structured public works ecosystem.</p>
+            <div class="btn-group">
+                {% if user %}
+                <a href="/activities" class="btn btn-outline"
+                    style="background: white; color: #8b0000; border: none; font-size: 15px;"><i
+                        class="fas fa-rocket"></i> Go to Resident Portal</a>
+                {% else %}
+                <a href="/register" class="btn btn-outline"
+                    style="background: white; color: #8b0000; border: none; font-size: 15px;"><i
+                        class="fas fa-user-plus"></i> Register as Resident</a>
+                <a href="/login" class="btn"
+                    style="background: rgba(0,0,0,0.35); color: white; border: 1px solid rgba(255,255,255,0.4); font-size: 15px;"><i
+                        class="fas fa-sign-in-alt"></i> Sign In to System</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="landing-footer" id="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="logo-container"
+                    style="display: inline-flex !important; align-items: center !important; gap: 10px !important; text-decoration: none !important;">
+                    <img src="{{ url_for('static', filename='img/logobes.png') }}"
+                        onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }"
+                        class="logobes"
+                        style="width: 42px; height: 42px; object-fit: contain; border-radius: 50%; flex-shrink: 0;"
+                        alt="Logo">
+                    <div class="logo-text" style="font-size: 26px;">ActBayan<span>.</span></div>
+                </div>
+                <p>
+                    A Participatory Public Works Monitoring System for the Municipality of General Mamerto Natividad,
+                    Province of Nueva Ecija.
+                </p>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+                    BSIT Capstone Research Project — Group #8
+                </p>
+            </div>
+
+            <div class="footer-col">
+                <h4>System Navigation</h4>
+                <ul>
+                    <li><a href="#about-study">Background Study</a></li>
+                    <li><a href="#preview">Live Simulation</a></li>
+                    <li><a href="#features">Core Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="/login">Resident Login</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Municipal Coverage</h4>
+                <ul>
+                    <li><a href="#">Gen. Natividad Town Hall</a></li>
+                    <li><a href="#">Municipal Engineering Office</a></li>
+                    <li><a href="#">MDRRMO Disaster Response</a></li>
+                    <li><a href="#">Rural Health Unit</a></li>
+                    <li><a href="#">All 20 Barangays</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Capstone Researchers</h4>
+                <ul>
+                    <li><a href="#">Eusebio, Ferdinand Jr. DP</a>
+                    </li>
+                    <li><a href="#">Magbuhos, Markly Harrison</a></li>
+                    <li><a href="#">Pineda, Justine Lee G.</a></li>
+                    <li><a href="#">Santiago, Fred Rick B.</a></li>
+                    <li><a href="#" style="font-size: 11.5px; color: var(--text-dim);">BSIT 3B • Group #8</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>
+                © 2026 ACTBAYAN — Group #8 (Eusebio, Magbuhos, Pineda, Santiago). Municipality of General Mamerto
+                Natividad, Nueva Ecija. All rights reserved.
+            </div>
+            <div class="footer-socials">
+                <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" title="Twitter / X"><i class="fab fa-twitter"></i></a>
+                <a href="#" title="Government Portal"><i class="fas fa-globe"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Leaflet GIS Map Library JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Interactive JavaScript -->
+    <script>
+        // Philippine Standard Time Live Clock for Fallback Banner
+        function updatePSTClock() {
+            const el = document.getElementById('pstTimeDisplay');
+            if (el) {
+                const now = new Date();
+                const options = { timeZone: 'Asia/Manila', weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+                el.textContent = now.toLocaleString('en-US', options);
+            }
+        }
+        setInterval(updatePSTClock, 1000);
+        updatePSTClock();
+
+        // Hero Background Slideshow Rotation
+        let currentHeroSlide = 0;
+        const heroSlides = document.querySelectorAll('.hero-slide');
+        const heroIndicators = document.querySelectorAll('#heroIndicators .indicator');
+        let heroSlideInterval;
+
+        function showHeroSlide(index) {
+            if (!heroSlides.length) return;
+            heroSlides.forEach(slide => slide.classList.remove('active'));
+            heroIndicators.forEach(ind => ind.classList.remove('active'));
+
+            currentHeroSlide = (index + heroSlides.length) % heroSlides.length;
+            if (heroSlides[currentHeroSlide]) heroSlides[currentHeroSlide].classList.add('active');
+            if (heroIndicators[currentHeroSlide]) heroIndicators[currentHeroSlide].classList.add('active');
+        }
+
+        function nextHeroSlide() {
+            showHeroSlide(currentHeroSlide + 1);
+        }
+
+        function jumpToHeroSlide(index) {
+            showHeroSlide(index);
+            clearInterval(heroSlideInterval);
+            heroSlideInterval = setInterval(nextHeroSlide, 5000);
+        }
+
+        if (heroSlides.length > 0) {
+            heroSlideInterval = setInterval(nextHeroSlide, 5000);
+        }
+
+        // Sticky Navbar Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 40) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Tab Switching for Live Preview
+        function switchPreviewTab(tabId, btn) {
+            document.querySelectorAll('.preview-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.preview-panel').forEach(p => p.classList.remove('active'));
+
+            btn.classList.add('active');
+            const panel = document.getElementById('panel-' + tabId);
+            if (panel) {
+                panel.classList.add('active');
+            }
+            if (tabId === 'gis' && typeof gisMap !== 'undefined' && gisMap) {
+                setTimeout(() => gisMap.invalidateSize(), 150);
+            }
+        }
+
+        // GIS Map Pin Interactive Selection
+        let gisMap;
+        let markers = {};
+
+        const incidentData = {
+            sampaloc: {
+                coords: [15.6180, 121.0450],
+                title: "📍 Brgy. Mag-asawang Sampaloc • Road Hazard",
+                desc: "GPS Coordinates pinpointed automatically by resident mobile report. Municipal Engineering Office is evaluating materials needed.",
+                status: "STATUS: UNDER ASSESSMENT 🟡",
+                color: "#d97706"
+            },
+            poblacion: {
+                coords: [15.6015, 121.0503],
+                title: "📍 Brgy. Poblacion Central • Broken Solar Streetlight",
+                desc: "Reported by community members. Solar LED streetlights successfully replaced and operational along central public market.",
+                status: "STATUS: RESOLVED ✅",
+                color: "#059669"
+            },
+            platero: {
+                coords: [15.5890, 121.0620],
+                title: "📍 Brgy. Platero Sector 2 • Clogged Agricultural Drain",
+                desc: "Reported by local farmers. Municipal heavy equipment scheduled for drainage desilting and clearing operations.",
+                status: "STATUS: ENGINEERING DISPATCHED 🔵",
+                color: "#2563eb"
+            },
+            balangkare: {
+                coords: [15.5720, 121.0580],
+                title: "📍 Brgy. Balangkare Sur • Shoulder Erosion Repair",
+                desc: "Reported by motorist safety group. Road shoulder erosion reported to Municipal Engineering and DPWH coordinators.",
+                status: "STATUS: PENDING REVIEW 🟠",
+                color: "#6b7280"
+            }
+        };
+
+        function initGisMap() {
+            if (gisMap || !document.getElementById('real-gis-map')) return;
+            gisMap = L.map('real-gis-map', { zoomControl: false }).setView([15.6015, 121.0503], 13);
+
+            // Standard OpenStreetMap Tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors • ACTBAYAN Capstone',
+                maxZoom: 19
+            }).addTo(gisMap);
+
+            L.control.zoom({ position: 'topright' }).addTo(gisMap);
+
+            const createIcon = (color) => L.divIcon({
+                className: 'custom-gis-pin',
+                html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2.5px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center;"><div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div></div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 30],
+                popupAnchor: [0, -30]
+            });
+
+            for (let key in incidentData) {
+                let loc = incidentData[key];
+                let marker = L.marker(loc.coords, { icon: createIcon(loc.color) }).addTo(gisMap);
+                marker.bindPopup(`
+                    <div style="font-family: 'Inter', sans-serif; min-width: 230px; padding: 4px;">
+                        <h4 style="margin: 0 0 6px 0; font-size: 13.5px; font-weight: 800; color: #111827;">${loc.title}</h4>
+                        <p style="margin: 0 0 10px 0; font-size: 12px; color: #6b7280; line-height: 1.4;">${loc.desc}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e5e7eb; padding-top: 8px;">
+                            <span style="font-size: 11px; font-weight: 800; color: ${loc.color};">${loc.status}</span>
+                            <span style="font-size: 11px; font-weight: 700; color: #8b0000;"><i class="fas fa-satellite"></i> GPS Tagged</span>
+                        </div>
+                    </div>
+                `);
+                markers[key] = marker;
+                marker.on('click', () => {
+                    document.getElementById('live-coords').innerHTML = `<i class="fas fa-crosshairs" style="color: #8b0000;"></i> ${loc.coords[0].toFixed(4)}° N, ${loc.coords[1].toFixed(4)}° E`;
+                });
+            }
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(initGisMap, 300);
+        });
+
+        function selectPin(locKey, cardEl) {
+            document.querySelectorAll('.incident-card').forEach(c => c.classList.remove('selected'));
+            if (cardEl) cardEl.classList.add('selected');
+
+            if (gisMap && markers[locKey]) {
+                const marker = markers[locKey];
+                const latlng = marker.getLatLng();
+                gisMap.flyTo(latlng, 15, { animate: true, duration: 1.2 });
+                marker.openPopup();
+                document.getElementById('live-coords').innerHTML = `<i class="fas fa-crosshairs" style="color: #8b0000;"></i> ${latlng.lat.toFixed(4)}° N, ${latlng.lng.toFixed(4)}° E`;
+            }
+        }
+
+        function showPopup(locKey) {
+            selectPin(locKey, null);
+        }
+
+        // Bulletin Filter Pill Interaction
+        function filterBulletins(cat, pillEl) {
+            document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            if (pillEl) pillEl.classList.add('active');
+
+            const cards = document.querySelectorAll('.bulletin-card');
+            cards.forEach(card => {
+                if (cat === 'all' || card.getAttribute('data-cat') === cat) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const nav = document.querySelector('.nav-links');
+            const actions = document.querySelector('.header-actions');
+            if (nav.style.display === 'flex') {
+                nav.style.display = 'none';
+                actions.style.display = 'none';
+            } else {
+                nav.style.display = 'flex';
+                nav.style.position = 'absolute';
+                nav.style.top = '76px';
+                nav.style.left = '0';
+                nav.style.width = '100%';
+                nav.style.flexDirection = 'column';
+                nav.style.background = '#ffffff';
+                nav.style.padding = '20px';
+                nav.style.boxShadow = '0 10px 20px rgba(0,0,0,0.15)';
+
+                actions.style.display = 'flex';
+                actions.style.position = 'absolute';
+                actions.style.top = '270px';
+                actions.style.left = '0';
+                actions.style.width = '100%';
+                actions.style.justifyContent = 'center';
+                actions.style.background = '#ffffff';
+                actions.style.paddingBottom = '20px';
+            }
+        }
+        // Core Features Carousel Auto-Scroll and Drag
+        const carousel = document.querySelector('.core-features-carousel');
+        let isDown = false;
+        let isHovered = false;
+        let startX;
+        let scrollLeft;
+        let animationId;
+        const scrollSpeed = 1; // Pixels per frame
+
+        if (carousel) {
+            // Clone cards for seamless infinite scrolling
+            const cards = Array.from(carousel.children);
+            cards.forEach(card => {
+                const clone = card.cloneNode(true);
+                clone.classList.add('clone-card');
+                carousel.appendChild(clone);
+            });
+
+            carousel.style.cursor = 'grab';
+
+            function autoScroll() {
+                if (!carousel) return;
+
+                // Only scroll if not interacting
+                if (!isDown && !isHovered) {
+                    carousel.scrollLeft += scrollSpeed;
+
+                    const firstClone = carousel.querySelector('.clone-card');
+                    const wrapPoint = firstClone ? (firstClone.offsetLeft - carousel.firstElementChild.offsetLeft) : 0;
+
+                    // Reset to start seamlessly when reached the clone wrap point
+                    if (wrapPoint > 0 && carousel.scrollLeft >= wrapPoint) {
+                        carousel.scrollLeft -= wrapPoint;
+                    }
+                }
+                animationId = requestAnimationFrame(autoScroll);
+            }
+
+            // Start the animation loop
+            autoScroll();
+
+            const dragStart = (e) => {
+                isDown = true;
+                carousel.style.cursor = 'grabbing';
+
+                const pageX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
+                startX = pageX - carousel.offsetLeft;
+                scrollLeft = carousel.scrollLeft;
+            };
+
+            const dragEnd = () => {
+                isDown = false;
+                carousel.style.cursor = 'grab';
+            };
+
+            const dragMove = (e) => {
+                if (!isDown) return;
+                e.preventDefault(); // Prevent default text selection or scrolling
+                const pageX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
+                const x = pageX - carousel.offsetLeft;
+                const walk = (x - startX) * 1.5; // Drag sensitivity
+
+                let newScrollLeft = scrollLeft - walk;
+
+                const firstClone = carousel.querySelector('.clone-card');
+                const wrapPoint = firstClone ? (firstClone.offsetLeft - carousel.firstElementChild.offsetLeft) : 0;
+
+                if (wrapPoint > 0) {
+                    // Infinite wrap handling for dragging forwards
+                    if (newScrollLeft >= wrapPoint) {
+                        newScrollLeft -= wrapPoint;
+                        scrollLeft -= wrapPoint; // Adjust reference point
+                    }
+                    // Infinite wrap handling for dragging backwards
+                    else if (newScrollLeft <= 0) {
+                        newScrollLeft += wrapPoint;
+                        scrollLeft += wrapPoint; // Adjust reference point
+                    }
+                }
+
+                carousel.scrollLeft = newScrollLeft;
+            };
+
+            // Mouse events
+            carousel.addEventListener('mousedown', dragStart);
+            carousel.addEventListener('mouseleave', () => {
+                dragEnd();
+                isHovered = false;
+            });
+            carousel.addEventListener('mouseup', dragEnd);
+            carousel.addEventListener('mousemove', dragMove);
+
+            // Touch events
+            carousel.addEventListener('touchstart', dragStart, { passive: true });
+            carousel.addEventListener('touchend', dragEnd);
+            carousel.addEventListener('touchmove', dragMove, { passive: false });
+
+            // Pause auto-scroll on hover for better readability
+            carousel.addEventListener('mouseenter', () => isHovered = true);
+        }
+    </script>
+</body>
+
+</html>
