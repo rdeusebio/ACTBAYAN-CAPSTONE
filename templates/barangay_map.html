@@ -441,6 +441,108 @@
             color: white;
         }
 
+        /* Map Status Filter Pills */
+        .map-status-filters {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .map-filter-pill {
+            flex: 1;
+            white-space: nowrap;
+            padding: 7px 10px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-nav-card);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter';
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .map-filter-pill:hover {
+            border-color: var(--primary-red);
+            color: var(--primary-red);
+        }
+
+        .map-filter-pill.active {
+            background: var(--primary-red);
+            border-color: var(--primary-red);
+            color: white;
+        }
+
+        .map-floating-filter-bar {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 8px;
+            background: var(--glass-bg, rgba(255,255,255,0.92));
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 6px 10px;
+            border-radius: 50px;
+            border: 1.5px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.14);
+        }
+
+        .floating-filter-btn {
+            padding: 7px 14px;
+            border-radius: 50px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter';
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .floating-filter-btn:hover {
+            color: var(--text-main);
+            background: var(--icon-hover);
+        }
+
+        .floating-filter-btn.active {
+            background: var(--primary-red);
+            color: white;
+            box-shadow: 0 2px 8px rgba(139,0,0,0.3);
+        }
+
+        .floating-filter-btn.pill-resolved.active {
+            background: #16a34a;
+            box-shadow: 0 2px 8px rgba(22,163,74,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .map-floating-filter-bar {
+                top: 10px;
+                width: calc(100% - 24px);
+                justify-content: space-around;
+                padding: 4px;
+                overflow-x: auto;
+            }
+            .floating-filter-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+        }
+
         .poi-list {
             flex: 1;
             overflow-y: auto;
@@ -992,12 +1094,24 @@
                         <button class="layer-btn" onclick="setLayer('topo', this)"><i class="fas fa-mountain"></i>
                             Topo</button>
                     </div>
+                    <div class="map-status-filters">
+                        <button class="map-filter-pill active" data-filter="active" onclick="setMapFilter('active', this)" title="All active concerns"><i class="fas fa-fire"></i> Active</button>
+                        <button class="map-filter-pill" data-filter="pending" onclick="setMapFilter('pending', this)"><i class="fas fa-hourglass-half"></i> Pending</button>
+                        <button class="map-filter-pill" data-filter="in_progress" onclick="setMapFilter('in_progress', this)"><i class="fas fa-tools"></i> In Progress</button>
+                        <button class="map-filter-pill" data-filter="resolved" onclick="setMapFilter('resolved', this)"><i class="fas fa-check-circle"></i> Resolved</button>
+                    </div>
                 </div>
                 <div class="poi-list" id="poi-list">
                 </div>
             </div>
 
             <div class="map-wrap">
+                <div class="map-floating-filter-bar">
+                    <button class="floating-filter-btn active" data-filter="active" onclick="setMapFilter('active', this)"><i class="fas fa-fire"></i> Active Concerns</button>
+                    <button class="floating-filter-btn" data-filter="pending" onclick="setMapFilter('pending', this)"><i class="fas fa-hourglass-half"></i> Pending</button>
+                    <button class="floating-filter-btn" data-filter="in_progress" onclick="setMapFilter('in_progress', this)"><i class="fas fa-tools"></i> In Progress</button>
+                    <button class="floating-filter-btn pill-resolved" data-filter="resolved" onclick="setMapFilter('resolved', this)"><i class="fas fa-check-circle"></i> Resolved</button>
+                </div>
                 <div id="map"></div>
                 <div class="map-controls">
                     <div class="map-ctrl-btn" onclick="map.zoomIn()" title="Zoom In"><i class="fas fa-plus"></i></div>
@@ -1198,6 +1312,49 @@
 
         // Store markers for reports
         const reportMarkers = {};
+        let currentMapFilter = 'active'; // Default: 'active' (Resolved pins excluded by default)
+
+        function shouldShowReport(status, filter) {
+            const s = (status || '').toLowerCase().trim();
+            if (filter === 'active') {
+                return s !== 'resolved' && s !== 'completed';
+            }
+            if (filter === 'resolved') {
+                return s === 'resolved' || s === 'completed';
+            }
+            if (filter === 'pending') {
+                return s === 'pending';
+            }
+            if (filter === 'in_progress') {
+                return s.includes('prog') || s.includes('review') || s.includes('process');
+            }
+            return true;
+        }
+
+        function setMapFilter(filter, clickedBtn) {
+            currentMapFilter = filter;
+
+            document.querySelectorAll('.map-filter-pill, .floating-filter-btn').forEach(btn => {
+                if (btn.dataset.filter === filter) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            reportPins.forEach((r, idx) => {
+                const marker = reportMarkers[idx];
+                if (!marker) return;
+                const status = r.status || 'Pending';
+                if (shouldShowReport(status, currentMapFilter)) {
+                    if (!map.hasLayer(marker)) map.addLayer(marker);
+                } else {
+                    if (map.hasLayer(marker)) map.removeLayer(marker);
+                }
+            });
+
+            filterPoi();
+        }
 
         // ===== REPORT PINS (from DB via `rloc`) =====
         const reportPins = {{ rloc|tojson }};
@@ -1229,7 +1386,12 @@
             const pinMarker = L.marker([lat, lng], {
                 icon: makeIcon(color, emoji),
                 riseOnHover: true
-            }).addTo(map);
+            });
+
+            // Exclude resolved pins from the map by default
+            if (shouldShowReport(status, currentMapFilter)) {
+                pinMarker.addTo(map);
+            }
 
             let imgHtml = '';
             if (imgUrl) {
@@ -1465,13 +1627,16 @@
         function filterPoi() {
             const q = document.getElementById('poi-search').value.toLowerCase();
             const filteredPois = q ? pois.filter(p => p.name.toLowerCase().includes(q) || p.sub.toLowerCase().includes(q)) : pois;
-            const filteredReports = q ? reportPins.filter(r => {
+            const filteredReports = reportPins.filter(r => {
+                const status = r.status || 'Pending';
+                if (!shouldShowReport(status, currentMapFilter)) return false;
+                if (!q) return true;
                 const title = (r.title ?? r.TITLE ?? '').toLowerCase();
                 const loc = (r.locname ?? r.LOCNAME ?? '').toLowerCase();
                 const desc = (r.description ?? '').toLowerCase();
                 const cat = (r.category ?? '').toLowerCase();
                 return title.includes(q) || loc.includes(q) || desc.includes(q) || cat.includes(q);
-            }) : reportPins;
+            });
             renderPoiList(filteredPois, filteredReports);
         }
 
@@ -1646,8 +1811,8 @@
             if (themeLabel) themeLabel.textContent = 'Light Mode';
         }
 
-        // Initialize POI list and sync sidebar search on load
-        renderPoiList(pois, reportPins);
+        // Initialize POI list using currentMapFilter (Resolved hidden by default)
+        filterPoi();
         const sidebarSearch = document.getElementById('poi-search-sidebar');
         if (sidebarSearch) {
             sidebarSearch.addEventListener('input', function () {
@@ -1666,6 +1831,10 @@
             if (!targetReportId) return;
             const targetIdx = reportPins.findIndex(r => String(r.report_id) === String(targetReportId));
             if (targetIdx !== -1) {
+                const targetRep = reportPins[targetIdx];
+                if (targetRep && (targetRep.status || '').toLowerCase() === 'resolved') {
+                    setMapFilter('resolved');
+                }
                 setTimeout(() => {
                     flyToReport(targetIdx);
                 }, 450);

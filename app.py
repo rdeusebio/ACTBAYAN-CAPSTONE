@@ -1625,6 +1625,7 @@ def notifications():
         ) ra ON ra.report_id = r.report_id
         LEFT JOIN accounts a ON ra.account_id = a.account_id
         WHERE l.x IS NOT NULL AND l.y IS NOT NULL
+          AND (r.status != 'Resolved' OR COALESCE(r.last_activity, r.created_at) >= NOW() - INTERVAL 7 DAY)
         ORDER BY r.created_at DESC
         LIMIT 25
     """)
@@ -1830,6 +1831,7 @@ def lgu_notifications():
         ) ra ON ra.report_id = r.report_id
         LEFT JOIN accounts a ON ra.account_id = a.account_id
         WHERE l.x IS NOT NULL AND l.y IS NOT NULL
+          AND (r.status != 'Resolved' OR COALESCE(r.last_activity, r.created_at) >= NOW() - INTERVAL 7 DAY)
         ORDER BY r.created_at DESC
         LIMIT 25
     """)
@@ -3017,6 +3019,7 @@ def barangay_map():
         ) ra ON ra.report_id = r.report_id
         LEFT JOIN accounts a ON ra.account_id = a.account_id
         WHERE l.x IS NOT NULL AND l.y IS NOT NULL
+          AND (r.status != 'Resolved' OR COALESCE(r.last_activity, r.created_at) >= NOW() - INTERVAL 7 DAY)
         ORDER BY r.created_at DESC
     """
     cursor.execute(rep)
@@ -3352,6 +3355,7 @@ def lgu_map():
         ) ra ON ra.report_id = r.report_id
         LEFT JOIN accounts a ON ra.account_id = a.account_id
         WHERE l.x IS NOT NULL AND l.y IS NOT NULL
+          AND (r.status != 'Resolved' OR COALESCE(r.last_activity, r.created_at) >= NOW() - INTERVAL 7 DAY)
         ORDER BY r.created_at DESC
     """
     cursor.execute(rep)

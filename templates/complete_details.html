@@ -222,20 +222,20 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="province">Province</label>
+                            <label for="province">Province <span style="font-size:10px; font-weight:800; color:var(--text-muted);"><i class="fas fa-lock"></i> Locked</span></label>
                             <div class="input-wrap">
                                 <i class="fas fa-map input-icon"></i>
-                                <select id="province" name="province" required onchange="loadCities()">
-                                    <option value="">Select Province</option>
+                                <select id="province" disabled style="background:var(--search-bg); opacity:0.9; cursor:not-allowed;">
+                                    <option value="Nueva Ecija" selected>Nueva Ecija</option>
                                 </select>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="city">City / Municipality</label>
+                            <label for="city">City / Municipality <span style="font-size:10px; font-weight:800; color:var(--text-muted);"><i class="fas fa-lock"></i> Locked</span></label>
                             <div class="input-wrap">
                                 <i class="fas fa-city input-icon"></i>
-                                <select id="city" name="city" required onchange="loadBarangays()" disabled>
-                                    <option value="">Select City/Municipality</option>
+                                <select id="city" disabled style="background:var(--search-bg); opacity:0.9; cursor:not-allowed;">
+                                    <option value="General Mamerto Natividad" selected>General Mamerto Natividad</option>
                                 </select>
                             </div>
                         </div>
@@ -245,14 +245,34 @@
                         <label for="barangay">Barangay</label>
                         <div class="input-wrap">
                             <i class="fas fa-map-marker-alt input-icon"></i>
-                            <select id="barangay" name="barangay" required disabled>
+                            <select id="barangay" name="barangay" required>
                                 <option value="">Select Barangay</option>
+                                <option value="Balangkare Norte">Balangkare Norte</option>
+                                <option value="Balangkare Sur">Balangkare Sur</option>
+                                <option value="Balaring">Balaring</option>
+                                <option value="Belen">Belen</option>
+                                <option value="Bravo">Bravo</option>
+                                <option value="Burol">Burol</option>
+                                <option value="Kabulihan">Kabulihan</option>
+                                <option value="Mag-asawang Sampaloc">Mag-asawang Sampaloc</option>
+                                <option value="Manarog">Manarog</option>
+                                <option value="Mataas na Kahoy">Mataas na Kahoy</option>
+                                <option value="Panacsac">Panacsac</option>
+                                <option value="Picaleon">Picaleon</option>
+                                <option value="Pinahan">Pinahan</option>
+                                <option value="Platero">Platero</option>
+                                <option value="Poblacion">Poblacion</option>
+                                <option value="Pula">Pula</option>
+                                <option value="Pulong Singkamas">Pulong Singkamas</option>
+                                <option value="Sapang Bato">Sapang Bato</option>
+                                <option value="Talabutab Norte">Talabutab Norte</option>
+                                <option value="Talabutab Sur">Talabutab Sur</option>
                             </select>
                         </div>
                     </div>
 
-                    <input type="hidden" name="province_name" id="province_name">
-                    <input type="hidden" name="city_name" id="city_name">
+                    <input type="hidden" name="province_name" id="province_name" value="Nueva Ecija">
+                    <input type="hidden" name="city_name" id="city_name" value="General Mamerto Natividad">
                     <input type="hidden" name="barangay_name" id="barangay_name">
 
                     <button type="submit" class="submit-btn" style="margin-top: 15px;">
@@ -276,105 +296,23 @@
     today.setFullYear(today.getFullYear() - 15);
     dobInput.max = today.toISOString().split('T')[0];
 
-    // ===== PSGC API INTEGRATION =====
-    const apiBase = "https://psgc.gitlab.io/api";
+    // ===== LOCATION LOCK (GENERAL MAMERTO NATIVIDAD, NUEVA ECIJA) =====
+    const brgySelect = document.getElementById('barangay');
+    const brgyHidden = document.getElementById('barangay_name');
     
-    async function loadProvinces() {
-        try {
-            const res = await fetch(`${apiBase}/provinces/`);
-            let data = await res.json();
-            // Sort alphabetically
-            data.sort((a,b) => a.name.localeCompare(b.name));
-            
-            const provSelect = document.getElementById('province');
-            data.forEach(p => {
-                let opt = document.createElement('option');
-                opt.value = p.code;
-                opt.textContent = p.name;
-                provSelect.appendChild(opt);
-            });
-        } catch (e) {
-            console.error("Error loading provinces:", e);
-        }
-    }
-
-    async function loadCities() {
-        const provSelect = document.getElementById('province');
-        const citySelect = document.getElementById('city');
-        const brgySelect = document.getElementById('barangay');
-        
-        // Save name for backend
-        document.getElementById('province_name').value = provSelect.options[provSelect.selectedIndex].text;
-        
-        citySelect.innerHTML = '<option value="">Loading...</option>';
-        citySelect.disabled = true;
-        brgySelect.innerHTML = '<option value="">Select Barangay</option>';
-        brgySelect.disabled = true;
-
-        const code = provSelect.value;
-        if(!code) {
-            citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
-            return;
-        }
-
-        try {
-            const res = await fetch(`${apiBase}/provinces/${code}/cities-municipalities/`);
-            let data = await res.json();
-            data.sort((a,b) => a.name.localeCompare(b.name));
-            
-            citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
-            data.forEach(c => {
-                let opt = document.createElement('option');
-                opt.value = c.code;
-                opt.textContent = c.name;
-                citySelect.appendChild(opt);
-            });
-            citySelect.disabled = false;
-        } catch (e) {
-            console.error("Error loading cities:", e);
-        }
-    }
-
-    async function loadBarangays() {
-        const citySelect = document.getElementById('city');
-        const brgySelect = document.getElementById('barangay');
-        
-        document.getElementById('city_name').value = citySelect.options[citySelect.selectedIndex].text;
-
-        brgySelect.innerHTML = '<option value="">Loading...</option>';
-        brgySelect.disabled = true;
-
-        const code = citySelect.value;
-        if(!code) {
-            brgySelect.innerHTML = '<option value="">Select Barangay</option>';
-            return;
-        }
-
-        try {
-            const res = await fetch(`${apiBase}/cities-municipalities/${code}/barangays/`);
-            let data = await res.json();
-            data.sort((a,b) => a.name.localeCompare(b.name));
-            
-            brgySelect.innerHTML = '<option value="">Select Barangay</option>';
-            data.forEach(b => {
-                let opt = document.createElement('option');
-                opt.value = b.code;
-                opt.textContent = b.name;
-                brgySelect.appendChild(opt);
-            });
-            brgySelect.disabled = false;
-        } catch (e) {
-            console.error("Error loading barangays:", e);
-        }
-    }
-
-    document.getElementById('barangay').addEventListener('change', function() {
-        document.getElementById('barangay_name').value = this.options[this.selectedIndex].text;
+    brgySelect.addEventListener('change', function() {
+        brgyHidden.value = this.value;
     });
 
-    // Initialize API call
-    window.addEventListener('DOMContentLoaded', () => {
-        loadProvinces();
+    // Ensure hidden inputs are populated on submit
+    document.querySelector('form').addEventListener('submit', function(e) {
+        document.getElementById('province_name').value = "Nueva Ecija";
+        document.getElementById('city_name').value = "General Mamerto Natividad";
+        brgyHidden.value = brgySelect.value;
+        if (!brgySelect.value) {
+            e.preventDefault();
+            alert("Please select your Barangay.");
+        }
     });
 
     // ===== CROPPER JS LOGIC =====
