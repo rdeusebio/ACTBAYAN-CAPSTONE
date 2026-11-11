@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -20,16 +20,16 @@
             --border-color: #e0e0e0;
             --icon-hover: #f1f3f4;
             --search-bg: #f1f3f4;
-            --primary-red: #8b0000;
-            --primary-red-hover: #a30000;
-            --red-light: rgba(139,0,0,0.08);
+            --primary-red: #166534;
+            --primary-red-hover: #14532d;
+            --red-light: rgba(22,101,52,0.08);
             --hero-overlay: rgba(139,0,0,0.85);
         }
         body.dark-mode {
             --bg-main: #121212; --bg-nav-card: #1e1e1e; --text-main: #e8eaed;
             --glass-bg: rgba(30, 30, 30, 0.8); --glass-border: rgba(255, 255, 255, 0.05);
             --text-muted: #9aa0a6; --border-color: #333333; --icon-hover: #2a2a2a;
-            --search-bg: #2a2a2a; --red-light: rgba(139,0,0,0.15); --hero-overlay: rgba(0,0,0,0.8);
+            --search-bg: #2a2a2a; --red-light: rgba(22,101,52,0.15); --hero-overlay: rgba(0,0,0,0.8);
         }
         body.dark-mode .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9); }
         body.dark-mode .leaflet-marker-pane,
@@ -66,7 +66,7 @@
         .main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
 
         .page-header {
-            background-color: #8b0000;
+            background-color: #166534;
             background-image: linear-gradient(135deg, rgba(139, 0, 0, 0.88) 0%, rgba(185, 28, 28, 0.82) 50%, rgba(139, 0, 0, 0.88) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}");
             background-size: cover;
             background-position: center;
@@ -185,7 +185,7 @@
         }
 
         .sidebar-toggle-btn:hover {
-            background: var(--red-light, rgba(139,0,0,0.08));
+            background: var(--red-light, rgba(22,101,52,0.08));
             color: var(--primary-red);
             border-color: var(--primary-red);
             transform: translateX(-2px);
@@ -287,7 +287,7 @@
         }
 
         .filter-reset-btn:hover {
-            background: var(--red-light, rgba(139, 0, 0, 0.08));
+            background: var(--red-light, rgba(22, 101, 52, 0.08));
             color: var(--primary-red);
         }
 
@@ -433,7 +433,7 @@
             background: var(--search-bg);
             border-color: var(--primary-red);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 0, 0, 0.08);
+            box-shadow: 0 6px 20px rgba(22, 101, 52, 0.08);
         }
 
         .poi-item.active {
@@ -478,7 +478,7 @@
         .leaflet-popup-content { margin: 14px 16px !important; }
         .popup-title { font-size: 14px; font-weight: 800; color: #202124; margin-bottom: 4px; }
         .popup-sub { font-size: 12px; color: #5f6368; }
-        .popup-tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(139,0,0,0.08); color: #8b0000; padding: 2px 8px; border-radius: 50px; font-size: 10px; font-weight: 800; margin-top: 6px; }
+        .popup-tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(22,101,52,0.08); color: #166534; padding: 2px 8px; border-radius: 50px; font-size: 10px; font-weight: 800; margin-top: 6px; }
 
         .toast-container { position: fixed; bottom: 28px; right: 28px; z-index: 9998; display: flex; flex-direction: column; gap: 8px; }
         .toast { background-color: #1e1e1e; color: #fff; padding: 12px 24px; border-radius: 50px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateY(18px); transition: all 0.3s; }
@@ -501,9 +501,9 @@
                 background: var(--search-bg); color: var(--text-muted); display: flex; align-items: center;
                 justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s;
             }
-            .mobile-action-btn.logout { color: #dc2626; }
+            .mobile-action-btn.logout { color: #22c55e; }
             .mobile-avatar {
-                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #b91c1c);
+                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #16a34a);
                 color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; overflow: hidden;
             }
             .mobile-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -653,7 +653,7 @@
     <div style="background:var(--bg-nav-card);border-radius:20px;width:100%;max-width:920px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.35);">
 
         <!-- Header -->
-        <div style="background:linear-gradient(135deg,#8b0000 0%,#c0392b 60%,#e74c3c 100%);padding:18px 26px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="background:linear-gradient(135deg,#166534 0%,#c0392b 60%,#e74c3c 100%);padding:18px 26px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
             <div style="display:flex;align-items:center;gap:14px;">
                 <div style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;">📋</div>
                 <div>
@@ -689,17 +689,17 @@
                     <h4 id="lgu-modal-post-title" style="font-size:15px;font-weight:900;color:var(--text-main);margin:0 0 8px;line-height:1.3;"></h4>
                     <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;">
                         <span style="font-size:12px;color:var(--text-muted);font-weight:600;display:flex;align-items:center;gap:5px;">
-                            <i class="fas fa-map-marker-alt" style="color:#8b0000;"></i>
+                            <i class="fas fa-map-marker-alt" style="color:#166534;"></i>
                             <span id="lgu-modal-location-text"></span>
                         </span>
                         <span style="font-size:12px;color:var(--text-muted);font-weight:600;display:flex;align-items:center;gap:5px;">
-                            <i class="fas fa-calendar-alt" style="color:#8b0000;"></i>
+                            <i class="fas fa-calendar-alt" style="color:#166534;"></i>
                             <span id="lgu-modal-date-text"></span>
                         </span>
                     </div>
                     <p id="lgu-modal-desc" style="font-size:13px;color:var(--text-muted);line-height:1.6;margin:0 0 12px;"></p>
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <div id="lgu-modal-resident-init" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#8b0000,#c0392b);color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;"></div>
+                        <div id="lgu-modal-resident-init" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#166534,#c0392b);color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;"></div>
                         <img id="lgu-modal-resident-img" src="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;display:none;flex-shrink:0;">
                         <div>
                             <div id="lgu-modal-resident-name" style="font-size:12px;font-weight:700;color:var(--text-main);"></div>
@@ -711,7 +711,7 @@
                 <!-- Stats bar -->
                 <div style="padding:12px 18px;display:flex;gap:20px;border-bottom:1px solid var(--border-color);background:var(--search-bg);flex-shrink:0;">
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <div style="width:32px;height:32px;border-radius:8px;background:rgba(139,0,0,0.1);color:#8b0000;display:flex;align-items:center;justify-content:center;">
+                        <div style="width:32px;height:32px;border-radius:8px;background:rgba(139,0,0,0.1);color:#166534;display:flex;align-items:center;justify-content:center;">
                             <i class="fas fa-arrow-up"></i>
                         </div>
                         <div>
@@ -720,7 +720,7 @@
                         </div>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <div style="width:32px;height:32px;border-radius:8px;background:rgba(139,0,0,0.1);color:#8b0000;display:flex;align-items:center;justify-content:center;">
+                        <div style="width:32px;height:32px;border-radius:8px;background:rgba(139,0,0,0.1);color:#166534;display:flex;align-items:center;justify-content:center;">
                             <i class="fas fa-comment"></i>
                         </div>
                         <div>
@@ -733,7 +733,7 @@
                 <!-- Updates List -->
                 <div style="padding:14px 18px;border-bottom:1px solid var(--border-color);">
                     <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-                        <i class="fas fa-clipboard-check" style="color:#8b0000;"></i> Official Updates
+                        <i class="fas fa-clipboard-check" style="color:#166534;"></i> Official Updates
                     </div>
                     <div id="lgu-modal-updates-list" style="display:flex;flex-direction:column;gap:12px;"></div>
                 </div>
@@ -741,7 +741,7 @@
                 <!-- Comments list -->
                 <div style="padding:14px 18px;flex:1;">
                     <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-                        <i class="fas fa-comments" style="color:#8b0000;"></i> Community Comments
+                        <i class="fas fa-comments" style="color:#166534;"></i> Community Comments
                     </div>
                     <div id="lgu-modal-comments-list" style="display:flex;flex-direction:column;gap:10px;"></div>
                 </div>
@@ -750,7 +750,7 @@
             <!-- RIGHT: Update Form -->
             <div style="overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:16px;">
                 <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:flex;align-items:center;gap:7px;">
-                    <i class="fas fa-edit" style="color:#8b0000;"></i> Post an Update
+                    <i class="fas fa-edit" style="color:#166534;"></i> Post an Update
                 </div>
 
                 <!-- Current status display -->
@@ -769,8 +769,8 @@
 
                     <!-- New status -->
                     <div>
-                        <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:7px;"><i class="fas fa-sync-alt" style="color:#8b0000;margin-right:4px;"></i>Change Status To</label>
-                        <select id="update-status" name="update_status" required style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border-color);background:var(--bg-nav-card);font-family:'Inter';font-size:13px;font-weight:600;color:var(--text-main);outline:none;cursor:pointer;transition:all 0.2s;" onfocus="this.style.borderColor='#8b0000';this.style.boxShadow='0 0 0 3px rgba(139,0,0,0.1)'" onblur="this.style.borderColor='var(--border-color)';this.style.boxShadow='none'">
+                        <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:7px;"><i class="fas fa-sync-alt" style="color:#166534;margin-right:4px;"></i>Change Status To</label>
+                        <select id="update-status" name="update_status" required style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border-color);background:var(--bg-nav-card);font-family:'Inter';font-size:13px;font-weight:600;color:var(--text-main);outline:none;cursor:pointer;transition:all 0.2s;" onfocus="this.style.borderColor='#166534';this.style.boxShadow='0 0 0 3px rgba(139,0,0,0.1)'" onblur="this.style.borderColor='var(--border-color)';this.style.boxShadow='none'">
                             <option value="Pending">⏳ Pending</option>
                             <option value="In Progress">🔄 In Progress</option>
                             <option value="Resolved">✅ Resolved</option>
@@ -798,22 +798,22 @@
 
                     <!-- Message -->
                     <div>
-                        <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:7px;"><i class="fas fa-align-left" style="color:#8b0000;margin-right:4px;"></i>Documentation / Message</label>
-                        <textarea id="update-text" name="update_description" required rows="4" placeholder="Describe what action was taken, current situation, or reason for denial..." style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border-color);background:var(--bg-nav-card);font-family:'Inter';font-size:13px;color:var(--text-main);resize:vertical;outline:none;line-height:1.5;transition:all 0.2s;" onfocus="this.style.borderColor='#8b0000';this.style.boxShadow='0 0 0 3px rgba(139,0,0,0.1)'" onblur="this.style.borderColor='var(--border-color)';this.style.boxShadow='none'"></textarea>
+                        <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:7px;"><i class="fas fa-align-left" style="color:#166534;margin-right:4px;"></i>Documentation / Message</label>
+                        <textarea id="update-text" name="update_description" required rows="4" placeholder="Describe what action was taken, current situation, or reason for denial..." style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border-color);background:var(--bg-nav-card);font-family:'Inter';font-size:13px;color:var(--text-main);resize:vertical;outline:none;line-height:1.5;transition:all 0.2s;" onfocus="this.style.borderColor='#166534';this.style.boxShadow='0 0 0 3px rgba(139,0,0,0.1)'" onblur="this.style.borderColor='var(--border-color)';this.style.boxShadow='none'"></textarea>
                     </div>
 
                     <!-- Real-Time Camera Proof (Gallery Strictly Prohibited) -->
                     <div>
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
-                            <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);margin:0;"><i class="fas fa-camera" style="color:#8b0000;margin-right:4px;"></i>Real-Time Camera Proof</label>
-                            <span style="font-size:9.5px;font-weight:800;color:#dc2626;background:rgba(220,38,38,0.1);padding:2px 7px;border-radius:4px;"><i class="fas fa-ban"></i> Gallery Upload Prohibited</span>
+                            <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);margin:0;"><i class="fas fa-camera" style="color:#166534;margin-right:4px;"></i>Real-Time Camera Proof</label>
+                            <span style="font-size:9.5px;font-weight:800;color:#22c55e;background:rgba(220,38,38,0.1);padding:2px 7px;border-radius:4px;"><i class="fas fa-ban"></i> Gallery Upload Prohibited</span>
                         </div>
 
                         <!-- Hardware Camera Input -->
                         <input type="file" id="update-photo" name="update_photo" accept="image/*" capture="environment" style="display:none;" onchange="lguHandleCameraPhoto(this)">
 
                         <!-- Camera Trigger Button -->
-                        <div id="lgu-camera-trigger" onclick="lguStartCameraCapture()" style="border:2px dashed var(--border-color);border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;background:var(--search-bg);transition:all 0.2s;" onmouseover="this.style.borderColor='#8b0000'" onmouseout="this.style.borderColor='var(--border-color)'">
+                        <div id="lgu-camera-trigger" onclick="lguStartCameraCapture()" style="border:2px dashed var(--border-color);border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;background:var(--search-bg);transition:all 0.2s;" onmouseover="this.style.borderColor='#166534'" onmouseout="this.style.borderColor='var(--border-color)'">
                             <div style="width:40px;height:40px;border-radius:50%;background:rgba(220,38,38,0.1);color:var(--primary-red);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:16px;">
                                 <i class="fas fa-camera"></i>
                             </div>
@@ -829,7 +829,7 @@
                             </div>
                             <div style="position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:10px;z-index:10;">
                                 <button type="button" onclick="lguSnapLiveVideo()" style="background:#ffffff;color:#111;border:none;padding:8px 16px;border-radius:50px;font-weight:800;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(0,0,0,0.5);font-family:'Inter';">
-                                    <i class="fas fa-camera" style="color:#dc2626;"></i> Snap Proof
+                                    <i class="fas fa-camera" style="color:#22c55e;"></i> Snap Proof
                                 </button>
                                 <button type="button" onclick="lguStopLiveVideo()" style="background:rgba(0,0,0,0.65);color:#fff;border:none;padding:8px 14px;border-radius:50px;font-weight:700;font-size:11.5px;cursor:pointer;font-family:'Inter';">
                                     Cancel
@@ -1095,45 +1095,45 @@ function makeIcon(color, emoji) {
 // ===== ACCURATE POINTS OF INTEREST =====
 const pois = [
     // BARANGAYS
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Poblacion (Town Center)', sub: 'Barangay, GMN', lat: 15.6034, lng: 121.0509 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Picaleon (Barangay GMN)', sub: 'Barangay Hall • Main Community', lat: 15.6051, lng: 121.0951 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Balangkare Norte', sub: 'Barangay, GMN', lat: 15.5985, lng: 121.0368 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Balangkare Sur', sub: 'Barangay, GMN', lat: 15.5916, lng: 121.0369 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Pula', sub: 'Barangay, GMN', lat: 15.5644, lng: 120.9927 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Mataas na Kahoy', sub: 'Barangay, GMN', lat: 15.6080, lng: 121.0170 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Manarog', sub: 'Barangay, GMN', lat: 15.6161, lng: 121.0254 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Pinahan', sub: 'Barangay, GMN', lat: 15.6227, lng: 121.0551 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Pulong Singkamas', sub: 'Barangay, GMN', lat: 15.6245, lng: 121.0955 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Talabutab Norte', sub: 'Barangay, GMN', lat: 15.6005, lng: 121.0795 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Talabutab Sur', sub: 'Barangay, GMN', lat: 15.5705, lng: 121.0627 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Bravo', sub: 'Barangay, GMN', lat: 15.5659, lng: 121.0799 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Singalat', sub: 'Barangay, Palayan City', lat: 15.5718, lng: 121.0953 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Belen', sub: 'Barangay, GMN', lat: 15.5748, lng: 121.0512 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Platero', sub: 'Barangay, GMN', lat: 15.5522, lng: 121.0412 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Kabulihan', sub: 'Barangay, GMN', lat: 15.5578, lng: 121.0218 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Sapang Bato', sub: 'Barangay, GMN', lat: 15.5537, lng: 121.0068 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Burol', sub: 'Barangay, GMN', lat: 15.5463, lng: 120.9858 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Panacsac', sub: 'Barangay, GMN', lat: 15.5952, lng: 121.0913 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#8b0000',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
       name: 'Balaring', sub: 'Barangay, GMN', lat: 15.6104, lng: 121.1065 },
 
     // KEY FACILITIES
@@ -1171,7 +1171,7 @@ function getStatusBadgeMini(st) {
     const s = (st || 'pending').toLowerCase();
     if (s.includes('prog')) return `<span style="background:rgba(59,130,246,0.12);color:#2563eb;border:1px solid rgba(59,130,246,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-spinner fa-spin" style="font-size:9px;"></i> In Progress</span>`;
     if (s === 'resolved' || s === 'completed') return `<span style="background:rgba(34,197,94,0.12);color:#16a34a;border:1px solid rgba(34,197,94,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-check-circle" style="font-size:9px;"></i> Resolved</span>`;
-    return `<span style="background:rgba(239,68,68,0.12);color:#dc2626;border:1px solid rgba(239,68,68,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-clock" style="font-size:9px;"></i> Pending</span>`;
+    return `<span style="background:rgba(239,68,68,0.12);color:#22c55e;border:1px solid rgba(239,68,68,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-clock" style="font-size:9px;"></i> Pending</span>`;
 }
 function getCategoryEmoji(cat) {
     const c = (cat || '').toLowerCase();
@@ -1403,7 +1403,7 @@ reportPins.forEach((r, idx) => {
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;height:120px;">
                 <div style="position:relative;border-right:1px solid rgba(255,255,255,0.12);overflow:hidden;background:#000;cursor:pointer;" onclick="openLightbox('/static/${cleanImg}', 'Before: Initial Report', 'image')">
-                    <span style="position:absolute;top:4px;left:4px;background:#dc2626;color:white;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;z-index:2;">BEFORE</span>
+                    <span style="position:absolute;top:4px;left:4px;background:#22c55e;color:white;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;z-index:2;">BEFORE</span>
                     ${cleanImg ? `<img src="/static/${cleanImg}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:10px;">No photo</div>`}
                 </div>
                 <div style="position:relative;overflow:hidden;background:#000;cursor:pointer;" onclick="openLightbox('/static/${resolvedPhoto || cleanImg}', 'After: Resolved by LGU', 'image')">
@@ -1469,7 +1469,7 @@ syncFilterUI();
 
 // General Mamerto Natividad highlight circle
 L.circle([15.6010, 121.0710], {
-    radius: 600, color: '#8b0000', fillColor: '#8b0000', fillOpacity: 0.08, weight: 2, dashArray: '6 4'
+    radius: 600, color: '#166534', fillColor: '#166534', fillOpacity: 0.08, weight: 2, dashArray: '6 4'
 }).addTo(map);
 
 
@@ -2094,14 +2094,14 @@ async function loadModalUpdates(reportId) {
             }
             list.innerHTML += `
                 <div style="background:var(--bg-nav-card);border:1px solid var(--border-color);border-radius:12px;padding:12px;position:relative;">
-                    <div style="position:absolute;left:-5px;top:16px;width:10px;height:10px;border-radius:50%;background:#8b0000;"></div>
+                    <div style="position:absolute;left:-5px;top:16px;width:10px;height:10px;border-radius:50%;background:#166534;"></div>
                     <div style="font-size:10px;font-weight:800;color:var(--text-muted);margin-bottom:4px;"><i class="fas fa-clock"></i> ${u.created_at_formatted || ''}</div>
                     <div style="font-size:12px;color:var(--text-main);line-height:1.5;">${u.update_text}</div>
                     ${imgHtml}
                 </div>`;
         });
     } catch(err) {
-        list.innerHTML = '<div style="text-align:center;padding:16px;color:#dc2626;font-size:12px;">Failed to load updates.</div>';
+        list.innerHTML = '<div style="text-align:center;padding:16px;color:#22c55e;font-size:12px;">Failed to load updates.</div>';
     }
 }
 
@@ -2121,7 +2121,7 @@ async function loadModalComments(reportId) {
             const name = `${c.first_name || ''} ${c.last_name || ''}`.trim();
             list.innerHTML += `
                 <div style="display:flex;gap:9px;align-items:flex-start;">
-                    <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#8b0000,#c0392b);color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;">${initial}</div>
+                    <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#166534,#c0392b);color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;">${initial}</div>
                     <div style="background:var(--search-bg);border-radius:12px;padding:8px 12px;flex:1;">
                         <div style="font-size:11px;font-weight:800;color:var(--text-main);margin-bottom:2px;">${name}</div>
                         <div style="font-size:12px;color:var(--text-muted);line-height:1.4;">${c.comment_text}</div>
@@ -2129,7 +2129,7 @@ async function loadModalComments(reportId) {
                 </div>`;
         });
     } catch(err) {
-        list.innerHTML = '<div style="text-align:center;padding:16px;color:#dc2626;font-size:12px;">Failed to load comments.</div>';
+        list.innerHTML = '<div style="text-align:center;padding:16px;color:#22c55e;font-size:12px;">Failed to load comments.</div>';
     }
 }
 

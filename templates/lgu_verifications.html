@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -14,14 +14,14 @@
             --glass-bg: rgba(255, 255, 255, 0.8); --glass-border: rgba(255, 255, 255, 0.4);
             --backdrop-blur: blur(16px);
             --text-muted: #5f6368; --border-color: #e0e0e0; --icon-hover: #f1f3f4;
-            --search-bg: #f1f3f4; --primary-red: #8b0000; --primary-red-hover: #a30000;
-            --red-light: rgba(139,0,0,0.08); --hero-overlay: rgba(139,0,0,0.85);
+            --search-bg: #f1f3f4; --primary-red: #166534; --primary-red-hover: #14532d;
+            --red-light: rgba(22,101,52,0.08); --hero-overlay: rgba(139,0,0,0.85);
         }
         body.dark-mode {
             --bg-main: #121212; --bg-nav-card: #1e1e1e; --text-main: #e8eaed;
             --glass-bg: rgba(30, 30, 30, 0.8); --glass-border: rgba(255, 255, 255, 0.05);
             --text-muted: #9aa0a6; --border-color: #333333; --icon-hover: #2a2a2a;
-            --search-bg: #2a2a2a; --red-light: rgba(139,0,0,0.15); --hero-overlay: rgba(0,0,0,0.8);
+            --search-bg: #2a2a2a; --red-light: rgba(22,101,52,0.15); --hero-overlay: rgba(0,0,0,0.8);
         }
         * { box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: var(--bg-main); color: var(--text-main); transition: background-color 0.3s, color 0.3s; display: flex; }
@@ -80,7 +80,7 @@
         /* MAIN CONTENT */
         .main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
         .page-header { 
-            background-color: #8b0000;
+            background-color: #166534;
             background-image: linear-gradient(135deg, rgba(139,0,0,0.88) 0%, rgba(185,28,28,0.82) 50%, rgba(139,0,0,0.88) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}");
             background-size: cover; background-position: center;
             padding: 50px 50px; position: relative; overflow: hidden; color: white; border-bottom: 1px solid var(--border-color);
@@ -158,7 +158,7 @@
         .btn-accept { background: #22c55e; color: white; }
         .btn-accept:hover { background: #16a34a; }
         .btn-reject { background: #ef4444; color: white; }
-        .btn-reject:hover { background: #dc2626; }
+        .btn-reject:hover { background: #22c55e; }
 
         .pt-no-results { padding: 40px; text-align: center; font-size: 14px; color: var(--text-muted); font-weight: 600; }
         .pt-no-results i { margin-right: 8px; color: var(--primary-red); }
@@ -181,9 +181,9 @@
                 background: var(--search-bg); color: var(--text-muted); display: flex; align-items: center;
                 justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s;
             }
-            .mobile-action-btn.logout { color: #dc2626; }
+            .mobile-action-btn.logout { color: #22c55e; }
             .mobile-avatar {
-                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #b91c1c);
+                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #16a34a);
                 color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; overflow: hidden;
             }
             .mobile-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -404,7 +404,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <div class="pt-doc-type"><i class="fas fa-id-card" style="color:#dc2626;"></i> {{ u.id_type or 'Valid Government ID' }}</div>
+                                        <div class="pt-doc-type"><i class="fas fa-id-card" style="color:#22c55e;"></i> {{ u.id_type or 'Valid Government ID' }}</div>
                                         {% if u.id_proof_path %}
                                             {% set id_str = (u.id_proof_path|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
                                             {% set id_clean = id_str.replace('static/', '', 1) if id_str.startswith('static/') else id_str %}

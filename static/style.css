@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
 
 :root {
     --bg-main: #f4f6f8;
@@ -7,9 +7,9 @@
     --text-muted: #5f6368;
     --border-color: #e0e0e0;
     --search-bg: #f1f3f4;
-    --red: #8b0000;
-    --red-hover: #a30000;
-    --red-light: rgba(139,0,0,0.08);
+    --red: #166534;
+    --red-hover: #14532d;
+    --red-light: rgba(22,101,52,0.08);
 }
 
 body.dark-mode {
@@ -19,7 +19,7 @@ body.dark-mode {
     --text-muted: #9aa0a6;
     --border-color: #333333;
     --search-bg: #2a2a2a;
-    --red-light: rgba(139,0,0,0.15);
+    --red-light: rgba(22,101,52,0.15);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -67,7 +67,7 @@ body {
 
 .left-panel {
     position: relative;
-    background: linear-gradient(155deg, #6b0000 0%, #8b0000 40%, #b91c1c 100%);
+    background: linear-gradient(155deg, #052e16 0%, #166534 40%, #16a34a 100%);
     display: flex;
     flex-direction: column;
     justify-content: space-between;

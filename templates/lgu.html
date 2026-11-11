@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -20,9 +20,9 @@
             --border-color: #e0e0e0;
             --icon-hover: #f1f3f4;
             --search-bg: #f1f3f4;
-            --primary-red: #8b0000;
-            --primary-red-hover: #a30000;
-            --red-light: rgba(139,0,0,0.08);
+            --primary-red: #166534;
+            --primary-red-hover: #14532d;
+            --red-light: rgba(22,101,52,0.08);
             --hero-overlay: rgba(139,0,0,0.85);
         }
 
@@ -36,7 +36,7 @@
             --border-color: #333333;
             --icon-hover: #2a2a2a;
             --search-bg: #2a2a2a;
-            --red-light: rgba(139,0,0,0.15);
+            --red-light: rgba(22,101,52,0.15);
             --hero-overlay: rgba(0,0,0,0.8);
         }
 
@@ -106,7 +106,7 @@
         .main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
 
         .page-header {
-            background-color: #8b0000;
+            background-color: #166534;
             background-image: linear-gradient(135deg, rgba(139,0,0,0.88) 0%, rgba(185,28,28,0.82) 50%, rgba(139,0,0,0.88) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}");
             background-size: cover; background-position: center;
             padding: 50px 50px; position: relative; overflow: hidden; color: white;
@@ -298,7 +298,7 @@
             gap: 5px;
         }
         .tag-before {
-            background: #dc2626;
+            background: #22c55e;
             color: white;
         }
         .tag-after {
@@ -396,19 +396,19 @@
         .no-comments-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--search-bg); display: flex; align-items: center; justify-content: center; font-size: 16px; border: 1px dashed var(--border-color); }
         .no-comments-text { font-size: 12px; font-weight: 600; }
         .comment-input-bar { display: flex; gap: 10px; align-items: center; background: var(--bg-nav-card); border: 1.5px solid var(--border-color); border-radius: 16px; padding: 8px 8px 8px 14px; transition: border-color 0.2s, box-shadow 0.2s; }
-        .comment-input-bar:focus-within { border-color: var(--primary-red); box-shadow: 0 0 0 3px rgba(139,0,0,0.08); }
+        .comment-input-bar:focus-within { border-color: var(--primary-red); box-shadow: 0 0 0 3px rgba(22,101,52,0.08); }
         .comment-input-bar input { flex: 1; background: none; border: none; outline: none; font-family: 'Inter'; font-size: 13px; color: var(--text-main); }
         .comment-submit-btn { background: var(--primary-red); color: white; border: none; width: 34px; height: 34px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; transition: background 0.2s, transform 0.15s; }
         .comment-submit-btn:hover { background: var(--primary-red-hover); transform: scale(1.08); }
 
         .quick-submit {
-            background: linear-gradient(135deg, #6b0000, #8b0000); border-radius: 18px; padding: 22px 20px; color: white;
+            background: linear-gradient(135deg, #052e16, #166534); border-radius: 18px; padding: 22px 20px; color: white;
             position: sticky; top: 30px;
         }
         .qs-title { font-size: 16px; font-weight: 900; margin-bottom: 6px; }
         .qs-sub { font-size: 13px; opacity: 0.8; line-height: 1.5; margin-bottom: 18px; }
         .qs-btn {
-            width: 100%; padding: 12px; border-radius: 50px; background: white; color: #8b0000;
+            width: 100%; padding: 12px; border-radius: 50px; background: white; color: #166534;
             border: none; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;
         }
         .qs-btn:hover { transform: translateY(-2px); }
@@ -432,7 +432,7 @@
         .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
 
         .modal-head {
-            background: linear-gradient(135deg, #5a0000 0%, #8b0000 55%, #b91c1c 100%);
+            background: linear-gradient(135deg, #5a0000 0%, #166534 55%, #16a34a 100%);
             padding: 22px 24px 20px; position: relative; overflow: hidden;
             display: flex; align-items: flex-start; justify-content: space-between;
             border-radius: 20px 20px 0 0;
@@ -584,9 +584,9 @@
                 background: var(--search-bg); color: var(--text-muted); display: flex; align-items: center;
                 justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s;
             }
-            .mobile-action-btn.logout { color: #dc2626; }
+            .mobile-action-btn.logout { color: #22c55e; }
             .mobile-avatar {
-                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #b91c1c);
+                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #16a34a);
                 color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; overflow: hidden;
             }
             .mobile-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -717,7 +717,7 @@
         <button class="theme-toggle-btn" id="theme-toggle-btn">
             <i class="fas fa-moon" id="theme-icon"></i> <span id="theme-label">Dark Mode</span>
         </button>
-        <a href="{{ url_for('logout') }}" class="theme-toggle-btn" style="text-decoration:none;color:#dc2626;display:flex;align-items:center;gap:14px;padding:12px 16px;">
+        <a href="{{ url_for('logout') }}" class="theme-toggle-btn" style="text-decoration:none;color:#22c55e;display:flex;align-items:center;gap:14px;padding:12px 16px;">
             <i class="fas fa-right-from-bracket" style="font-size:18px;width:20px;text-align:center;"></i> <span>Logout</span>
         </a>
         <div class="user-profile-btn">
@@ -1034,7 +1034,7 @@
         <div style="background:var(--bg-nav-card);border-radius:20px;width:100%;max-width:920px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.35);">
 
             <!-- Header -->
-            <div style="background:linear-gradient(135deg,#8b0000 0%,#c0392b 60%,#e74c3c 100%);padding:18px 26px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+            <div style="background:linear-gradient(135deg,#166534 0%,#c0392b 60%,#e74c3c 100%);padding:18px 26px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
                 <div style="display:flex;align-items:center;gap:14px;">
                     <div style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;">📋</div>
                     <div>
@@ -1070,17 +1070,17 @@
                         <h4 id="lgu-modal-post-title" style="font-size:15px;font-weight:900;color:var(--text-main);margin:0 0 8px;line-height:1.3;"></h4>
                         <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;">
                             <span style="font-size:12px;color:var(--text-muted);font-weight:600;display:flex;align-items:center;gap:5px;">
-                                <i class="fas fa-map-marker-alt" style="color:#8b0000;"></i>
+                                <i class="fas fa-map-marker-alt" style="color:#166534;"></i>
                                 <span id="lgu-modal-location-text"></span>
                             </span>
                             <span style="font-size:12px;color:var(--text-muted);font-weight:600;display:flex;align-items:center;gap:5px;">
-                                <i class="fas fa-calendar-alt" style="color:#8b0000;"></i>
+                                <i class="fas fa-calendar-alt" style="color:#166534;"></i>
                                 <span id="lgu-modal-date-text"></span>
                             </span>
                         </div>
                         <p id="lgu-modal-desc" style="font-size:13px;color:var(--text-muted);line-height:1.6;margin:0 0 12px;"></p>
                         <div style="display:flex;align-items:center;gap:8px;">
-                            <div id="lgu-modal-resident-init" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#8b0000,#c0392b);color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;"></div>
+                            <div id="lgu-modal-resident-init" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#166534,#c0392b);color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;"></div>
                             <img id="lgu-modal-resident-img" src="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;display:none;flex-shrink:0;">
                             <div>
                                 <div id="lgu-modal-resident-name" style="font-size:12px;font-weight:700;color:var(--text-main);"></div>
@@ -1092,7 +1092,7 @@
                     <!-- Stats bar -->
                     <div style="padding:12px 18px;display:flex;gap:20px;border-bottom:1px solid var(--border-color);background:var(--search-bg);flex-shrink:0;">
                         <div style="display:flex;align-items:center;gap:8px;">
-                            <div style="width:32px;height:32px;border-radius:8px;background:rgba(139,0,0,0.1);color:#8b0000;display:flex;align-items:center;justify-content:center;">
+                            <div style="width:32px;height:32px;border-radius:8px;background:rgba(139,0,0,0.1);color:#166534;display:flex;align-items:center;justify-content:center;">
                                 <i class="fas fa-arrow-up"></i>
                             </div>
                             <div>
@@ -1101,7 +1101,7 @@
                             </div>
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;">
-                            <div style="width:32px;height:32px;border-radius:8px;background:rgba(139,0,0,0.1);color:#8b0000;display:flex;align-items:center;justify-content:center;">
+                            <div style="width:32px;height:32px;border-radius:8px;background:rgba(139,0,0,0.1);color:#166534;display:flex;align-items:center;justify-content:center;">
                                 <i class="fas fa-comment"></i>
                             </div>
                             <div>
@@ -1114,7 +1114,7 @@
                     <!-- Updates List -->
                     <div style="padding:14px 18px;border-bottom:1px solid var(--border-color);">
                         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-                            <i class="fas fa-clipboard-check" style="color:#8b0000;"></i> Official Updates
+                            <i class="fas fa-clipboard-check" style="color:#166534;"></i> Official Updates
                         </div>
                         <div id="lgu-modal-updates-list" style="display:flex;flex-direction:column;gap:12px;"></div>
                     </div>
@@ -1122,7 +1122,7 @@
                     <!-- Comments list -->
                     <div style="padding:14px 18px;flex:1;">
                         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-                            <i class="fas fa-comments" style="color:#8b0000;"></i> Community Comments
+                            <i class="fas fa-comments" style="color:#166534;"></i> Community Comments
                         </div>
                         <div id="lgu-modal-comments-list" style="display:flex;flex-direction:column;gap:10px;"></div>
                     </div>
@@ -1131,7 +1131,7 @@
                 <!-- RIGHT: Update Form -->
                 <div style="overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:16px;">
                     <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:flex;align-items:center;gap:7px;">
-                        <i class="fas fa-edit" style="color:#8b0000;"></i> Post an Update
+                        <i class="fas fa-edit" style="color:#166534;"></i> Post an Update
                     </div>
 
                     <!-- Current status display -->
@@ -1150,8 +1150,8 @@
 
                         <!-- New status -->
                         <div>
-                            <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:7px;"><i class="fas fa-sync-alt" style="color:#8b0000;margin-right:4px;"></i>Change Status To</label>
-                            <select id="update-status" name="update_status" required style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border-color);background:var(--bg-nav-card);font-family:'Inter';font-size:13px;font-weight:600;color:var(--text-main);outline:none;cursor:pointer;transition:all 0.2s;" onfocus="this.style.borderColor='#8b0000';this.style.boxShadow='0 0 0 3px rgba(139,0,0,0.1)'" onblur="this.style.borderColor='var(--border-color)';this.style.boxShadow='none'">
+                            <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:7px;"><i class="fas fa-sync-alt" style="color:#166534;margin-right:4px;"></i>Change Status To</label>
+                            <select id="update-status" name="update_status" required style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border-color);background:var(--bg-nav-card);font-family:'Inter';font-size:13px;font-weight:600;color:var(--text-main);outline:none;cursor:pointer;transition:all 0.2s;" onfocus="this.style.borderColor='#166534';this.style.boxShadow='0 0 0 3px rgba(139,0,0,0.1)'" onblur="this.style.borderColor='var(--border-color)';this.style.boxShadow='none'">
                                 <option value="Pending">⏳ Pending</option>
                                 <option value="In Progress">🔄 In Progress</option>
                                 <option value="Resolved">✅ Resolved</option>
@@ -1179,22 +1179,22 @@
 
                         <!-- Message -->
                         <div>
-                            <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:7px;"><i class="fas fa-align-left" style="color:#8b0000;margin-right:4px;"></i>Documentation / Message</label>
-                            <textarea id="update-text" name="update_description" required rows="4" placeholder="Describe action taken, current situation, or resolution details..." style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border-color);background:var(--bg-nav-card);font-family:'Inter';font-size:13px;color:var(--text-main);resize:vertical;outline:none;line-height:1.5;transition:all 0.2s;" onfocus="this.style.borderColor='#8b0000';this.style.boxShadow='0 0 0 3px rgba(139,0,0,0.1)'" onblur="this.style.borderColor='var(--border-color)';this.style.boxShadow='none'"></textarea>
+                            <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:7px;"><i class="fas fa-align-left" style="color:#166534;margin-right:4px;"></i>Documentation / Message</label>
+                            <textarea id="update-text" name="update_description" required rows="4" placeholder="Describe action taken, current situation, or resolution details..." style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border-color);background:var(--bg-nav-card);font-family:'Inter';font-size:13px;color:var(--text-main);resize:vertical;outline:none;line-height:1.5;transition:all 0.2s;" onfocus="this.style.borderColor='#166534';this.style.boxShadow='0 0 0 3px rgba(139,0,0,0.1)'" onblur="this.style.borderColor='var(--border-color)';this.style.boxShadow='none'"></textarea>
                         </div>
 
                         <!-- Real-Time Camera Proof (Gallery Upload Strictly Prohibited) -->
                         <div>
                             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
-                                <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);margin:0;"><i class="fas fa-camera" style="color:#8b0000;margin-right:4px;"></i>Real-Time Camera Proof</label>
-                                <span style="font-size:9.5px;font-weight:800;color:#dc2626;background:rgba(220,38,38,0.1);padding:2px 7px;border-radius:4px;"><i class="fas fa-ban"></i> Gallery Upload Prohibited</span>
+                                <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);margin:0;"><i class="fas fa-camera" style="color:#166534;margin-right:4px;"></i>Real-Time Camera Proof</label>
+                                <span style="font-size:9.5px;font-weight:800;color:#22c55e;background:rgba(220,38,38,0.1);padding:2px 7px;border-radius:4px;"><i class="fas fa-ban"></i> Gallery Upload Prohibited</span>
                             </div>
 
                             <!-- Hardware Camera Input -->
                             <input type="file" id="update-photo" name="update_photo" accept="image/*" capture="environment" style="display:none;" onchange="lguHandleCameraPhoto(this)">
 
                             <!-- Camera Trigger Button -->
-                            <div id="lgu-camera-trigger" onclick="lguStartCameraCapture()" style="border:2px dashed var(--border-color);border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;background:var(--search-bg);transition:all 0.2s;" onmouseover="this.style.borderColor='#8b0000'" onmouseout="this.style.borderColor='var(--border-color)'">
+                            <div id="lgu-camera-trigger" onclick="lguStartCameraCapture()" style="border:2px dashed var(--border-color);border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;background:var(--search-bg);transition:all 0.2s;" onmouseover="this.style.borderColor='#166534'" onmouseout="this.style.borderColor='var(--border-color)'">
                                 <div style="width:40px;height:40px;border-radius:50%;background:rgba(220,38,38,0.1);color:var(--primary-red);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:16px;">
                                     <i class="fas fa-camera"></i>
                                 </div>
@@ -1210,7 +1210,7 @@
                                 </div>
                                 <div style="position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:10px;z-index:10;">
                                     <button type="button" onclick="lguSnapLiveVideo()" style="background:#ffffff;color:#111;border:none;padding:8px 16px;border-radius:50px;font-weight:800;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(0,0,0,0.5);font-family:'Inter';">
-                                        <i class="fas fa-camera" style="color:#dc2626;"></i> Snap Proof
+                                        <i class="fas fa-camera" style="color:#22c55e;"></i> Snap Proof
                                     </button>
                                     <button type="button" onclick="lguStopLiveVideo()" style="background:rgba(0,0,0,0.65);color:#fff;border:none;padding:8px 14px;border-radius:50px;font-weight:700;font-size:11.5px;cursor:pointer;font-family:'Inter';">
                                         Cancel
@@ -2184,14 +2184,14 @@
                 }
                 list.innerHTML += `
                     <div style="background:var(--bg-nav-card);border:1px solid var(--border-color);border-radius:12px;padding:12px;position:relative;">
-                        <div style="position:absolute;left:-5px;top:16px;width:10px;height:10px;border-radius:50%;background:#8b0000;"></div>
+                        <div style="position:absolute;left:-5px;top:16px;width:10px;height:10px;border-radius:50%;background:#166534;"></div>
                         <div style="font-size:10px;font-weight:800;color:var(--text-muted);margin-bottom:4px;"><i class="fas fa-clock"></i> ${u.created_at_formatted || ''}</div>
                         <div style="font-size:12px;color:var(--text-main);line-height:1.5;">${u.update_text}</div>
                         ${imgHtml}
                     </div>`;
             });
         } catch(err) {
-            list.innerHTML = '<div style="text-align:center;padding:16px;color:#dc2626;font-size:12px;">Failed to load updates.</div>';
+            list.innerHTML = '<div style="text-align:center;padding:16px;color:#22c55e;font-size:12px;">Failed to load updates.</div>';
         }
     }
 
@@ -2211,7 +2211,7 @@
                 const name = `${c.first_name || ''} ${c.last_name || ''}`.trim();
                 list.innerHTML += `
                     <div style="display:flex;gap:9px;align-items:flex-start;">
-                        <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#8b0000,#c0392b);color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;">${initial}</div>
+                        <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#166534,#c0392b);color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;">${initial}</div>
                         <div style="background:var(--search-bg);border-radius:12px;padding:8px 12px;flex:1;">
                             <div style="font-size:11px;font-weight:800;color:var(--text-main);margin-bottom:2px;">${name}</div>
                             <div style="font-size:12px;color:var(--text-muted);line-height:1.4;">${c.comment_text}</div>
@@ -2219,7 +2219,7 @@
                     </div>`;
             });
         } catch(err) {
-            list.innerHTML = '<div style="text-align:center;padding:16px;color:#dc2626;font-size:12px;">Failed to load comments.</div>';
+            list.innerHTML = '<div style="text-align:center;padding:16px;color:#22c55e;font-size:12px;">Failed to load comments.</div>';
         }
     }
 

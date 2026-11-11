@@ -1,4 +1,4 @@
-{% extends "admin_base.html" %}
+﻿{% extends "admin_base.html" %}
 
 {% block extra_css %}
 <style>
@@ -60,7 +60,7 @@
                                     <img src="{{ url_for('static', filename=cp) }}" alt="{{ r.first_name }}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='{{ r.first_name[0]|upper }}'">
                                 </div>
                             {% else %}
-                                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--red),#16a34a);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                                     {{ r.first_name[0]|upper }}
                                 </div>
                             {% endif %}

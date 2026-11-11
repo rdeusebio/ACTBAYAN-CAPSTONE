@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -16,9 +16,9 @@
             --border-color: #e0e0e0;
             --icon-hover: #f1f3f4;
             --search-bg: #f1f3f4;
-            --primary-red: #8b0000;
-            --primary-red-hover: #a30000;
-            --red-light: rgba(139, 0, 0, 0.08);
+            --primary-red: #166534;
+            --primary-red-hover: #14532d;
+            --red-light: rgba(22, 101, 52, 0.08);
         }
 
         body.dark-mode {
@@ -112,7 +112,7 @@
         /* ===== MAIN CONTENT ===== */
         .main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
         .page-header {
-            background-color: #8b0000;
+            background-color: #166534;
             background-image: linear-gradient(135deg, rgba(139,0,0,0.88) 0%, rgba(185,28,28,0.82) 50%, rgba(139,0,0,0.88) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}");
             background-size: cover; background-position: center;
             padding: 36px 0 28px; position: relative; overflow: hidden;
@@ -200,7 +200,7 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 18px; flex-shrink: 0;
         }
-        .notif-icon.red { background: rgba(139, 0, 0, 0.12); color: #8b0000; }
+        .notif-icon.red { background: rgba(139, 0, 0, 0.12); color: #166534; }
         .notif-icon.blue { background: rgba(37, 99, 235, 0.12); color: #2563eb; }
         .notif-icon.green { background: rgba(22, 163, 74, 0.12); color: #16a34a; }
         .notif-icon.orange { background: rgba(234, 88, 12, 0.12); color: #ea580c; }
@@ -270,10 +270,10 @@
                 background: var(--search-bg); color: var(--text-muted); display: flex; align-items: center;
                 justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none;
             }
-            .mobile-action-btn.logout { color: #dc2626; }
+            .mobile-action-btn.logout { color: #22c55e; }
             .mobile-avatar {
                 width: 36px; height: 36px; border-radius: 50%;
-                background: linear-gradient(135deg, var(--primary-red), #b91c1c);
+                background: linear-gradient(135deg, var(--primary-red), #16a34a);
                 color: white; font-weight: 800; font-size: 13px;
                 display: flex; align-items: center; justify-content: center; overflow: hidden;
             }
@@ -355,7 +355,7 @@
         <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleDark()">
             <i class="fas fa-moon" id="theme-icon"></i> <span id="theme-label">Dark Mode</span>
         </button>
-        <a href="{{ url_for('logout') }}" class="theme-toggle-btn" style="text-decoration:none;color:#dc2626;">
+        <a href="{{ url_for('logout') }}" class="theme-toggle-btn" style="text-decoration:none;color:#22c55e;">
             <i class="fas fa-right-from-bracket" style="font-size:18px;width:20px;text-align:center;"></i>
             <span>Logout</span>
         </a>

@@ -3639,7 +3639,7 @@ def lgu_analytics():
 
     # --- Category breakdown ---
     category_colors = {
-        'Road': '#8b0000',
+        'Road': '#166534',
         'Flooding': '#1565c0',
         'Sanitation': '#2e7d32',
         'Lighting': '#f57f17',
@@ -3658,7 +3658,7 @@ def lgu_analytics():
             'name': r['cat_name'],
             'count': r['cnt'],
             'resolved': r['resolved_cnt'],
-            'color': category_colors.get(r['cat_name'], '#8b0000')
+            'color': category_colors.get(r['cat_name'], '#166534')
         }
         for r in cat_rows
     ] if cat_rows else []

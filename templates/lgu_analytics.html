@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -18,10 +18,10 @@
             --main:     #111827;
             --hover-bg: #f9fafb;
             --search:   #f3f4f6;
-            --red:      #8b0000;
-            --red-h:    #a30000;
+            --red:      #166534;
+            --red-h:    #14532d;
             --red-lt:   rgba(139,0,0,0.07);
-            --red-md:   rgba(139,0,0,0.15);
+            --red-md:   rgba(22,101,52,0.15);
             --sh-sm:    0 1px 3px rgba(0,0,0,0.06);
             --sh-md:    0 4px 18px rgba(0,0,0,0.08);
             --sh-lg:    0 12px 40px rgba(0,0,0,0.11);
@@ -67,7 +67,7 @@
         .foot-btn{display:flex;align-items:center;gap:13px;padding:10px 14px;border-radius:10px;color:var(--muted);font-weight:600;font-size:13.5px;background:transparent;border:none;font-family:'Inter';width:100%;cursor:pointer;text-align:left;transition:all .2s;text-decoration:none;}
         .foot-btn:hover{background:var(--hover-bg);color:var(--main);}
         .user-card{display:flex;align-items:center;gap:10px;padding:9px;border-radius:10px;border:1px solid var(--border);margin-top:2px;}
-        .u-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+        .u-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--red),#16a34a);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
         .u-name{font-size:12.5px;font-weight:700;color:var(--main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .u-role{font-size:10.5px;color:var(--muted);}
 
@@ -76,7 +76,7 @@
 
         /* ── HERO ── */
         .hero{
-            background: #8b0000;
+            background: #166534;
             background-image: linear-gradient(135deg, rgba(139,0,0,0.88) 0%, rgba(185,28,28,0.82) 50%, rgba(139,0,0,0.88) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}");
             background-size: cover; background-position: center;
             padding: 44px 50px 36px; position: relative; overflow: hidden; color: #fff;
@@ -172,7 +172,7 @@
         /* ── TOP REPORTERS ── */
         .rep-list{display:flex;flex-direction:column;gap:10px;}
         .rep-item{display:flex;align-items:center;gap:10px;}
-        .rep-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+        .rep-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--red),#16a34a);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
         .rep-name{font-size:12.5px;font-weight:700;color:var(--main);flex:1;}
         .rep-cnt{font-size:11.5px;font-weight:800;background:var(--red-lt);color:var(--red);padding:2px 9px;border-radius:50px;}
 
@@ -185,7 +185,7 @@
         .op-title{font-size:12.5px;font-weight:700;color:var(--main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .op-by{font-size:11px;color:var(--muted);margin-top:2px;}
         .op-cat{font-size:10px;font-weight:800;padding:2px 8px;border-radius:50px;margin-top:4px;display:inline-block;}
-        .urgent{color:#dc2626;}
+        .urgent{color:#22c55e;}
         .warn{color:#d97706;}
         .ok{color:var(--muted);}
 
@@ -266,7 +266,7 @@
         .asb-sample-meta{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--muted);margin-top:1px;}
         .asb-sample-meta span{display:inline-flex;align-items:center;gap:4px;}
         .asb-sample-text{font-size:11.5px;color:var(--muted);line-height:1.5;background:var(--search);padding:8px 10px;border-radius:8px;border-left:3px solid var(--red);margin-top:3px;}
-        .sp-denied{background:rgba(239,68,68,.12);color:#dc2626;}
+        .sp-denied{background:rgba(239,68,68,.12);color:#22c55e;}
 
 
         @media(max-width:1280px){.kpi-row{grid-template-columns:repeat(4,1fr);}.g2{grid-template-columns:1fr;}.g3{grid-template-columns:1fr 1fr;}}
@@ -288,9 +288,9 @@
                 background: var(--bg); color: var(--muted); display: flex; align-items: center;
                 justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s;
             }
-            .mobile-action-btn.logout { color: #dc2626; }
+            .mobile-action-btn.logout { color: #22c55e; }
             .mobile-avatar {
-                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--red), #b91c1c);
+                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--red), #16a34a);
                 color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; overflow: hidden;
             }
             .mobile-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -358,7 +358,7 @@
             width: 58px;
             height: 58px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #8b0000, #c0392b);
+            background: linear-gradient(135deg, #166534, #c0392b);
             color: #fff;
             border: none;
             cursor: pointer;
@@ -387,7 +387,7 @@
             position: absolute;
             inset: -10px;
             border-radius: 50%;
-            border: 2px solid rgba(139,0,0,0.15);
+            border: 2px solid rgba(22,101,52,0.15);
             animation: fab-pulse 2.2s infinite 0.6s;
         }
         @keyframes fab-pulse {
@@ -450,7 +450,7 @@
         .asd-header {
             padding: 20px 22px 16px;
             border-bottom: 1px solid var(--border);
-            background: linear-gradient(135deg, rgba(139,0,0,0.08), rgba(185,28,28,0.04));
+            background: linear-gradient(135deg, rgba(22,101,52,0.08), rgba(185,28,28,0.04));
             flex-shrink: 0;
         }
         .asd-header-top {
@@ -462,7 +462,7 @@
         }
         .asd-brand-ico {
             width: 38px; height: 38px; border-radius: 12px;
-            background: linear-gradient(135deg, #8b0000, #c0392b);
+            background: linear-gradient(135deg, #166534, #c0392b);
             color: #fff; display: flex; align-items: center; justify-content: center;
             font-size: 17px; flex-shrink: 0;
             box-shadow: 0 4px 12px rgba(139,0,0,0.35);
@@ -508,7 +508,7 @@
 
         /* Executive Summary Card */
         .asd-exec-card {
-            background: linear-gradient(135deg, rgba(139,0,0,0.08), rgba(185,28,28,0.04));
+            background: linear-gradient(135deg, rgba(22,101,52,0.08), rgba(185,28,28,0.04));
             border: 1.5px solid var(--red-md);
             border-radius: 14px; padding: 16px;
             position: relative; overflow: hidden;
@@ -584,12 +584,12 @@
             font-family: 'Inter', sans-serif;
         }
         .asd-btn-primary {
-            background: linear-gradient(135deg, #8b0000, #c0392b);
+            background: linear-gradient(135deg, #166534, #c0392b);
             color: #fff; border-color: transparent;
             box-shadow: 0 4px 14px rgba(139,0,0,0.4);
         }
         .asd-btn-primary:hover {
-            background: linear-gradient(135deg, #a30000, #d44);
+            background: linear-gradient(135deg, #14532d, #d44);
             box-shadow: 0 6px 20px rgba(139,0,0,0.5);
             transform: translateY(-1px);
         }
@@ -693,7 +693,7 @@
     </nav>
     <div class="sidebar-foot">
         <button class="foot-btn" id="theme-btn"><i class="fas fa-moon" id="theme-ico"></i><span id="theme-lbl">Dark Mode</span></button>
-        <a href="{{ url_for('logout') }}" class="foot-btn" style="color:#dc2626;">
+        <a href="{{ url_for('logout') }}" class="foot-btn" style="color:#22c55e;">
             <i class="fas fa-right-from-bracket"></i><span>Logout</span>
         </a>
         <div class="user-card">
@@ -761,7 +761,7 @@
                 </div>
             </div>
             <div class="kpi">
-                <div class="kpi-ico" style="background:rgba(239,68,68,.1);color:#dc2626;"><i class="fas fa-times-circle"></i></div>
+                <div class="kpi-ico" style="background:rgba(239,68,68,.1);color:#22c55e;"><i class="fas fa-times-circle"></i></div>
                 <div class="kpi-n">{{ stats.denied }}</div>
                 <div class="kpi-l">Denied</div>
                 <div class="kpi-badge b-red"><i class="fas fa-ban"></i> Rejected / Spam</div>
@@ -933,7 +933,7 @@
                             {% set rpct2 = ((stats.resolved/stats.total)*100) if stats.total > 0 else 0 %}
                             <div class="res-rating {% if rpct2 >= 70 %}b-green{% elif rpct2 >= 40 %}b-yellow{% else %}b-red{% endif %}"
                                  style="display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;padding:4px 10px;border-radius:50px;margin-top:8px;
-                                 {% if rpct2 >= 70 %}background:rgba(34,197,94,.1);color:#15803d;{% elif rpct2 >= 40 %}background:rgba(251,191,36,.1);color:#92400e;{% else %}background:rgba(239,68,68,.1);color:#dc2626;{% endif %}">
+                                 {% if rpct2 >= 70 %}background:rgba(34,197,94,.1);color:#15803d;{% elif rpct2 >= 40 %}background:rgba(251,191,36,.1);color:#92400e;{% else %}background:rgba(239,68,68,.1);color:#22c55e;{% endif %}">
                                 <i class="fas fa-{% if rpct2 >= 70 %}thumbs-up{% elif rpct2 >= 40 %}exclamation{% else %}exclamation-triangle{% endif %}"></i>
                                 {% if rpct2 >= 70 %}Excellent{% elif rpct2 >= 40 %}Moderate{% else %}Needs Attention{% endif %}
                             </div>
@@ -1086,7 +1086,7 @@
             <div class="cc">
                 <div class="cc-head">
                     <span class="cc-title"><i class="fas fa-hourglass-half"></i> Oldest Pending Reports</span>
-                    <span class="cc-chip" style="background:rgba(239,68,68,.1);color:#dc2626;">⚠ Urgent</span>
+                    <span class="cc-chip" style="background:rgba(239,68,68,.1);color:#22c55e;">⚠ Urgent</span>
                 </div>
                 <div class="cc-body">
                     {% if oldest_pending %}
@@ -1140,7 +1140,7 @@
                                 <td class="td-muted">{{ r.locname or '—' }}</td>
                                 <td>
                                     <div style="display:flex;align-items:center;gap:7px;">
-                                        <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ r.first_name[0]|upper if r.first_name else '?' }}</div>
+                                        <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--red),#16a34a);color:#fff;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ r.first_name[0]|upper if r.first_name else '?' }}</div>
                                         <span class="td-muted">{{ r.first_name }} {{ r.last_name }}</span>
                                     </div>
                                 </td>
@@ -1308,7 +1308,7 @@ new Chart(tCtx, {
     data: {
         labels: monthLabels,
         datasets: [
-            { label: 'Total Reports', data: monthCounts,   borderColor: '#8b0000', borderWidth: 2.5, pointBackgroundColor: '#8b0000', pointRadius: 5, pointHoverRadius: 7, fill: true, backgroundColor: tGrad, tension: 0.42 },
+            { label: 'Total Reports', data: monthCounts,   borderColor: '#166534', borderWidth: 2.5, pointBackgroundColor: '#166534', pointRadius: 5, pointHoverRadius: 7, fill: true, backgroundColor: tGrad, tension: 0.42 },
             { label: 'Resolved',      data: monthResolved, borderColor: '#22c55e', borderWidth: 2,   pointBackgroundColor: '#22c55e', pointRadius: 4, pointHoverRadius: 6, fill: true, backgroundColor: rGrad, tension: 0.42, borderDash: [5,3] }
         ]
     },
@@ -1341,7 +1341,7 @@ new Chart(document.getElementById('statusChart').getContext('2d'), {
 // ── RESOLUTION RING (fixed 100×100) ──
 new Chart(document.getElementById('resRing').getContext('2d'), {
     type: 'doughnut',
-    data: { datasets: [{ data: [resolvedPct, 100 - resolvedPct], backgroundColor: ['#8b0000', isDark() ? '#272d3d' : '#e5e7eb'], borderWidth: 0, hoverOffset: 0 }] },
+    data: { datasets: [{ data: [resolvedPct, 100 - resolvedPct], backgroundColor: ['#166534', isDark() ? '#272d3d' : '#e5e7eb'], borderWidth: 0, hoverOffset: 0 }] },
     options: {
         responsive: false, cutout: '78%',
         plugins: { legend: { display: false }, tooltip: { enabled: false } },
@@ -1645,7 +1645,7 @@ function openDrilldownModal(category) {
                             <td class="td-muted">${r.locname}</td>
                             <td>
                                 <div style="display:flex;align-items:center;gap:7px;">
-                                    <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
+                                    <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--red),#16a34a);color:#fff;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
                                         ${r.profile_photo ? `<img src="/static/${r.profile_photo}" style="width:100%;height:100%;object-fit:cover;">` : initial}
                                     </div>
                                     <span class="td-muted">${name}</span>
@@ -1665,7 +1665,7 @@ function openDrilldownModal(category) {
             }
         })
         .catch(() => {
-            body.innerHTML = `<div class="empty" style="padding:60px; color:#dc2626;"><i class="fas fa-exclamation-triangle"></i><p>Failed to load reports</p></div>`;
+            body.innerHTML = `<div class="empty" style="padding:60px; color:#22c55e;"><i class="fas fa-exclamation-triangle"></i><p>Failed to load reports</p></div>`;
         });
 }
 

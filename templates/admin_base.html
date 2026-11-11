@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -16,10 +16,10 @@
             --main:     #111827;
             --hover-bg: #f9fafb;
             --search:   #f3f4f6;
-            --red:      #8b0000;
-            --red-h:    #a30000;
+            --red:      #166534;
+            --red-h:    #14532d;
             --red-lt:   rgba(139,0,0,0.07);
-            --red-md:   rgba(139,0,0,0.15);
+            --red-md:   rgba(22,101,52,0.15);
             --sh-sm:    0 1px 3px rgba(0,0,0,0.06);
             --sh-md:    0 4px 18px rgba(0,0,0,0.08);
             --sh-lg:    0 12px 40px rgba(0,0,0,0.11);
@@ -62,7 +62,7 @@
         .foot-btn:hover{background:var(--hover-bg);color:var(--main);}
         
         .user-card{display:flex;align-items:center;gap:10px;padding:9px;border-radius:10px;border:1px solid var(--border);margin-top:2px;}
-        .u-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+        .u-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--red),#16a34a);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
         .u-name{font-size:12.5px;font-weight:700;color:var(--main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .u-role{font-size:10.5px;color:var(--muted);}
 
@@ -87,9 +87,9 @@
                 background: var(--bg); color: var(--muted); display: flex; align-items: center;
                 justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s;
             }
-            .mobile-action-btn.logout { color: #dc2626; }
+            .mobile-action-btn.logout { color: #22c55e; }
             .mobile-avatar {
-                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--red), #b91c1c);
+                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--red), #16a34a);
                 color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; overflow: hidden;
             }
             
@@ -174,7 +174,7 @@
         <button class="foot-btn" id="theme-btn">
             <i class="fas fa-moon" id="theme-ico"></i><span id="theme-lbl">Dark Mode</span>
         </button>
-        <a href="{{ url_for('logout') }}" class="foot-btn" style="color:#dc2626;">
+        <a href="{{ url_for('logout') }}" class="foot-btn" style="color:#22c55e;">
             <i class="fas fa-right-from-bracket"></i><span>Logout</span>
         </a>
         <div class="user-card">
