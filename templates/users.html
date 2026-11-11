@@ -541,7 +541,7 @@
     <input
         type="text"
         id="user-search"
-        placeholder="Search by name or email..."
+        placeholder="Search by name, email, phone, role, or ID..."
     >
 </div>
 
@@ -911,31 +911,15 @@
 <script>
 
     // CLIENT-SIDE USER SEARCH
-
     const userSearchInput = document.getElementById('user-search');
-
     userSearchInput.addEventListener('input', function(e) {
-
         const q = e.target.value.toLowerCase().trim();
-
-        const rows = document.querySelectorAll(
-            '.table-container tbody tr'
-        );
-
+        const rows = document.querySelectorAll('.table-container tbody tr');
         rows.forEach(row => {
-
-            const cell = row.querySelector('.user-cell');
-
-            if (cell) {
-
-                const text = cell.innerText.toLowerCase();
-
-                row.style.display = text.includes(q) ? '' : 'none';
-
-            }
-
+            if (row.querySelector('.empty-state')) return;
+            const text = row.innerText.toLowerCase();
+            row.style.display = (!q || text.includes(q)) ? '' : 'none';
         });
-
     });
 
 
