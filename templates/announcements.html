@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,13 +11,13 @@
         :root {
             --bg-main: #f4f6f8; --bg-nav-card: #ffffff; --text-main: #202124;
             --text-muted: #5f6368; --border-color: #e0e0e0; --icon-hover: #f1f3f4;
-            --search-bg: #f1f3f4; --primary-red: #8b0000; --primary-red-hover: #a30000;
-            --red-light: rgba(139,0,0,0.08);
+            --search-bg: #f1f3f4; --primary-red: #166534; --primary-red-hover: #14532d;
+            --red-light: rgba(22,101,52,0.08);
         }
         body.dark-mode {
             --bg-main: #121212; --bg-nav-card: #1e1e1e; --text-main: #e8eaed;
             --text-muted: #9aa0a6; --border-color: #333333; --icon-hover: #2a2a2a;
-            --search-bg: #2a2a2a; --red-light: rgba(139,0,0,0.15);
+            --search-bg: #2a2a2a; --red-light: rgba(22,101,52,0.15);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color: var(--text-main); transition: background-color 0.3s, color 0.3s; display: flex; }
@@ -46,7 +46,7 @@
         .user-role { font-size: 11px; color: var(--text-muted); }
 
         .main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
-        .page-header { background-color: #8b0000; background-image: linear-gradient(135deg, rgba(139,0,0,0.88) 0%, rgba(185,28,28,0.82) 50%, rgba(139,0,0,0.88) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}"); background-size: cover; background-position: center; padding: 40px 0 32px; position: relative; overflow: hidden; }
+        .page-header { background-color: #166534; background-image: linear-gradient(135deg, rgba(139,0,0,0.88) 0%, rgba(185,28,28,0.82) 50%, rgba(139,0,0,0.88) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}"); background-size: cover; background-position: center; padding: 40px 0 32px; position: relative; overflow: hidden; }
         .page-header::before { content: ''; position: absolute; top: -40px; right: -40px; width: 220px; height: 220px; border-radius: 50%; border: 36px solid rgba(255,255,255,0.06); pointer-events: none; }
         .page-header-inner { width: 100%; max-width: 1300px; margin: 0 auto; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
         .page-header-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.22); border-radius: 50px; padding: 4px 14px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: white; margin-bottom: 10px; }
@@ -73,7 +73,7 @@
         .featured-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
         .meta-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
         .meta-item i { color: var(--primary-red); font-size: 11px; }
-        .featured-img { background: linear-gradient(135deg, #8b0000, #c0392b); display: flex; align-items: center; justify-content: center; font-size: 80px; min-height: 240px; }
+        .featured-img { background: linear-gradient(135deg, #166534, #c0392b); display: flex; align-items: center; justify-content: center; font-size: 80px; min-height: 240px; }
 
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; width: 100%; }
         .section-title { font-size: 18px; font-weight: 800; color: var(--text-main); margin: 0; }
@@ -95,7 +95,7 @@
         .modal-backdrop.open { opacity: 1; visibility: visible; }
         .modal { background: var(--bg-nav-card); border-radius: 20px; max-width: 560px; width: 100%; transform: translateY(20px) scale(0.97); transition: transform 0.35s cubic-bezier(0.16,1,0.3,1); box-shadow: 0 28px 80px rgba(0,0,0,0.28); max-height: 92vh; overflow-y: auto; }
         .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
-        .modal-head { background: linear-gradient(135deg, #5a0000 0%, #8b0000 55%, #b91c1c 100%); padding: 22px 24px 20px; position: relative; overflow: hidden; display: flex; align-items: flex-start; justify-content: space-between; border-radius: 20px 20px 0 0; }
+        .modal-head { background: linear-gradient(135deg, #5a0000 0%, #166534 55%, #16a34a 100%); padding: 22px 24px 20px; position: relative; overflow: hidden; display: flex; align-items: flex-start; justify-content: space-between; border-radius: 20px 20px 0 0; }
         .modal-close-btn { background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.2); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; flex-shrink: 0; transition: background 0.2s; }
         .modal-head-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.22); border-radius: 50px; padding: 4px 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: white; margin-bottom: 8px; }
         .modal-head-title { font-size: 20px; font-weight: 900; color: white; letter-spacing: -0.3px; line-height: 1.2; margin: 0; }
@@ -123,9 +123,9 @@
                 background: var(--search-bg); color: var(--text-muted); display: flex; align-items: center;
                 justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s;
             }
-            .mobile-action-btn.logout { color: #dc2626; }
+            .mobile-action-btn.logout { color: #22c55e; }
             .mobile-avatar {
-                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #b91c1c);
+                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #16a34a);
                 color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; overflow: hidden;
             }
             .mobile-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -177,8 +177,9 @@
             .ann-card-body { padding: 14px !important; box-sizing: border-box !important; }
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}">
 </head>
-<body>
+<body class="resident-theme">
 
 {% set fname = (user.first_name | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.first_name else 'User' %}
 {% set lname = (user.last_name | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.last_name else '' %}
@@ -252,7 +253,7 @@
             <i class="fas fa-moon" id="theme-icon"></i> <span id="theme-label">Dark Mode</span>
         </button>
 
-        <a href="{{ url_for('logout') }}" class="theme-toggle-btn" style="text-decoration:none; color:#dc2626; display:flex; align-items:center; gap:14px; padding:12px 16px;">
+        <a href="{{ url_for('logout') }}" class="theme-toggle-btn" style="text-decoration:none; color:#22c55e; display:flex; align-items:center; gap:14px; padding:12px 16px;">
             <i class="fas fa-right-from-bracket" style="font-size:18px; width:20px; text-align:center;"></i>
             <span>Logout</span>
         </a>
@@ -327,7 +328,7 @@ function renderCards(data) {
     }
     grid.innerHTML = data.map((a, index) => `
         <div class="ann-card" onclick="openModalByIndex(${index})">
-            <div class="ann-card-img" style="background: linear-gradient(135deg, #8b0000, #c0392b);">${a.emoji}</div>
+            <div class="ann-card-img" style="background: linear-gradient(135deg, #166534, #c0392b);">${a.emoji}</div>
             <div class="ann-card-body">
                 <div class="ann-card-tag">${a.tag}</div>
                 <div class="ann-card-title">${a.title}</div>

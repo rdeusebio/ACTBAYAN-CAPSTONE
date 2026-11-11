@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -387,9 +387,10 @@
             margin: 0;
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}">
 </head>
 
-<body>
+<body class="resident-theme">
 
     <!-- Top Government Banner Above Navbar (Scrolls away while navbar sticks!) -->
     <!-- INSTRUCTIONS:
@@ -774,7 +775,7 @@
                                 <div class="map-badge"><i class="fas fa-satellite"></i> Live LGU Cartography Feed • Gen.
                                     Mamerto Natividad</div>
                                 <div class="map-coords" id="live-coords"><i class="fas fa-crosshairs"
-                                        style="color: #8b0000;"></i> 15.6015° N, 121.0503° E</div>
+                                        style="color: #166534;"></i> 15.6015° N, 121.0503° E</div>
                             </div>
                             <div id="real-gis-map" style="width: 100%; flex: 1; min-height: 400px; z-index: 1;"></div>
                         </div>
@@ -890,22 +891,22 @@
                         <div class="analytics-card">
                             <div class="analytics-title">
                                 <span>Participatory Upvotes</span>
-                                <i class="fas fa-users" style="color: #8b0000; font-size: 16px;"></i>
+                                <i class="fas fa-users" style="color: #166534; font-size: 16px;"></i>
                             </div>
                             <div class="analytics-big-val">8,920</div>
-                            <div class="analytics-trend" style="color: #8b0000;">
+                            <div class="analytics-trend" style="color: #166534;">
                                 <i class="fas fa-heart"></i> Strong resident engagement
                             </div>
                             <div class="progress-bar-wrap">
                                 <div class="progress-fill"
-                                    style="width: 90%; background: linear-gradient(90deg, #8b0000, #dc2626);"></div>
+                                    style="width: 90%; background: linear-gradient(90deg, #166534, #22c55e);"></div>
                             </div>
                         </div>
 
                         <div class="analytics-card span-3">
                             <div class="analytics-title" style="margin-bottom: 0;">
                                 <span>Monthly Infrastructure Repairs Completed across General Mamerto Natividad</span>
-                                <span style="color: #8b0000; font-weight: 800; font-size: 12px;">EVIDENCE-BASED
+                                <span style="color: #166534; font-weight: 800; font-size: 12px;">EVIDENCE-BASED
                                     ANALYTICS</span>
                             </div>
                             <div class="chart-bars-container">
@@ -1015,7 +1016,7 @@
     <section class="section-padding" id="features" style="background: #fdf8eb; border-top: none; border-bottom: none;">
         <div class="section-header">
             <span class="section-tag"
-                style="background: transparent; color: #b91c1c; padding: 0; letter-spacing: 1.5px;">CAPSTONE
+                style="background: transparent; color: #16a34a; padding: 0; letter-spacing: 1.5px;">CAPSTONE
                 INNOVATION</span>
             <h2 class="section-title" style="margin-top: 8px;">ACTBAYAN's Six Core System Features</h2>
             <p class="section-desc">
@@ -1151,11 +1152,11 @@
             <div class="btn-group">
                 {% if user %}
                 <a href="/activities" class="btn btn-outline"
-                    style="background: white; color: #8b0000; border: none; font-size: 15px;"><i
+                    style="background: white; color: #166534; border: none; font-size: 15px;"><i
                         class="fas fa-rocket"></i> Go to Resident Portal</a>
                 {% else %}
                 <a href="/register" class="btn btn-outline"
-                    style="background: white; color: #8b0000; border: none; font-size: 15px;"><i
+                    style="background: white; color: #166534; border: none; font-size: 15px;"><i
                         class="fas fa-user-plus"></i> Register as Resident</a>
                 <a href="/login" class="btn"
                     style="background: rgba(0,0,0,0.35); color: white; border: 1px solid rgba(255,255,255,0.4); font-size: 15px;"><i
@@ -1371,13 +1372,13 @@
                         <p style="margin: 0 0 10px 0; font-size: 12px; color: #6b7280; line-height: 1.4;">${loc.desc}</p>
                         <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e5e7eb; padding-top: 8px;">
                             <span style="font-size: 11px; font-weight: 800; color: ${loc.color};">${loc.status}</span>
-                            <span style="font-size: 11px; font-weight: 700; color: #8b0000;"><i class="fas fa-satellite"></i> GPS Tagged</span>
+                            <span style="font-size: 11px; font-weight: 700; color: #166534;"><i class="fas fa-satellite"></i> GPS Tagged</span>
                         </div>
                     </div>
                 `);
                 markers[key] = marker;
                 marker.on('click', () => {
-                    document.getElementById('live-coords').innerHTML = `<i class="fas fa-crosshairs" style="color: #8b0000;"></i> ${loc.coords[0].toFixed(4)}° N, ${loc.coords[1].toFixed(4)}° E`;
+                    document.getElementById('live-coords').innerHTML = `<i class="fas fa-crosshairs" style="color: #166534;"></i> ${loc.coords[0].toFixed(4)}° N, ${loc.coords[1].toFixed(4)}° E`;
                 });
             }
         }
@@ -1395,7 +1396,7 @@
                 const latlng = marker.getLatLng();
                 gisMap.flyTo(latlng, 15, { animate: true, duration: 1.2 });
                 marker.openPopup();
-                document.getElementById('live-coords').innerHTML = `<i class="fas fa-crosshairs" style="color: #8b0000;"></i> ${latlng.lat.toFixed(4)}° N, ${latlng.lng.toFixed(4)}° E`;
+                document.getElementById('live-coords').innerHTML = `<i class="fas fa-crosshairs" style="color: #166534;"></i> ${latlng.lat.toFixed(4)}° N, ${latlng.lng.toFixed(4)}° E`;
             }
         }
 

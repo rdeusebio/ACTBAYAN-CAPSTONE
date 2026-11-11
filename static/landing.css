@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
     --bg-main: #f0f2f5;
@@ -10,10 +10,10 @@
     --hover-bg: #f9fafb;
     --search-bg: #f3f4f6;
     
-    --red: #8b0000;
-    --red-hover: #a30000;
-    --red-light: rgba(139, 0, 0, 0.08);
-    --red-medium: rgba(139, 0, 0, 0.15);
+    --red: #166534;
+    --red-hover: #14532d;
+    --red-light: rgba(22, 101, 52, 0.08);
+    --red-medium: rgba(22, 101, 52, 0.15);
     
     --sh-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
     --sh-md: 0 4px 18px rgba(0, 0, 0, 0.08);
@@ -220,7 +220,7 @@ ul {
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background: linear-gradient(135deg, #6b0000 0%, var(--red) 50%, #b91c1c 100%);
+    background: linear-gradient(135deg, #052e16 0%, var(--red) 50%, #16a34a 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -319,7 +319,7 @@ ul {
 }
 
 .btn-primary {
-    background: linear-gradient(155deg, #6b0000 0%, var(--red) 40%, #b91c1c 100%);
+    background: linear-gradient(155deg, #052e16 0%, var(--red) 40%, #16a34a 100%);
     color: white;
     box-shadow: 0 4px 14px rgba(139, 0, 0, 0.25);
 }
@@ -327,7 +327,7 @@ ul {
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(139, 0, 0, 0.35);
-    background: linear-gradient(155deg, var(--red) 0%, #a30000 50%, #dc2626 100%);
+    background: linear-gradient(155deg, var(--red) 0%, #14532d 50%, #22c55e 100%);
 }
 
 .btn-outline {
@@ -441,7 +441,7 @@ ul {
 }
 
 .hero-slider-indicators .indicator.active {
-    background: #8b0000;
+    background: #166534;
     width: 65px;
     box-shadow: 0 0 10px rgba(139, 0, 0, 0.4);
 }
@@ -1012,7 +1012,7 @@ ul {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #6b0000 0%, var(--red) 50%, #b91c1c 100%);
+    background: linear-gradient(135deg, #052e16 0%, var(--red) 50%, #16a34a 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1057,7 +1057,7 @@ ul {
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #8b0000, #dc2626);
+    background: linear-gradient(90deg, #166534, #22c55e);
     border-radius: 10px;
     transition: width 1s ease-in-out;
 }
@@ -1346,7 +1346,7 @@ ul {
 }
 
 .cta-banner {
-    background: linear-gradient(155deg, #6b0000 0%, #8b0000 40%, #b91c1c 100%);
+    background: linear-gradient(155deg, #052e16 0%, #166534 40%, #16a34a 100%);
     border-radius: var(--radius-xl);
     padding: 60px 40px;
     text-align: center;

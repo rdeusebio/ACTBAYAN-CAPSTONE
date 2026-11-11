@@ -1,0 +1,16 @@
+/*
+ * resident_theme.css
+ * Overrides the default red palette to green for all resident-facing pages.
+ * Applied via body.resident-theme — LGU/Admin pages are unaffected.
+ */
+
+body.resident-theme {
+    --red:        #166534;
+    --red-hover:  #14532d;
+    --red-light:  rgba(22, 101, 52, 0.08);
+    --red-medium: rgba(22, 101, 52, 0.15);
+}
+
+body.resident-theme.dark-mode {
+    --red-light:  rgba(22, 101, 52, 0.15);
+}

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,6 +6,7 @@
     <title>ActBayan — Document Submission</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
     <style>
@@ -168,12 +169,12 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .card-icon.mandatory {
-            background: linear-gradient(135deg, rgba(139,0,0,0.15), rgba(139,0,0,0.08));
-            color: #8b0000;
+            background: linear-gradient(135deg, rgba(22,101,52,0.15), rgba(22,101,52,0.08));
+            color: #166534;
         }
         .card-icon.optional {
             background: linear-gradient(135deg, rgba(139,0,0,0.1), rgba(139,0,0,0.05));
-            color: #8b0000;
+            color: #166534;
         }
 
         .doc-card-header .card-title {
@@ -199,7 +200,7 @@
         }
         .card-badge.required {
             background: linear-gradient(135deg, rgba(139,0,0,0.12), rgba(139,0,0,0.06));
-            color: #8b0000;
+            color: #166534;
             border: 1px solid rgba(139,0,0,0.2);
             box-shadow: 0 2px 8px rgba(139,0,0,0.12);
         }
@@ -238,7 +239,7 @@
         .upload-area:hover::after { transform: translateX(100%); }
 
         .upload-area:hover {
-            border-color: #8b0000;
+            border-color: #166534;
             border-style: solid;
             background: linear-gradient(135deg, rgba(139,0,0,0.04) 0%, rgba(139,0,0,0.02) 100%);
             transform: translateY(-3px);
@@ -254,7 +255,7 @@
             display: block;
         }
         .upload-area:hover .upload-icon {
-            color: #8b0000;
+            color: #166534;
             transform: scale(1.2) translateY(-3px);
             filter: drop-shadow(0 4px 8px rgba(139,0,0,0.3));
         }
@@ -264,7 +265,7 @@
             font-weight: 700;
             color: #374151;
         }
-        .upload-area:hover .upload-text { color: #8b0000; }
+        .upload-area:hover .upload-text { color: #166534; }
 
         .upload-subtext {
             font-size: 12px;
@@ -304,7 +305,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         .remove-btn:hover {
-            background: #dc2626;
+            background: #22c55e;
             transform: scale(1.1) rotate(90deg);
         }
         .pdf-indicator {
@@ -351,7 +352,7 @@
             box-shadow: 0 1px 4px rgba(0,0,0,0.05);
         }
         .id-type-select-wrap select:focus {
-            border-color: #8b0000;
+            border-color: #166534;
             box-shadow: 0 0 0 3px rgba(139,0,0,0.1);
         }
 
@@ -363,7 +364,7 @@
         .submit-btn {
             width: 100%;
             padding: 17px;
-            background: linear-gradient(135deg, #8b0000 0%, #5a0000 100%);
+            background: linear-gradient(135deg, #166534 0%, #5a0000 100%);
             color: white;
             border: none;
             border-radius: 16px;
@@ -386,7 +387,7 @@
             position: absolute;
             inset: -3px;
             border-radius: 19px;
-            background: linear-gradient(135deg, #b91c1c, #6b0000, #b91c1c);
+            background: linear-gradient(135deg, #16a34a, #052e16, #16a34a);
             z-index: -1;
             animation: pulseGlow 2s ease-in-out infinite;
             opacity: 0.5;
@@ -403,7 +404,7 @@
             transform: translateY(0) scale(0.99);
         }
         .submit-btn:disabled {
-            background: linear-gradient(135deg, #8b0000 0%, #5a0000 100%);
+            background: linear-gradient(135deg, #166534 0%, #5a0000 100%);
             box-shadow: 0 4px 12px rgba(139,0,0,0.2);
             cursor: not-allowed;
             transform: none;
@@ -448,8 +449,9 @@
             .submit-btn { font-size: 14px; padding: 15px; }
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}">
 </head>
-<body>
+<body class="resident-theme">
 <div class="verif-overlay"></div>
 
     <div class="verif-wrapper">
@@ -481,7 +483,7 @@
 
                     <!-- Dropdown to pick ID type -->
                     <div class="id-type-select-wrap" style="display:block; margin-bottom:14px;">
-                        <label for="id-type-select"><i class="fas fa-list-ul" style="color:#dc2626;margin-right:5px;"></i>Select ID / Document Type <span style="color:#dc2626;font-weight:700;">*</span></label>
+                        <label for="id-type-select"><i class="fas fa-list-ul" style="color:#22c55e;margin-right:5px;"></i>Select ID / Document Type <span style="color:#22c55e;font-weight:700;">*</span></label>
                         <select id="id-type-select" onchange="onDocTypeChange(this.value)" required>
                             <option value="">— Choose document type —</option>
                             <option value="Philippine National ID (PhilSys)">🪪 Philippine National ID (PhilSys)</option>
@@ -614,9 +616,9 @@
         if (!idUploaded && !selfieUploaded) {
             hint.innerHTML = '<i class="fas fa-asterisk" style="font-size:9px;"></i> Upload both documents to enable submission';
         } else if (idUploaded && !selfieUploaded) {
-            hint.innerHTML = '<i class="fas fa-user-circle" style="color:#dc2626;"></i> Now upload your selfie holding the ID to continue';
+            hint.innerHTML = '<i class="fas fa-user-circle" style="color:#22c55e;"></i> Now upload your selfie holding the ID to continue';
         } else if (!idUploaded && selfieUploaded) {
-            hint.innerHTML = '<i class="fas fa-id-card" style="color:#dc2626;"></i> Still need your Valid Government ID';
+            hint.innerHTML = '<i class="fas fa-id-card" style="color:#22c55e;"></i> Still need your Valid Government ID';
         } else {
             hint.innerHTML = '<i class="fas fa-check-circle" style="color:#16a34a;"></i> Both documents uploaded — ready to submit!';
         }
@@ -654,10 +656,12 @@
         const iconStyle = 'margin-right:16px;font-size:22px;width:24px;text-align:center;';
         const btnCamera  = document.createElement('button');
         btnCamera.style.cssText  = btnStyle;
-        btnCamera.innerHTML = '<i class="fas fa-camera" style="' + iconStyle + 'color:#3498db;"></i> Take a Photo';
+        btnCamera.innerHTML = '<i class="fas fa-camera" style="' + iconStyle + 'color:#3498db;">
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"></i> Take a Photo';
         const btnGallery = document.createElement('button');
         btnGallery.style.cssText = btnStyle;
-        btnGallery.innerHTML = '<i class="fas fa-images" style="' + iconStyle + 'color:#2ecc71;"></i> Choose from Gallery';
+        btnGallery.innerHTML = '<i class="fas fa-images" style="' + iconStyle + 'color:#2ecc71;">
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"></i> Choose from Gallery';
         const btnCancel  = document.createElement('button');
         btnCancel.style.cssText  = btnStyle + 'background:#fff;color:#e74c3c;justify-content:center;margin-bottom:0;border:1px solid #fee2e2;';
         btnCancel.innerText = 'Cancel';
@@ -673,7 +677,8 @@
         function closeSheet() {
             sheet.style.transform = 'translateY(100%)';
             overlay.style.opacity = '0';
-            setTimeout(() => overlay.remove(), 300);
+            setTimeout(() =>
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"> overlay.remove(), 300);
         }
         btnCamera.onclick = () => {
             inputElement.setAttribute('capture', 'environment');

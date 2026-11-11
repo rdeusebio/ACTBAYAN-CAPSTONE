@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,6 +6,7 @@
     <title>ActBayan — Complete Details</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}">
     <!-- Cropper.js CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     
@@ -88,7 +89,7 @@
         }
     </style>
 </head>
-<body>
+<body class="resident-theme">
 
 <div class="toast-container" id="toast-container"></div>
 
@@ -386,11 +387,13 @@ function showCameraGalleryPrompt(inputElement) {
     
     const btnCamera = document.createElement('button');
     btnCamera.style.cssText = btnStyle;
-    btnCamera.innerHTML = '<i class="fas fa-camera" style="' + iconStyle + 'color:#3498db;"></i> Take a Photo';
+    btnCamera.innerHTML = '<i class="fas fa-camera" style="' + iconStyle + 'color:#3498db;">
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"></i> Take a Photo';
     
     const btnGallery = document.createElement('button');
     btnGallery.style.cssText = btnStyle;
-    btnGallery.innerHTML = '<i class="fas fa-images" style="' + iconStyle + 'color:#2ecc71;"></i> Choose from Gallery';
+    btnGallery.innerHTML = '<i class="fas fa-images" style="' + iconStyle + 'color:#2ecc71;">
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"></i> Choose from Gallery';
     
     const btnCancel = document.createElement('button');
     btnCancel.style.cssText = btnStyle + 'background:#fff;color:#e74c3c;justify-content:center;margin-bottom:0;border:1px solid #fee2e2;';
@@ -410,7 +413,8 @@ function showCameraGalleryPrompt(inputElement) {
     function closeSheet() {
         sheet.style.transform = 'translateY(100%)';
         overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 300);
+        setTimeout(() =>
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"> overlay.remove(), 300);
     }
     
     btnCamera.onclick = () => {

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -22,8 +22,8 @@
             --hero-text: #000000;
             --hero-text-shadow: rgba(255, 255, 255, 0.9);
             --search-bg: #f1f3f4;
-            --primary-red: #8b0000;
-            --primary-red-hover: #a30000;
+            --primary-red: #166534;
+            --primary-red-hover: #14532d;
         }
 
         body.dark-mode {
@@ -287,7 +287,7 @@
         }
 
         .hotline-card-header {
-            background: linear-gradient(135deg, #6b0000 0%, #8b0000 55%, #b91c1c 100%);
+            background: linear-gradient(135deg, #052e16 0%, #166534 55%, #16a34a 100%);
             padding: 20px 24px;
             display: flex;
             align-items: center;
@@ -668,7 +668,7 @@
             padding: 12px;
             border-radius: 50px;
             background: white;
-            color: #8b0000;
+            color: #166534;
             border: none;
             font-size: 14px;
             font-weight: 800;
@@ -722,7 +722,7 @@
         }
 
         .modal-head {
-            background: linear-gradient(135deg, #5a0000 0%, #8b0000 55%, #b91c1c 100%);
+            background: linear-gradient(135deg, #5a0000 0%, #166534 55%, #16a34a 100%);
             padding: 22px 24px 20px;
             position: relative;
             overflow: hidden;
@@ -1351,14 +1351,14 @@
             }
 
             .mobile-action-btn.logout {
-                color: #dc2626;
+                color: #22c55e;
             }
 
             .mobile-avatar {
                 width: 36px;
                 height: 36px;
                 border-radius: 50%;
-                background: linear-gradient(135deg, var(--primary-red), #b91c1c);
+                background: linear-gradient(135deg, var(--primary-red), #16a34a);
                 color: white;
                 font-weight: 800;
                 font-size: 13px;
@@ -1595,7 +1595,7 @@
     </style>
 </head>
 
-<body>
+<body class="resident-theme">
 
     {% set fname = (user.first_name|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'",
     "") if user and user.first_name else 'User' %}
@@ -1667,7 +1667,7 @@
             </button>
 
             <a href="{{ url_for('logout') }}" class="theme-toggle-btn"
-                style="text-decoration:none; color:#dc2626; display:flex; align-items:center; gap:14px; padding:12px 16px;">
+                style="text-decoration:none; color:#22c55e; display:flex; align-items:center; gap:14px; padding:12px 16px;">
                 <i class="fas fa-right-from-bracket" style="font-size:18px; width:20px; text-align:center;"></i>
                 <span>Logout</span>
             </a>
@@ -1715,7 +1715,7 @@
                 </div>
                 <div class="action-buttons">
 
-                    <button class="btn" style="background:#b91c1c;"
+                    <button class="btn" style="background:#16a34a;"
                         onclick="showToast('Calling Emergency 911...', 'info')">
                         <i class="fas fa-phone-alt"></i> Emergency
                     </button>
@@ -1734,7 +1734,7 @@
                     {% if latest_ann %}
                     <div class="card" onclick="window.location.href='{{ url_for('announcements') }}'">
                         <div class="card-body"
-                            style="background: linear-gradient(135deg, #8b0000, #c0392b); color: white; padding: 24px;">
+                            style="background: linear-gradient(135deg, #166534, #c0392b); color: white; padding: 24px;">
                             <div class="card-meta" style="color: rgba(255,255,255,0.8); margin-bottom: 12px;"><span><i
                                         class="fas fa-calendar"></i> {{ latest_ann.formatted_date }}</span></div>
                             <h3 class="card-headline" style="color: white; font-size: 18px;">{{ latest_ann.ann_title }}
@@ -1825,7 +1825,7 @@
             </div>
             <div class="hotline-grid">
                 <a href="tel:911" class="hotline-item">
-                    <div class="hotline-item-icon" style="background:rgba(220,38,38,0.1);color:#dc2626;"><i
+                    <div class="hotline-item-icon" style="background:rgba(220,38,38,0.1);color:#22c55e;"><i
                             class="fas fa-fire"></i></div>
                     <div class="hotline-item-info">
                         <div class="hotline-item-label">BFP / Police</div>
@@ -2123,7 +2123,7 @@
             if (typeof L === 'undefined') return;
             var map = L.map('map').setView([15.7167, 120.9333], 14);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            var svg = '<svg width="24" height="32" viewBox="0 0 28 36"><path d="M14 0C6.27 0 0 6.27 0 14c0 9.625 14 22 14 22S28 23.625 28 14C28 6.27 21.73 0 14 0z" fill="#8b0000"/><circle cx="14" cy="14" r="6" fill="white"/></svg>';
+            var svg = '<svg width="24" height="32" viewBox="0 0 28 36"><path d="M14 0C6.27 0 0 6.27 0 14c0 9.625 14 22 14 22S28 23.625 28 14C28 6.27 21.73 0 14 0z" fill="#166534"/><circle cx="14" cy="14" r="6" fill="white"/></svg>';
             var icon = L.divIcon({ html: svg, className: '', iconSize: [24, 32], iconAnchor: [12, 32] });
             L.marker([15.7185, 120.9318], { icon: icon }).bindPopup('<b>Municipal Hall</b><br>Gen. M. Natividad').addTo(map);
         }
@@ -2304,11 +2304,13 @@ function showCameraGalleryPrompt(inputElement) {
     
     const btnCamera = document.createElement('button');
     btnCamera.style.cssText = btnStyle;
-    btnCamera.innerHTML = '<i class="fas fa-camera" style="' + iconStyle + 'color:#3498db;"></i> Take a Photo';
+    btnCamera.innerHTML = '<i class="fas fa-camera" style="' + iconStyle + 'color:#3498db;">
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"></i> Take a Photo';
     
     const btnGallery = document.createElement('button');
     btnGallery.style.cssText = btnStyle;
-    btnGallery.innerHTML = '<i class="fas fa-images" style="' + iconStyle + 'color:#2ecc71;"></i> Choose from Gallery';
+    btnGallery.innerHTML = '<i class="fas fa-images" style="' + iconStyle + 'color:#2ecc71;">
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"></i> Choose from Gallery';
     
     const btnCancel = document.createElement('button');
     btnCancel.style.cssText = btnStyle + 'background:#fff;color:#e74c3c;justify-content:center;margin-bottom:0;border:1px solid #fee2e2;';
@@ -2328,7 +2330,8 @@ function showCameraGalleryPrompt(inputElement) {
     function closeSheet() {
         sheet.style.transform = 'translateY(100%)';
         overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 300);
+        setTimeout(() =>
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"> overlay.remove(), 300);
     }
     
     btnCamera.onclick = () => {

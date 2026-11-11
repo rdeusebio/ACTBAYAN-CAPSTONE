@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -23,9 +23,9 @@
             --border-color: #e0e0e0;
             --icon-hover: #f1f3f4;
             --search-bg: #f1f3f4;
-            --primary-red: #8b0000;
-            --primary-red-hover: #a30000;
-            --red-light: rgba(139,0,0,0.08);
+            --primary-red: #166534;
+            --primary-red-hover: #14532d;
+            --red-light: rgba(22,101,52,0.08);
         }
 
         body.dark-mode {
@@ -36,7 +36,7 @@
             --border-color: #333333;
             --icon-hover: #2a2a2a;
             --search-bg: #2a2a2a;
-            --red-light: rgba(139,0,0,0.15);
+            --red-light: rgba(22,101,52,0.15);
         }
 
         * { box-sizing: border-box; }
@@ -111,7 +111,7 @@
         .main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
 
         .page-header {
-            background-color: #8b0000;
+            background-color: #166534;
             background-image: linear-gradient(135deg, rgba(139,0,0,0.88) 0%, rgba(185,28,28,0.82) 50%, rgba(139,0,0,0.88) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}");
             background-size: cover;
             background-position: center;
@@ -217,8 +217,8 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .post-delete-btn:hover {
-            background: #dc2626;
-            border-color: #dc2626;
+            background: #22c55e;
+            border-color: #22c55e;
             color: white;
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
@@ -457,7 +457,7 @@
             gap: 5px;
         }
         .tag-before {
-            background: #dc2626;
+            background: #22c55e;
             color: white;
         }
         .tag-after {
@@ -536,7 +536,7 @@
             padding: 3px 10px; border-radius: 50px; margin-bottom: 12px; display: inline-block;
             transition: background 0.2s;
         }
-        .read-more-btn:hover { background: rgba(139,0,0,0.15); }
+        .read-more-btn:hover { background: rgba(22,101,52,0.15); }
         .post-location {
             display: inline-flex; align-items: center; gap: 6px;
             font-size: 12px; color: var(--text-muted); font-weight: 600;
@@ -699,7 +699,7 @@
         }
         .comment-input-bar:focus-within {
             border-color: var(--primary-red);
-            box-shadow: 0 0 0 3px rgba(139,0,0,0.08);
+            box-shadow: 0 0 0 3px rgba(22,101,52,0.08);
         }
         .comment-input-bar input {
             flex: 1;
@@ -756,7 +756,7 @@
 
         /* Panel header */
         .rp-header {
-            background: linear-gradient(135deg, #4a0000 0%, #8b0000 55%, #b91c1c 100%);
+            background: linear-gradient(135deg, #4a0000 0%, #166534 55%, #16a34a 100%);
             padding: 24px 22px 20px;
             position: relative;
             overflow: hidden;
@@ -910,13 +910,13 @@
         .rp-empty-sub { font-size: 12px; line-height: 1.5; max-width: 240px; }
 
         .quick-submit {
-            background: linear-gradient(135deg, #6b0000, #8b0000); border-radius: 18px; padding: 22px 20px; color: white;
+            background: linear-gradient(135deg, #052e16, #166534); border-radius: 18px; padding: 22px 20px; color: white;
             position: sticky; top: 30px;
         }
         .qs-title { font-size: 16px; font-weight: 900; margin-bottom: 6px; }
         .qs-sub { font-size: 13px; opacity: 0.8; line-height: 1.5; margin-bottom: 18px; }
         .qs-btn {
-            width: 100%; padding: 12px; border-radius: 50px; background: white; color: #8b0000;
+            width: 100%; padding: 12px; border-radius: 50px; background: white; color: #166534;
             border: none; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;
         }
         .qs-btn:hover { transform: translateY(-2px); }
@@ -940,7 +940,7 @@
         .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
 
         .modal-head {
-            background: linear-gradient(135deg, #5a0000 0%, #8b0000 55%, #b91c1c 100%);
+            background: linear-gradient(135deg, #5a0000 0%, #166534 55%, #16a34a 100%);
             padding: 22px 24px 20px; position: relative; overflow: hidden;
             display: flex; align-items: flex-start; justify-content: space-between;
             border-radius: 20px 20px 0 0;
@@ -1296,9 +1296,9 @@
                 background: var(--search-bg); color: var(--text-muted); display: flex; align-items: center;
                 justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s;
             }
-            .mobile-action-btn.logout { color: #dc2626; }
+            .mobile-action-btn.logout { color: #22c55e; }
             .mobile-avatar {
-                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #b91c1c);
+                width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #16a34a);
                 color: white; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; overflow: hidden;
             }
             .mobile-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -1392,7 +1392,7 @@
         }
     </style>
 </head>
-<body>
+<body class="resident-theme">
 
 {% set fc_fname = (user.first_name | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.first_name else 'User' %}
 {% set fc_lname = (user.last_name | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if user and user.last_name else '' %}
@@ -1444,7 +1444,7 @@
         <button class="theme-toggle-btn" id="theme-toggle-btn">
             <i class="fas fa-moon" id="theme-icon"></i> <span id="theme-label">Dark Mode</span>
         </button>
-        <a href="{{ url_for('logout') }}" class="theme-toggle-btn" style="text-decoration:none; color:#dc2626; display:flex; align-items:center; gap:14px; padding:12px 16px;">
+        <a href="{{ url_for('logout') }}" class="theme-toggle-btn" style="text-decoration:none; color:#22c55e; display:flex; align-items:center; gap:14px; padding:12px 16px;">
             <i class="fas fa-right-from-bracket" style="font-size:18px; width:20px; text-align:center;"></i>
             <span>Logout</span>
         </a>
@@ -2311,7 +2311,7 @@
             <button type="button" onclick="closeDeleteConcernModal()" style="padding:10px 20px; border-radius:10px; border:1px solid var(--border-color); background:transparent; color:var(--text-main); font-weight:700; font-size:13px; cursor:pointer;">
                 Cancel
             </button>
-            <button type="button" id="btn-confirm-delete" onclick="executeDeleteConcern()" style="padding:10px 22px; border-radius:10px; border:none; background:#dc2626; color:white; font-weight:700; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+            <button type="button" id="btn-confirm-delete" onclick="executeDeleteConcern()" style="padding:10px 22px; border-radius:10px; border:none; background:#22c55e; color:white; font-weight:700; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
                 <i class="fas fa-trash-alt"></i> Yes, Remove
             </button>
         </div>
@@ -3021,7 +3021,8 @@
         const vid = cell ? cell.querySelector('video') : null;
         if (!vid) return;
         vid.muted = !vid.muted;
-        btn.innerHTML = vid.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+        btn.innerHTML = vid.muted ? '<i class="fas fa-volume-mute">
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"></i>' : '<i class="fas fa-volume-up"></i>';
     }
     let _fbObserver = null;
     function fbInitAutoplay() {
@@ -3326,7 +3327,7 @@
             .catch(err => {
                 console.error('Progress load error:', err);
                 if (timeline) {
-                    timeline.innerHTML = '<div style="color:#dc2626; text-align:center; padding:20px;">Failed to load progress. Please try again.</div>';
+                    timeline.innerHTML = '<div style="color:#22c55e; text-align:center; padding:20px;">Failed to load progress. Please try again.</div>';
                 }
             });
     }
@@ -3492,14 +3493,14 @@
                 if (lbl3) { lbl3.style.color = '#166534'; }
             } else if (stLower.includes('deny') || stLower.includes('denied') || stLower.includes('reject') || stLower.includes('declin') || stLower.includes('cancel') || stLower.includes('spam') || stLower.includes('invalid')) {
                 const labelText = stLower.includes('deny') || stLower.includes('denied') ? 'Denied' : 'Rejected';
-                if (stageBadge) { stageBadge.innerHTML = '✖ ' + labelText; stageBadge.style.background = '#fee2e2'; stageBadge.style.color = '#dc2626'; }
+                if (stageBadge) { stageBadge.innerHTML = '✖ ' + labelText; stageBadge.style.background = '#fee2e2'; stageBadge.style.color = '#22c55e'; }
                 if (dot1) dot1.style.background = '#64748b';
                 if (line1) line1.style.background = '#f87171';
                 if (dot2) { dot2.style.background = '#64748b'; dot2.style.color = 'white'; }
                 if (lbl2) { lbl2.style.color = 'var(--text-muted)'; lbl2.textContent = 'Reviewed'; }
                 if (line2) line2.style.background = '#f87171';
-                if (dot3) { dot3.style.background = '#dc2626'; dot3.style.color = 'white'; dot3.style.boxShadow = '0 0 0 5px rgba(220,38,38,0.25)'; dot3.innerHTML = '<i class="fas fa-times"></i>'; }
-                if (lbl3) { lbl3.textContent = labelText; lbl3.style.color = '#dc2626'; lbl3.style.fontWeight = '800'; }
+                if (dot3) { dot3.style.background = '#22c55e'; dot3.style.color = 'white'; dot3.style.boxShadow = '0 0 0 5px rgba(220,38,38,0.25)'; dot3.innerHTML = '<i class="fas fa-times"></i>'; }
+                if (lbl3) { lbl3.textContent = labelText; lbl3.style.color = '#22c55e'; lbl3.style.fontWeight = '800'; }
             } else if (stLower.includes('prog') || stLower.includes('review') || stLower.includes('process') || stLower.includes('investigat')) {
                 if (stageBadge) { stageBadge.innerHTML = '⚡ In Progress'; stageBadge.style.background = '#dbeafe'; stageBadge.style.color = '#1d4ed8'; }
                 if (dot1) dot1.style.background = '#3b82f6';
@@ -3696,14 +3697,14 @@
         } else if (stLower.includes('deny') || stLower.includes('denied') || stLower.includes('reject') || stLower.includes('declin') || stLower.includes('cancel') || stLower.includes('spam') || stLower.includes('invalid')) {
             const isDenied = stLower.includes('deny') || stLower.includes('denied');
             const labelText = isDenied ? 'Denied' : 'Rejected';
-            if (stageBadge) { stageBadge.innerHTML = '✖ ' + labelText; stageBadge.style.background = '#fee2e2'; stageBadge.style.color = '#dc2626'; }
+            if (stageBadge) { stageBadge.innerHTML = '✖ ' + labelText; stageBadge.style.background = '#fee2e2'; stageBadge.style.color = '#22c55e'; }
             if (dot1) { dot1.style.background = '#64748b'; dot1.style.boxShadow = 'none'; }
             if (line1) line1.style.background = '#f87171';
             if (dot2) { dot2.style.background = '#64748b'; dot2.style.color = 'white'; }
             if (lbl2) { lbl2.style.color = 'var(--text-muted)'; lbl2.textContent = 'Reviewed'; }
             if (line2) line2.style.background = '#f87171';
-            if (dot3) { dot3.style.background = '#dc2626'; dot3.style.color = 'white'; dot3.style.boxShadow = '0 0 0 5px rgba(220,38,38,0.25)'; dot3.innerHTML = '<i class="fas fa-times"></i>'; }
-            if (lbl3) { lbl3.textContent = labelText; lbl3.style.color = '#dc2626'; lbl3.style.fontWeight = '800'; }
+            if (dot3) { dot3.style.background = '#22c55e'; dot3.style.color = 'white'; dot3.style.boxShadow = '0 0 0 5px rgba(220,38,38,0.25)'; dot3.innerHTML = '<i class="fas fa-times"></i>'; }
+            if (lbl3) { lbl3.textContent = labelText; lbl3.style.color = '#22c55e'; lbl3.style.fontWeight = '800'; }
         } else if (stLower.includes('prog') || stLower.includes('review') || stLower.includes('process') || stLower.includes('investigat')) {
             if (stageBadge) { stageBadge.innerHTML = '⚡ In Progress'; stageBadge.style.background = '#dbeafe'; stageBadge.style.color = '#1d4ed8'; }
             if (dot1) { dot1.style.background = '#3b82f6'; dot1.style.boxShadow = 'none'; }
@@ -3746,7 +3747,7 @@
                         </div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;max-height:85%;">
                             <div style="position:relative;background:#0f172a;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in;display:flex;flex-direction:column;" onclick="openLightbox('${beforeUrl}', 'Before: Initial Report', 'image')">
-                                <span style="position:absolute;top:12px;left:12px;z-index:3;background:#dc2626;color:white;font-size:11px;font-weight:800;padding:4px 10px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.5);">BEFORE</span>
+                                <span style="position:absolute;top:12px;left:12px;z-index:3;background:#22c55e;color:white;font-size:11px;font-weight:800;padding:4px 10px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.5);">BEFORE</span>
                                 ${beforeUrl ? `<img src="${beforeUrl}" style="width:100%;height:100%;object-fit:contain;background:#000;" alt="Before">` : `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#64748b;">No Initial Photo</div>`}
                                 <div style="position:absolute;bottom:0;inset-inline:0;padding:8px 14px;background:rgba(0,0,0,0.85);color:white;font-size:12px;font-weight:700;display:flex;justify-content:space-between;">
                                     <span>Resident Initial Report</span>
@@ -3810,7 +3811,8 @@
                 }
                 // Highlight active thumb
                 const strip = document.getElementById('cdm-thumb-strip');
-                if (strip) Array.from(strip.children).forEach((t, ti) => {
+                if (strip) Array.from(strip.children).forEach((t, ti) =>
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"> {
                     t.style.outline = ti === idx ? '2px solid var(--primary-red)' : 'none';
                 });
             };
@@ -3822,7 +3824,8 @@
                 const th = document.createElement('div');
                 th.style.cssText = 'width:52px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;cursor:pointer;background:#222;position:relative;';
                 th.innerHTML = isVid(it.full)
-                    ? '<video src="' + it.full + '" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;"><i class="fas fa-play"></i></span>'
+                    ? '<video src="' + it.full + '" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;">
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"></video><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;"><i class="fas fa-play"></i></span>'
                     : '<img src="' + it.full + '" style="width:100%;height:100%;object-fit:cover;">';
                 th.onclick = function(e) { e.stopPropagation(); showMain(i); };
                 strip.appendChild(th);
@@ -3905,7 +3908,8 @@
         }
     }
 
-    document.querySelectorAll('.concern-post').forEach(post => {
+    document.querySelectorAll('.concern-post').forEach(post =>
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"> {
         post.addEventListener('click', function(e) {
             if (e.target.closest('button, .post-img-wrap, .fb-media-grid, .comment-drawer, .post-avatar')) return;
             openPostModalForCard(this);
@@ -4057,11 +4061,13 @@ function showCameraGalleryPrompt(inputElement) {
     
     const btnCamera = document.createElement('button');
     btnCamera.style.cssText = btnStyle;
-    btnCamera.innerHTML = '<i class="fas fa-camera" style="' + iconStyle + 'color:#3498db;"></i> Take a Photo';
+    btnCamera.innerHTML = '<i class="fas fa-camera" style="' + iconStyle + 'color:#3498db;">
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"></i> Take a Photo';
     
     const btnGallery = document.createElement('button');
     btnGallery.style.cssText = btnStyle;
-    btnGallery.innerHTML = '<i class="fas fa-images" style="' + iconStyle + 'color:#2ecc71;"></i> Choose from Gallery';
+    btnGallery.innerHTML = '<i class="fas fa-images" style="' + iconStyle + 'color:#2ecc71;">
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"></i> Choose from Gallery';
     
     const btnCancel = document.createElement('button');
     btnCancel.style.cssText = btnStyle + 'background:#fff;color:#e74c3c;justify-content:center;margin-bottom:0;border:1px solid #fee2e2;';
@@ -4081,7 +4087,8 @@ function showCameraGalleryPrompt(inputElement) {
     function closeSheet() {
         sheet.style.transform = 'translateY(100%)';
         overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 300);
+        setTimeout(() =>
+    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"> overlay.remove(), 300);
     }
     
     btnCamera.onclick = () => {
