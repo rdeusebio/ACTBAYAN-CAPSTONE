@@ -1301,22 +1301,28 @@ def lgu():
 
     account_id = session.get('user_id')
 
-    sql_reps = """
+    sort = request.args.get('sort', 'upvotes')
+    order_clause = "ORDER BY r.created_at DESC" if sort == 'date' else "ORDER BY r.upvote_count DESC, r.created_at DESC"
+
+    sql_reps = f"""
         SELECT
             r.*,
             (SELECT rm.path FROM reports_media rm WHERE rm.report_id = r.report_id LIMIT 1) AS image_url,
-            'General' AS category,
-            COALESCE(a.first_name, 'Resident') AS first_name,
-            COALESCE(a.last_name, '') AS last_name,
+            COALESCE(r.category, 'General') AS category,
+            cra.activity_type,
+            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE COALESCE(a.first_name, 'Resident') END AS first_name,
+            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Resident' ELSE COALESCE(a.last_name, '') END AS last_name,
+            CASE WHEN cra.activity_type = 'report_created_anon' THEN 1 ELSE 0 END AS is_anonymous,
             '' AS profile_photo
         FROM reports r
         LEFT JOIN (
-            SELECT report_id, MIN(account_id) AS account_id
+            SELECT report_id, MIN(account_id) AS account_id, MIN(activity_type) AS activity_type
             FROM report_activity
+            WHERE activity_type IN ('report_created', 'report_created_anon')
             GROUP BY report_id
-        ) ra ON ra.report_id = r.report_id
-        LEFT JOIN accounts a ON ra.account_id = a.account_id
-        ORDER BY r.created_at DESC
+        ) cra ON cra.report_id = r.report_id
+        LEFT JOIN accounts a ON cra.account_id = a.account_id
+        {order_clause}
     """
 
     if request.method == 'POST':
@@ -1468,7 +1474,8 @@ def lgu():
         feedback_counts_by_report=feedback_counts_by_report,
         upvote_counts=upvote_counts,
         user_upvoted=user_upvoted,
-        user=user_data
+        user=user_data,
+        sort=sort
     )
 
 @app.route('/notifications')

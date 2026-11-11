@@ -18,7 +18,13 @@
 {% endblock %}
 
 {% block content %}
-<h1 class="page-title">Login Attempts Audit Log</h1>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+    <h1 class="page-title" style="margin:0;">Login Attempts Audit Log</h1>
+    <div style="position:relative; max-width:340px; width:100%;">
+        <i class="fas fa-search" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px; pointer-events:none;"></i>
+        <input type="text" id="log-search-input" placeholder="Search user, name, phone, status..." oninput="filterLoginLogs(this.value)" style="width:100%; padding:10px 14px 10px 38px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--main); font-size:13px; outline:none; box-sizing:border-box;">
+    </div>
+</div>
 
 <div class="card">
     <h2 style="font-size: 18px; margin-bottom: 16px;">System Lockouts & Failed Attempts</h2>
@@ -118,5 +124,17 @@
         </table>
     </div>
 </div>
+
+<script>
+function filterLoginLogs(query) {
+    const q = (query || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(tr => {
+        if (tr.querySelector('td[colspan]')) return;
+        const text = tr.innerText.toLowerCase();
+        tr.style.display = (!q || text.includes(q)) ? '' : 'none';
+    });
+}
+</script>
 {% endblock %}
 
