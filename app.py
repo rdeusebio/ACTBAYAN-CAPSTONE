@@ -445,7 +445,7 @@ def api_reports():
     cursor = con.cursor(dictionary=True)
 
     query = """
-        SELECT r.report_id, r.title, 'General' AS category, r.status, r.created_at,
+        SELECT r.report_id, r.title, COALESCE(NULLIF(r.category, ''), 'General') AS category, r.status, r.created_at,
                a.first_name, a.last_name, '' AS profile_photo,
                CONCAT(l.x, ', ', l.y) AS locname
         FROM reports r
@@ -501,7 +501,7 @@ def api_check_duplicate():
     cursor = con.cursor(dictionary=True)
 
     cursor.execute("""
-        SELECT r.report_id, r.public_key, r.title, r.description, 'General' AS category,
+        SELECT r.report_id, r.public_key, r.title, r.description, COALESCE(NULLIF(r.category, ''), 'General') AS category,
                r.status, l.x, l.y, CONCAT(l.x, ', ', l.y) AS locname
         FROM reports r
         JOIN location l ON r.location_id = l.location_id
@@ -1243,7 +1243,7 @@ def admin_reports():
         SELECT
             r.*,
             (SELECT rm.path FROM reports_media rm WHERE rm.report_id = r.report_id LIMIT 1) AS image_url,
-            'General' AS category,
+            COALESCE(NULLIF(r.category, ''), 'General') AS category,
             a.first_name,
             a.last_name,
             '' AS reporter_photo,
@@ -1286,7 +1286,7 @@ def home():
             (SELECT rm.path FROM reports_media rm WHERE rm.report_id = r.report_id LIMIT 1) AS image_url,
             r.description,
             r.status,
-            'General' AS category
+            COALESCE(NULLIF(r.category, ''), 'General') AS category
         FROM reports r
     """
     cursor.execute(reps)
@@ -1982,7 +1982,7 @@ def dashboard():
         SELECT
             r.*,
             (SELECT rm.path FROM reports_media rm WHERE rm.report_id = r.report_id LIMIT 1) AS image_url,
-            'General' AS category,
+            COALESCE(NULLIF(r.category, ''), 'General') AS category,
             COALESCE(a.first_name, 'Resident') AS first_name,
             COALESCE(a.last_name, '') AS last_name
         FROM reports r
@@ -2190,6 +2190,7 @@ def file_concern():
         title = data.get('title')
         description = data.get('description')
         locname = data.get('location') or ''
+        category = (data.get('category') or 'General').strip() or 'General'
 
         geox = data.get('geox')
         geoy = data.get('geoy')
@@ -2378,9 +2379,9 @@ def file_concern():
             public_key = str(uuid.uuid4())
             now_ts = datetime.now()
             cursor.execute("""
-                INSERT INTO reports (title, location_id, description, status, created_at, last_activity, public_key, upvote_count)
-                VALUES (%s, %s, %s, 'Pending', %s, %s, %s, 0)
-            """, (title, location_id, description, now_ts, now_ts, public_key))
+                INSERT INTO reports (title, category, location_id, description, status, created_at, last_activity, public_key, upvote_count)
+                VALUES (%s, %s, %s, %s, 'Pending', %s, %s, %s, 0)
+            """, (title, category, location_id, description, now_ts, now_ts, public_key))
             report_id = cursor.lastrowid
 
             # 3. Record report creator in report_activity (support anonymous for verified residents)
@@ -3637,9 +3638,30 @@ def lgu_analytics():
     wom_counts = [wom_map.get(i, 0) for i in range(1, 6)]
 
     # --- Category breakdown ---
+    category_colors = {
+        'Road': '#8b0000',
+        'Flooding': '#1565c0',
+        'Sanitation': '#2e7d32',
+        'Lighting': '#f57f17',
+        'General': '#757575',
+    }
+    cursor.execute("""
+        SELECT COALESCE(NULLIF(category, ''), 'General') AS cat_name, COUNT(*) AS cnt,
+               SUM(CASE WHEN LOWER(status) = 'resolved' THEN 1 ELSE 0 END) AS resolved_cnt
+        FROM reports
+        GROUP BY cat_name
+        ORDER BY cnt DESC
+    """)
+    cat_rows = cursor.fetchall()
     category_data = [
-        {'name': 'General', 'count': total, 'resolved': resolved, 'color': '#8b0000'}
-    ] if total > 0 else []
+        {
+            'name': r['cat_name'],
+            'count': r['cnt'],
+            'resolved': r['resolved_cnt'],
+            'color': category_colors.get(r['cat_name'], '#8b0000')
+        }
+        for r in cat_rows
+    ] if cat_rows else []
     category_names = [c['name'] for c in category_data]
     category_counts = [c['count'] for c in category_data]
 
@@ -3674,7 +3696,7 @@ def lgu_analytics():
 
     # --- Oldest pending ---
     cursor.execute("""
-        SELECT r.title, 'General' AS category, r.created_at,
+        SELECT r.title, COALESCE(NULLIF(r.category, ''), 'General') AS category, r.created_at,
                COALESCE(a.first_name, 'Resident') AS first_name,
                COALESCE(a.last_name, '') AS last_name,
                DATEDIFF(CURDATE(), DATE(r.created_at)) AS days_old
@@ -3692,7 +3714,7 @@ def lgu_analytics():
 
     # --- Recent 10 reports ---
     cursor.execute("""
-        SELECT r.report_id, r.title, 'General' AS category, r.status, r.created_at,
+        SELECT r.report_id, r.title, COALESCE(NULLIF(r.category, ''), 'General') AS category, r.status, r.created_at,
                COALESCE(a.first_name, 'Resident') AS first_name,
                COALESCE(a.last_name, '') AS last_name,
                CONCAT(l.x, ', ', l.y) AS locname
@@ -3710,7 +3732,7 @@ def lgu_analytics():
 
     # --- Sample report ---
     cursor.execute("""
-        SELECT r.report_id, r.title, 'General' AS category, r.description, r.status, r.created_at,
+        SELECT r.report_id, r.title, COALESCE(NULLIF(r.category, ''), 'General') AS category, r.description, r.status, r.created_at,
                COALESCE(a.first_name, 'Resident') AS first_name,
                COALESCE(a.last_name, '') AS last_name,
                CONCAT(l.x, ', ', l.y) AS locname
