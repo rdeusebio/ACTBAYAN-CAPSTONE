@@ -31,22 +31,6 @@ def connect_db():
     )
 
 
-# Ensure accounts awaiting LGU verification are properly marked 'Pending'
-try:
-    _init_db = connect_db()
-    _init_cur = _init_db.cursor()
-    # Reset account 10 to Pending if it has uploaded ID and was auto-verified
-    _init_cur.execute("""
-        UPDATE accounts
-        SET category = 'Pending'
-        WHERE account_id = 10 AND id_path IS NOT NULL AND (category = 'Verified' OR category IS NULL OR category = '')
-    """)
-    _init_db.commit()
-    _init_db.close()
-except Exception:
-    pass
-
-
 def hash_password_bcrypt(password: str) -> str:
     if password is None:
         password = ""
@@ -2565,7 +2549,7 @@ def api_edit_concern(report_id):
         LIMIT 1
     """, (report_id,))
     creator = cursor.fetchone()
-    if creator and creator['account_id'] != account_id and session.get('role') not in ('Admin', 'Super Admin'):
+    if creator and creator.get('account_id') and creator.get('account_id') != account_id and session.get('user_role') not in ('admin', 'super admin'):
         con.close()
         return jsonify({'success': False, 'message': 'You are only authorized to edit your own concerns.'}), 403
 
@@ -2655,7 +2639,7 @@ def api_delete_concern(report_id):
         LIMIT 1
     """, (report_id,))
     creator = cursor.fetchone()
-    if creator and creator['account_id'] != account_id and session.get('role') not in ('Admin', 'Super Admin'):
+    if creator and creator.get('account_id') and creator.get('account_id') != account_id and session.get('user_role') not in ('admin', 'super admin'):
         con.close()
         return jsonify({'success': False, 'message': 'Unauthorized: You can only remove your own concerns.'}), 403
 
@@ -3348,7 +3332,7 @@ def barangay_map():
 
 @app.route('/lgu_verifications')
 def lgu_verifications():
-    if 'user_id' not in session or session.get('user_role') != 'lgu':
+    if 'user_id' not in session or session.get('user_role') not in ('lgu', 'admin'):
         return redirect(url_for('login'))
 
     con = connect_db()
@@ -3383,7 +3367,7 @@ def lgu_verifications():
 
 @app.route('/verify_user', methods=['POST'])
 def verify_user():
-    if 'user_id' not in session or session.get('user_role') != 'lgu':
+    if 'user_id' not in session or session.get('user_role') not in ('lgu', 'admin'):
         return redirect(url_for('login'))
 
     target_id = request.form.get('account_id')

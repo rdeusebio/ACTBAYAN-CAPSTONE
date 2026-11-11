@@ -223,6 +223,31 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
         }
+        .post-edit-btn *, .post-delete-btn * {
+            pointer-events: none !important;
+        }
+
+        /* ===== ACTION MODALS (Edit Concern & Delete Concern) ===== */
+        .action-modal-backdrop {
+            position: fixed !important;
+            inset: 0 !important;
+            background: rgba(0, 0, 0, 0.75) !important;
+            backdrop-filter: blur(6px) !important;
+            -webkit-backdrop-filter: blur(6px) !important;
+            z-index: 9999999 !important;
+            display: none !important;
+            align-items: center !important;
+            justify-content: center !important;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+        .action-modal-backdrop.open {
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
         .post-edit-locked {
             margin-left: auto;
             background: rgba(100, 116, 139, 0.1);
@@ -2011,8 +2036,8 @@
 </div>
 
 <!-- EDIT CONCERN MODAL (Allowed only before LGU interacts) -->
-<div class="modal-backdrop" id="edit-concern-modal" onclick="if(event.target===this) closeEditConcernModal()" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(0,0,0,0.65); align-items:center; justify-content:center;">
-    <div style="width:92%; max-width:540px; background:var(--bg-nav-card); border-radius:18px; border:1px solid var(--border-color); box-shadow:0 15px 45px rgba(0,0,0,0.3); overflow:hidden; display:flex; flex-direction:column;">
+<div class="action-modal-backdrop" id="edit-concern-modal" onclick="if(event.target===this) closeEditConcernModal()">
+    <div style="width:92%; max-width:540px; background:var(--bg-nav-card); border-radius:18px; border:1px solid var(--border-color); box-shadow:0 15px 45px rgba(0,0,0,0.3); overflow:hidden; display:flex; flex-direction:column; position:relative; z-index:10000000;">
         <div style="padding:18px 24px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between;">
             <div style="display:flex; align-items:center; gap:8px;">
                 <i class="fas fa-pen-to-square" style="color:var(--primary-red); font-size:18px;"></i>
@@ -2058,8 +2083,8 @@
 </div>
 
 <!-- DELETE CONCERN CONFIRMATION MODAL (Allowed only before LGU interacts) -->
-<div class="modal-backdrop" id="delete-concern-modal" onclick="if(event.target===this) closeDeleteConcernModal()" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(0,0,0,0.65); align-items:center; justify-content:center;">
-    <div style="width:92%; max-width:440px; background:var(--bg-nav-card); border-radius:18px; border:1px solid var(--border-color); box-shadow:0 15px 45px rgba(0,0,0,0.3); overflow:hidden; display:flex; flex-direction:column; text-align:center; padding:28px 24px;">
+<div class="action-modal-backdrop" id="delete-concern-modal" onclick="if(event.target===this) closeDeleteConcernModal()">
+    <div style="width:92%; max-width:440px; background:var(--bg-nav-card); border-radius:18px; border:1px solid var(--border-color); box-shadow:0 15px 45px rgba(0,0,0,0.3); overflow:hidden; display:flex; flex-direction:column; text-align:center; padding:28px 24px; position:relative; z-index:10000000;">
         <div style="width:54px; height:54px; border-radius:50%; background:rgba(239, 68, 68, 0.12); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:22px; margin:0 auto 16px;">
             <i class="fas fa-trash-alt"></i>
         </div>
@@ -3844,9 +3869,12 @@ function showCameraGalleryPrompt(inputElement) {
             cat = document.getElementById('cdm-category-badge')?.textContent.trim() || 'General';
         }
 
-        document.getElementById('edit-concern-id').value = reportId;
-        document.getElementById('edit-concern-title').value = title;
-        document.getElementById('edit-concern-desc').value = desc;
+        const idInput = document.getElementById('edit-concern-id');
+        if (idInput) idInput.value = reportId;
+        const titleInput = document.getElementById('edit-concern-title');
+        if (titleInput) titleInput.value = title;
+        const descInput = document.getElementById('edit-concern-desc');
+        if (descInput) descInput.value = desc;
 
         const catSelect = document.getElementById('edit-concern-category');
         if (catSelect) {
@@ -3864,18 +3892,18 @@ function showCameraGalleryPrompt(inputElement) {
 
         const modal = document.getElementById('edit-concern-modal');
         if (modal) {
-            modal.style.display = 'flex';
+            modal.classList.add('open');
             document.body.style.overflow = 'hidden';
             setTimeout(() => {
                 const titleInp = document.getElementById('edit-concern-title');
                 if (titleInp) titleInp.focus();
-            }, 50);
+            }, 60);
         }
     }
 
     function closeEditConcernModal() {
         const modal = document.getElementById('edit-concern-modal');
-        if (modal) modal.style.display = 'none';
+        if (modal) modal.classList.remove('open');
         document.body.style.overflow = '';
     }
 
@@ -3957,17 +3985,18 @@ function showCameraGalleryPrompt(inputElement) {
 
     // ===== POST REMOVAL / DELETION (Allowed only before LGU interacts) =====
     function confirmDeleteConcern(reportId) {
-        document.getElementById('delete-concern-id').value = reportId;
+        const idInput = document.getElementById('delete-concern-id');
+        if (idInput) idInput.value = reportId;
         const modal = document.getElementById('delete-concern-modal');
         if (modal) {
-            modal.style.display = 'flex';
+            modal.classList.add('open');
             document.body.style.overflow = 'hidden';
         }
     }
 
     function closeDeleteConcernModal() {
         const modal = document.getElementById('delete-concern-modal');
-        if (modal) modal.style.display = 'none';
+        if (modal) modal.classList.remove('open');
         document.body.style.overflow = '';
     }
 
