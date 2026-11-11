@@ -1543,13 +1543,15 @@
                                     {% set clean_pp = raw_pp.replace("static/","",1) if raw_pp.startswith("static/") else raw_pp %}
                                     <img src="{{ url_for('static', filename=clean_pp) }}" alt="DP" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
                                 {% else %}
-                                    {{ c.first_name[0] if c.first_name else '?' }}
+                                    {{ (c.first_name[0] if c.first_name and (c.first_name|string)|lower != 'none' else 'A') }}
                                 {% endif %}
                             </div>
                             <div class="post-user">
                                 <div class="post-username">
-                                    {% if c.is_anonymous %}
-                                        Anonymous Resident <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:11px;" title="Verified Anonymous Resident"></i>
+                                    {% set fn_str = (c.first_name|string).strip() if c.first_name else '' %}
+                                    {% set ln_str = (c.last_name|string).strip() if c.last_name else '' %}
+                                    {% if c.is_anonymous or not fn_str or fn_str|lower == 'none' or not ln_str or ln_str|lower == 'none' %}
+                                        Anonymous Person <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:11px;" title="Verified Anonymous Resident"></i>
                                     {% else %}
                                         {{ c.first_name }} {{ c.last_name }}
                                     {% endif %}
@@ -1723,10 +1725,11 @@
                                             <div style="display:flex; flex-direction:column; flex:1; min-width:0;">
                                                 <div class="comment-bubble">
                                                     <div class="comment-author">
-                                                        {% if fb.is_anonymous %}
-                                                            Anonymous Resident <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:10px;" title="Verified Anonymous Resident"></i>
+                                                        {% set raw_fn = (fb.fullname|string).strip() if fb.fullname else '' %}
+                                                        {% if fb.is_anonymous or not raw_fn or raw_fn|lower in ['none', 'none none'] %}
+                                                            Anonymous Person <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:10px;" title="Verified Anonymous Resident"></i>
                                                         {% else %}
-                                                            {{ fb.fullname if fb.fullname else 'User' }}
+                                                            {{ fb.fullname }}
                                                         {% endif %}
                                                     </div>
                                                     <div class="comment-text">{{ fb.feedback }}</div>
@@ -1991,7 +1994,7 @@
                             {% if user and user.account_status == 'Verified' %}
                             <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; font-size:13px; color:var(--text-main);">
                                 <input type="checkbox" id="m-anon-toggle" name="is_anonymous_checkbox" style="width:16px; height:16px; accent-color:var(--primary-red);">
-                                <span>Post anonymously as "Anonymous Resident"</span>
+                                <span>Post anonymously as "Anonymous Person"</span>
                             </label>
                             {% else %}
                             <div style="font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
@@ -3415,10 +3418,13 @@
             // Header
             const cdmAuthor = document.getElementById('cdm-author-name');
             if (cdmAuthor) {
-                if (r.is_anonymous) {
-                    cdmAuthor.innerHTML = 'Anonymous Resident <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:11px;" title="Verified Anonymous Resident"></i>';
+                const rawFn = String(r.first_name || '').trim();
+                const rawLn = String(r.last_name || '').trim();
+                const full = `${rawFn} ${rawLn}`.trim();
+                if (r.is_anonymous || !rawFn || rawFn.toLowerCase() === 'none' || !rawLn || rawLn.toLowerCase() === 'none' || full.toLowerCase() === 'none none') {
+                    cdmAuthor.innerHTML = 'Anonymous Person <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:11px;" title="Verified Anonymous Resident"></i>';
                 } else {
-                    cdmAuthor.textContent = `${r.first_name || ''} ${r.last_name || ''}`.trim() || 'Resident';
+                    cdmAuthor.textContent = full || 'Anonymous Person';
                 }
             }
             
@@ -3536,19 +3542,20 @@
                         let avatarHtml = '';
                         let monoStyle = '';
                         let authorHtml = '';
-                        if (c.is_anonymous) {
+                        const rawFull = String(c.fullname || '').trim();
+                        if (c.is_anonymous || !rawFull || rawFull.toLowerCase() === 'none' || rawFull.toLowerCase() === 'none none') {
                             avatarHtml = '<i class="fas fa-user-secret" style="font-size:13px;color:white;"></i>';
                             monoStyle = 'style="background:#374151;color:white;display:flex;align-items:center;justify-content:center;"';
-                            authorHtml = 'Anonymous Resident <i class="fas fa-shield-alt" style="color:var(--primary-red);font-size:10px;" title="Verified Anonymous Resident"></i>';
+                            authorHtml = 'Anonymous Person <i class="fas fa-shield-alt" style="color:var(--primary-red);font-size:10px;" title="Verified Anonymous Resident"></i>';
                         } else {
-                            const initials = (c.fullname || 'U')[0].toUpperCase();
+                            const initials = (rawFull || 'U')[0].toUpperCase();
                             avatarHtml = initials;
                             if (c.profile_photo) {
                                 const photoStr = String(c.profile_photo).replace(/\bbytearray\(b['"]/g, '').replace(/['"]\)$/g, '').replace(/^b['"]/, '').replace(/['"]$/, '');
                                 const clean = photoStr.replace('static/', '');
                                 avatarHtml = `<img src="/static/${clean}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
                             }
-                            authorHtml = c.fullname || 'Resident';
+                            authorHtml = rawFull;
                         }
                         stream.innerHTML += `
                             <div class="comment-item">

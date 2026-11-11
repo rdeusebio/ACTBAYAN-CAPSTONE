@@ -784,13 +784,15 @@
                                     {% set clean_pp = raw_pp.replace("static/","",1) if raw_pp.startswith("static/") else raw_pp %}
                                     <img src="{{ url_for('static', filename=clean_pp) }}" alt="DP" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
                                 {% else %}
-                                    {{ c.first_name[0] if c.first_name else '?' }}
+                                    {{ (c.first_name[0] if c.first_name and (c.first_name|string)|lower != 'none' else 'A') }}
                                 {% endif %}
                             </div>
                             <div class="post-user">
                                 <div class="post-username">
-                                    {% if c.is_anonymous %}
-                                        Anonymous Resident <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:11px;" title="Verified Anonymous Resident"></i>
+                                    {% set fn_str = (c.first_name|string).strip() if c.first_name else '' %}
+                                    {% set ln_str = (c.last_name|string).strip() if c.last_name else '' %}
+                                    {% if c.is_anonymous or not fn_str or fn_str|lower == 'none' or not ln_str or ln_str|lower == 'none' %}
+                                        Anonymous Person <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:11px;" title="Verified Anonymous Resident"></i>
                                     {% else %}
                                         {{ c.first_name }} {{ c.last_name }}
                                     {% endif %}
@@ -917,7 +919,7 @@
                                     data-location="{{ c.location | e }}"
                                     data-category="{{ c.category | e }}"
                                     data-desc="{{ c.description | e }}"
-                                    data-resident="{{ c.first_name }} {{ c.last_name }}"
+                                    data-resident="{% if c.is_anonymous or not c.first_name or (c.first_name|string)|lower == 'none' %}Anonymous Person{% else %}{{ c.first_name }} {{ c.last_name }}{% endif %}"
                                     data-resident-img="{{ res_img }}"
                                     data-date="{{ c.created_at.strftime('%B %d, %Y') if c.created_at else 'N/A' }}"
                                     data-img="{% if c.image_url %}{{ c.image_url.replace('static/', '') }}{% else %}{% endif %}"

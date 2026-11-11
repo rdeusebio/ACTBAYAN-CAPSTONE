@@ -1315,8 +1315,8 @@ def lgu():
             (SELECT rm.path FROM reports_media rm WHERE rm.report_id = r.report_id LIMIT 1) AS image_url,
             COALESCE(r.category, 'General') AS category,
             cra.activity_type,
-            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE COALESCE(a.first_name, 'Resident') END AS first_name,
-            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Resident' ELSE COALESCE(a.last_name, '') END AS last_name,
+            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE COALESCE(NULLIF(a.first_name, ''), 'Anonymous') END AS first_name,
+            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Person' ELSE COALESCE(NULLIF(a.last_name, ''), 'Person') END AS last_name,
             CASE WHEN cra.activity_type = 'report_created_anon' THEN 1 ELSE 0 END AS is_anonymous,
             '' AS profile_photo
         FROM reports r
@@ -1507,6 +1507,12 @@ def lgu():
             resolved_photos_by_report = {}
 
     for r in reps:
+        fn = str(r.get('first_name') or '').strip()
+        ln = str(r.get('last_name') or '').strip()
+        if not fn or fn.lower() == 'none' or not ln or ln.lower() == 'none' or r.get('is_anonymous'):
+            r['first_name'] = 'Anonymous'
+            r['last_name'] = 'Person'
+            r['is_anonymous'] = 1
         r['resolved_photo'] = resolved_photos_by_report.get(r.get('report_id'), '')
 
     cursor.execute(
@@ -2404,8 +2410,8 @@ def file_concern():
         SELECT r.report_id, r.title, r.description, r.status, r.created_at, r.last_activity,
                r.public_key, r.upvote_count, r.location_id,
                ra.activity_type,
-               CASE WHEN ra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE a.first_name END AS first_name,
-               CASE WHEN ra.activity_type = 'report_created_anon' THEN 'Resident' ELSE a.last_name END AS last_name,
+               CASE WHEN ra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE COALESCE(NULLIF(a.first_name, ''), 'Anonymous') END AS first_name,
+               CASE WHEN ra.activity_type = 'report_created_anon' THEN 'Person' ELSE COALESCE(NULLIF(a.last_name, ''), 'Person') END AS last_name,
                CASE WHEN ra.activity_type = 'report_created_anon' THEN 1 ELSE 0 END AS is_anonymous,
                '' AS profile_photo,
                'owner' AS user_relation,
@@ -2423,8 +2429,8 @@ def file_concern():
         SELECT r.report_id, r.title, r.description, r.status, r.created_at, r.last_activity,
                r.public_key, r.upvote_count, r.location_id,
                cra.activity_type,
-               CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE a.first_name END AS first_name,
-               CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Resident' ELSE a.last_name END AS last_name,
+               CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE COALESCE(NULLIF(a.first_name, ''), 'Anonymous') END AS first_name,
+               CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Person' ELSE COALESCE(NULLIF(a.last_name, ''), 'Person') END AS last_name,
                CASE WHEN cra.activity_type = 'report_created_anon' THEN 1 ELSE 0 END AS is_anonymous,
                '' AS profile_photo,
                'upvoted' AS user_relation,
@@ -2510,8 +2516,8 @@ def file_concern():
                 CASE WHEN f.activity_type = 'feedback_anon' THEN 1 ELSE 0 END AS is_anonymous,
                 COALESCE(r.last_activity, r.created_at) AS uploaded_at,
                 '' AS profile_photo,
-                CASE WHEN f.activity_type = 'feedback_anon' THEN 'Anonymous Resident'
-                     ELSE CONCAT(a.first_name, ' ', a.last_name) END AS fullname
+                CASE WHEN f.activity_type = 'feedback_anon' THEN 'Anonymous Person'
+                     ELSE COALESCE(NULLIF(CONCAT(COALESCE(a.first_name, ''), ' ', COALESCE(a.last_name, '')), ' '), 'Anonymous Person') END AS fullname
             FROM report_activity f
             LEFT JOIN reports r ON r.report_id = f.report_id
             LEFT JOIN accounts a ON a.account_id = f.account_id
@@ -2522,6 +2528,11 @@ def file_concern():
         all_feedbacks = cursor.fetchall()
         now = datetime.now()
         for fb in all_feedbacks:
+            fname = str(fb.get('fullname') or '').strip()
+            if not fname or fname.lower() in ('none', 'none none') or fb.get('is_anonymous'):
+                fb['fullname'] = 'Anonymous Person'
+                fb['is_anonymous'] = 1
+
             if fb.get('uploaded_at'):
                 diff = now - fb['uploaded_at']
                 if diff.days > 7:
@@ -2561,6 +2572,12 @@ def file_concern():
                 break
 
     for c in all_concerns:
+        fn = str(c.get('first_name') or '').strip()
+        ln = str(c.get('last_name') or '').strip()
+        if not fn or fn.lower() == 'none' or not ln or ln.lower() == 'none' or c.get('is_anonymous'):
+            c['first_name'] = 'Anonymous'
+            c['last_name'] = 'Person'
+            c['is_anonymous'] = 1
         c['resolved_photo'] = resolved_photos_by_report.get(c.get('report_id'), '')
 
     # ===== UPVOTES (from reports.upvote_count INT column) =====
@@ -2839,8 +2856,8 @@ def api_report_by_key(public_key):
             r.created_at,
             r.upvote_count,
             cra.activity_type,
-            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE COALESCE(a.first_name, 'Resident') END AS first_name,
-            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Resident' ELSE COALESCE(a.last_name, '') END AS last_name,
+            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE COALESCE(NULLIF(a.first_name, ''), 'Anonymous') END AS first_name,
+            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Person' ELSE COALESCE(NULLIF(a.last_name, ''), 'Person') END AS last_name,
             CASE WHEN cra.activity_type = 'report_created_anon' THEN 1 ELSE 0 END AS is_anonymous,
             '' AS profile_photo,
             CONCAT(l.x, ', ', l.y) AS locname,
@@ -2871,6 +2888,12 @@ def api_report_by_key(public_key):
 
     report['upvote_count'] = int(report.get('upvote_count') or 0)
     report['is_anonymous'] = bool(report.get('is_anonymous'))
+    r_fn = str(report.get('first_name') or '').strip()
+    r_ln = str(report.get('last_name') or '').strip()
+    if not r_fn or r_fn.lower() == 'none' or not r_ln or r_ln.lower() == 'none' or report['is_anonymous']:
+        report['first_name'] = 'Anonymous'
+        report['last_name'] = 'Person'
+        report['is_anonymous'] = True
 
     cursor.execute(
         "SELECT COUNT(*) as count FROM report_activity WHERE activity_type IN ('feedbacks', 'feedback', 'feedback_anon') AND report_id = %s",
@@ -2884,8 +2907,8 @@ def api_report_by_key(public_key):
             f.activity_type,
             CASE WHEN f.activity_type = 'feedback_anon' THEN 1 ELSE 0 END AS is_anonymous,
             COALESCE(r.last_activity, r.created_at) AS uploaded_at,
-            CASE WHEN f.activity_type = 'feedback_anon' THEN 'Anonymous Resident'
-                 ELSE CONCAT(a.first_name, ' ', a.last_name) END AS fullname,
+            CASE WHEN f.activity_type = 'feedback_anon' THEN 'Anonymous Person'
+                 ELSE COALESCE(NULLIF(CONCAT(COALESCE(a.first_name, ''), ' ', COALESCE(a.last_name, '')), ' '), 'Anonymous Person') END AS fullname,
             '' AS profile_photo
         FROM report_activity f
         LEFT JOIN reports r ON r.report_id = f.report_id
@@ -2896,6 +2919,11 @@ def api_report_by_key(public_key):
     """, (report['report_id'],))
     comments = cursor.fetchall()
     for c in comments:
+        fname = str(c.get('fullname') or '').strip()
+        if not fname or fname.lower() in ('none', 'none none') or c.get('is_anonymous'):
+            c['fullname'] = 'Anonymous Person'
+            c['is_anonymous'] = 1
+
         for k, v in list(c.items()):
             if isinstance(v, (bytes, bytearray)):
                 c[k] = v.decode('utf-8', errors='ignore') if v else ""

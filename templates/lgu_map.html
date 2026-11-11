@@ -788,7 +788,8 @@ reportPins.forEach((r, idx) => {
     const cat = r.category ?? 'General';
     const desc = r.description ?? '';
     const imgUrl = r.image_url ?? '';
-    const reporter = r.reporter_name ?? 'Citizen';
+    const rawRep = String(r.reporter_name || '').trim();
+    const reporter = (!rawRep || rawRep.toLowerCase() === 'none none' || rawRep.toLowerCase() === 'none' || r.is_anonymous) ? 'Anonymous Person' : rawRep;
     const dateStr = r.created_at_str ?? 'Recently';
     const color = getStatusColor(status);
     const emoji = getCategoryEmoji(cat);

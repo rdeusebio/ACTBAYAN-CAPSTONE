@@ -1644,7 +1644,8 @@
             const cat = r.category ?? 'General';
             const desc = r.description ?? '';
             const imgUrl = r.image_url ?? '';
-            const reporter = r.reporter_name ?? 'Resident';
+            const rawRep = String(r.reporter_name || '').trim();
+            const reporter = (!rawRep || rawRep.toLowerCase() === 'none none' || rawRep.toLowerCase() === 'none' || r.is_anonymous) ? 'Anonymous Person' : rawRep;
             const dateStr = r.created_at_str ?? 'Recently';
             const public_key = r.public_key ?? '';
             const upvote_count = r.upvote_count ?? 0;
@@ -1986,7 +1987,8 @@
             const cat = report.category ?? 'General';
             const desc = report.description ?? '';
             const imgUrl = report.image_url ?? '';
-            const reporter = report.reporter_name ?? 'Resident';
+            const rawRep = String(report.reporter_name || '').trim();
+            const reporter = (!rawRep || rawRep.toLowerCase() === 'none none' || rawRep.toLowerCase() === 'none' || report.is_anonymous) ? 'Anonymous Person' : rawRep;
             const dateStr = report.created_at_str ?? 'Recently';
             const upvote_count = report.upvote_count ?? 0;
 
