@@ -356,11 +356,16 @@
         .map-layout {
             display: flex;
             flex: 1;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
         }
 
         /* LEFT PANEL */
         .map-sidebar {
             width: 320px;
+            min-width: 320px;
+            max-width: 320px;
             flex-shrink: 0;
             background: var(--bg-nav-card);
             border-right: 1px solid var(--border-color);
@@ -368,44 +373,45 @@
             flex-direction: column;
             height: calc(100vh - 130px);
             overflow: hidden;
-            transition: width 0.3s cubic-bezier(0.16,1,0.3,1), opacity 0.25s ease, margin-left 0.3s ease;
             position: relative;
             z-index: 10;
         }
 
-        .map-sidebar.collapsed {
-            width: 0 !important;
-            min-width: 0 !important;
-            max-width: 0 !important;
-            margin-left: 0 !important;
-            padding: 0 !important;
-            border-right: none !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-            visibility: hidden;
+        @media (min-width: 769px) {
+            .map-sidebar {
+                margin-left: 0;
+                transition: margin-left 0.38s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.38s ease;
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.06);
+                will-change: margin-left;
+            }
+
+            .map-sidebar.collapsed {
+                margin-left: -320px !important;
+                box-shadow: none;
+            }
         }
 
         .sidebar-toggle-btn {
             background: var(--search-bg);
             border: 1.5px solid var(--border-color);
             color: var(--text-muted);
-            width: 32px;
-            height: 32px;
-            border-radius: 9px;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 13px;
-            transition: all 0.2s;
+            font-size: 12px;
+            transition: all 0.2s ease;
             flex-shrink: 0;
         }
 
         .sidebar-toggle-btn:hover {
-            background: var(--icon-hover);
+            background: var(--red-light, rgba(139,0,0,0.08));
             color: var(--primary-red);
             border-color: var(--primary-red);
-            transform: scale(1.05);
+            transform: translateX(-2px);
         }
 
         .map-reopen-sidebar-btn {
@@ -413,9 +419,9 @@
             top: 16px;
             left: 16px;
             z-index: 1001;
-            background: var(--glass-bg, rgba(255,255,255,0.95));
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
+            background: var(--glass-bg, rgba(255,255,255,0.92));
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1.5px solid var(--border-color);
             color: var(--text-main);
             padding: 8px 16px;
@@ -423,20 +429,29 @@
             font-size: 12px;
             font-weight: 700;
             cursor: pointer;
-            display: none;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
             box-shadow: 0 4px 18px rgba(0,0,0,0.12);
-            transition: all 0.2s;
             font-family: 'Inter', sans-serif;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-16px);
+            transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .map-reopen-sidebar-btn.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0);
         }
 
         .map-reopen-sidebar-btn:hover {
             background: var(--bg-nav-card);
             border-color: var(--primary-red);
             color: var(--primary-red);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(139,0,0,0.18);
+            transform: translateX(2px);
+            box-shadow: 0 6px 22px rgba(139,0,0,0.2);
         }
 
         .mobile-drawer-handle { display: none; }
@@ -1486,6 +1501,19 @@
             refreshReportMarkers();
         }
 
+        function smoothMapResize(duration = 420) {
+            const start = performance.now();
+            function step(now) {
+                if (map) map.invalidateSize({ pan: false, debounceMoveEnd: true });
+                if (now - start < duration) {
+                    requestAnimationFrame(step);
+                } else {
+                    if (map) map.invalidateSize({ pan: false });
+                }
+            }
+            requestAnimationFrame(step);
+        }
+
         function toggleMapSidebar() {
             const sb = document.getElementById('mobile-map-sidebar');
             const reopenBtn = document.getElementById('btn-show-map-sidebar');
@@ -1493,13 +1521,16 @@
 
             const isCollapsed = sb.classList.toggle('collapsed');
             if (reopenBtn) {
-                reopenBtn.style.display = isCollapsed ? 'inline-flex' : 'none';
+                if (isCollapsed) {
+                    reopenBtn.classList.add('visible');
+                } else {
+                    reopenBtn.classList.remove('visible');
+                }
             }
 
             localStorage.setItem('actbayan_map_sb_collapsed', isCollapsed ? '1' : '0');
 
-            setTimeout(() => { if (map) map.invalidateSize(); }, 160);
-            setTimeout(() => { if (map) map.invalidateSize(); }, 360);
+            smoothMapResize(420);
         }
 
         // ===== REPORT PINS (from DB via `rloc`) =====
@@ -1961,7 +1992,7 @@
             const sb = document.getElementById('mobile-map-sidebar');
             const reopenBtn = document.getElementById('btn-show-map-sidebar');
             if (sb) sb.classList.add('collapsed');
-            if (reopenBtn) reopenBtn.style.display = 'inline-flex';
+            if (reopenBtn) reopenBtn.classList.add('visible');
             setTimeout(() => { if (map) map.invalidateSize(); }, 200);
         }
 
