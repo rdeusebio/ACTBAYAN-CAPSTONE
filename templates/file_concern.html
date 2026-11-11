@@ -1348,7 +1348,7 @@
                             <span class="post-category cat-{{ c.category|lower|replace(' ', '')|replace('/', '') }}">{{ c.category }}</span>
                             {% if c.user_relation == 'owner' %}
                             <span class="post-relation badge-owner">My Report</span>
-                            {% set lgu_interacted = (c.status|lower != 'pending') or (updates_by_report.get(c.report_id)|length > 0) %}
+                            {% set lgu_interacted = (c.status|lower != 'pending') or (updates_by_report.get(c.report_id, [])|length > 0) %}
                             {% if not lgu_interacted %}
                             <button type="button" class="post-edit-btn" onclick="event.stopPropagation(); openEditConcernModal('{{ c.report_id }}');" title="Edit your concern (Allowed before LGU acknowledgement)">
                                 <i class="fas fa-pen-to-square"></i> Edit
