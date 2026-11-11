@@ -653,7 +653,7 @@
 
                             </select>
 
-                            <button class="btn-primary" type="submit">
+                            <button class="btn-primary" type="submit" onclick="return confirm('Are you sure you want to change the role of {{ u.first_name }} {{ u.last_name }} to ' + this.form.role_id.options[this.form.role_id.selectedIndex].text.trim() + '?');">
                                 Update
                             </button>
 
@@ -694,7 +694,7 @@
                                 <button
                                     class="btn btn-outline"
                                     type="submit"
-                                    onclick="return confirm('Lock this account?');"
+                                    onclick="return confirm('Are you sure you want to BAN and lock the account of {{ u.first_name }} {{ u.last_name }}?');"
                                     title="Ban User"
                                 >
                                     <i class="fas fa-lock"></i>
@@ -716,7 +716,7 @@
                                 <button
                                     class="btn btn-outline"
                                     type="submit"
-                                    onclick="return confirm('Unlock this account?');"
+                                    onclick="return confirm('Are you sure you want to UNBAN and unlock the account of {{ u.first_name }} {{ u.last_name }}?');"
                                     title="Unban User"
                                 >
                                     <i class="fas fa-unlock"></i>
@@ -738,6 +738,7 @@
                                 <button
                                     class="btn btn-warn"
                                     type="submit"
+                                    onclick="return confirm('Are you sure you want to RESTRICT the account of {{ u.first_name }} {{ u.last_name }}?');"
                                     title="Restrict User"
                                 >
                                     <i class="fas fa-user-slash"></i>
@@ -759,7 +760,7 @@
                                 <button
                                     class="btn btn-danger"
                                     type="submit"
-                                    onclick="return confirm('Permanently remove this user? This action cannot be undone.');"
+                                    onclick="return confirm('Are you sure you want to PERMANENTLY REMOVE {{ u.first_name }} {{ u.last_name }}? This action cannot be undone.');"
                                     title="Remove User"
                                 >
                                     <i class="fas fa-trash"></i>

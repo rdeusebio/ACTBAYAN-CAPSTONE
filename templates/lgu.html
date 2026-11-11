@@ -210,6 +210,146 @@
         .status-progress { background: #3b82f6; color: white; }
         .status-resolved { background: #22c55e; color: white; }
 
+        /* ===== PHASE 2: BEFORE & AFTER VISUAL COMPARISON FOR RESOLVED POSTS ===== */
+        .resolved-ba-container {
+            width: 100%;
+            background: var(--bg-nav-card);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+            position: relative;
+        }
+        .resolved-ba-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.05));
+            border-bottom: 1px solid var(--border-color);
+        }
+        .resolved-ba-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #10b981;
+            color: white;
+            font-size: 10.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 3px 10px;
+            border-radius: 50px;
+            box-shadow: 0 2px 6px rgba(16,185,129,0.3);
+        }
+        .resolved-ba-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .resolved-ba-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: stretch;
+            background: #000;
+            min-height: 220px;
+            position: relative;
+        }
+        @media (max-width: 620px) {
+            .resolved-ba-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .resolved-ba-card {
+            position: relative;
+            min-height: 220px;
+            height: 240px;
+            overflow: hidden;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            background: #0f172a;
+        }
+        .resolved-ba-card img, .resolved-ba-card video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0;
+            transition: transform 0.35s ease;
+        }
+        .resolved-ba-card:hover img {
+            transform: scale(1.04);
+        }
+        .resolved-ba-tag {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 3;
+            font-size: 10.5px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .tag-before {
+            background: #dc2626;
+            color: white;
+        }
+        .tag-after {
+            background: #16a34a;
+            color: white;
+        }
+        .resolved-ba-footer {
+            position: relative;
+            z-index: 2;
+            padding: 8px 12px;
+            background: linear-gradient(to top, rgba(0,0,0,0.88), rgba(0,0,0,0.4) 65%, transparent);
+            color: white;
+            font-size: 11.5px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .resolved-ba-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-nav-card);
+            width: 38px;
+            z-index: 4;
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+        }
+        @media (max-width: 620px) {
+            .resolved-ba-divider {
+                width: 100%;
+                height: 32px;
+                border-top: 1px solid var(--border-color);
+                border-bottom: 1px solid var(--border-color);
+                border-left: none;
+                border-right: none;
+            }
+        }
+        .resolved-ba-divider-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #10b981;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            box-shadow: 0 2px 8px rgba(16,185,129,0.35);
+        }
+
         .post-body { padding: 14px 18px; }
         .post-title { font-size: 16px; font-weight: 800; color: var(--text-main); margin: 0 0 8px 0; }
         .post-caption { font-size: 14px; line-height: 1.6; color: var(--text-muted); margin-bottom: 12px; }
@@ -660,7 +800,58 @@
                             <span class="post-category cat-{{ c.category|lower|replace(' ', '')|replace('/', '') }}">{{ c.category }}</span>
                         </div>
 
-                        {% if c.image_url %}
+                        {% if c.status|lower == 'resolved' %}
+                        {# ===== PHASE 2: BEFORE & AFTER VISUAL COMPARISON FOR RESOLVED POSTS ===== #}
+                        <div class="resolved-ba-container">
+                            <div class="resolved-ba-header">
+                                <span class="resolved-ba-pill"><i class="fas fa-check-circle"></i> Resolved Issue</span>
+                                <span class="resolved-ba-label"><i class="fas fa-columns"></i> Before &amp; After Comparison</span>
+                            </div>
+                            <div class="resolved-ba-grid">
+                                <!-- BEFORE CARD -->
+                                {% set _cov = (c.image_url|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
+                                {% set _cov_url = url_for('static', filename=_cov.replace('static/', '')) if _cov else '' %}
+                                <div class="resolved-ba-card" onclick="openLightbox('{{ _cov_url }}', 'Before: Initial Report', 'image')">
+                                    <span class="resolved-ba-tag tag-before"><i class="fas fa-clock"></i> Before</span>
+                                    {% if _cov %}
+                                    <img src="{{ _cov_url }}" alt="Before: Initial Report" loading="lazy">
+                                    {% else %}
+                                    <div style="height:100%; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:12px;">No initial photo</div>
+                                    {% endif %}
+                                    <div class="resolved-ba-footer">
+                                        <span>Resident Initial Report</span>
+                                        <i class="fas fa-search-plus" style="opacity:0.8;"></i>
+                                    </div>
+                                </div>
+
+                                <div class="resolved-ba-divider">
+                                    <div class="resolved-ba-divider-icon">
+                                        <i class="fas fa-arrow-right"></i>
+                                    </div>
+                                </div>
+
+                                <!-- AFTER CARD -->
+                                {% set _res_p = (c.resolved_photo|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if c.resolved_photo else '' %}
+                                {% set _res_url = url_for('static', filename=_res_p.replace('static/', '')) if _res_p else '' %}
+                                <div class="resolved-ba-card" onclick="openLightbox('{{ _res_url or _cov_url }}', 'After: Resolved by LGU', 'image')">
+                                    <span class="resolved-ba-tag tag-after"><i class="fas fa-check"></i> After</span>
+                                    {% if _res_p %}
+                                    <img src="{{ _res_url }}" alt="After: Resolved by LGU" loading="lazy">
+                                    {% else %}
+                                    <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#10b981; padding:20px; text-align:center;">
+                                        <i class="fas fa-shield-alt" style="font-size:36px; margin-bottom:8px;"></i>
+                                        <span style="font-weight:800; font-size:13px; color:white;">Resolved by LGU</span>
+                                        <small style="color:#94a3b8; font-size:11px;">Verified On-Site</small>
+                                    </div>
+                                    {% endif %}
+                                    <div class="resolved-ba-footer">
+                                        <span style="color:#4ade80;">LGU Resolution Proof</span>
+                                        <i class="fas fa-search-plus" style="opacity:0.8;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% elif c.image_url %}
                         {# ===== FB-STYLE COLLAGE: cover (image_url) + extras (reports_media) ===== #}
                         {% set _cover = (c.image_url|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
                         {% set _extras_raw = media_by_report.get(c.report_id, []) if media_by_report is defined else [] %}
@@ -730,6 +921,9 @@
                                     data-resident-img="{{ res_img }}"
                                     data-date="{{ c.created_at.strftime('%B %d, %Y') if c.created_at else 'N/A' }}"
                                     data-img="{% if c.image_url %}{{ c.image_url.replace('static/', '') }}{% else %}{% endif %}"
+                                    data-lat="{{ c.lat or '' }}"
+                                    data-lng="{{ c.lng or '' }}"
+                                    data-resolved-photo="{% if c.resolved_photo %}{{ c.resolved_photo.replace('static/', '') }}{% else %}{% endif %}"
                                     data-upvotes="{{ upvote_counts.get(c.report_id, 0) }}"
                                     data-comments="{{ feedback_counts_by_report.get(c.report_id, 0) }}"
                                     onclick="event.preventDefault(); opReportUpdate(this)" 
@@ -946,8 +1140,11 @@
                         </div>
                     </div>
 
-                    <form id="lgu-update-form" action="/lgu" method="POST" enctype="multipart/form-data" onsubmit="const b=this.querySelector('#post-update-btn'); if(b){ b.disabled=true; b.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Posting Update...'; }" style="display:flex;flex-direction:column;gap:14px;">
+                    <form id="lgu-update-form" action="/lgu" method="POST" enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:14px;">
                         <input type="hidden" name="report_id" id="update-report-id">
+                        <input type="hidden" name="lgu_lat" id="update-lgu-lat">
+                        <input type="hidden" name="lgu_lng" id="update-lgu-lng">
+                        <input type="hidden" name="onsite_distance" id="update-onsite-dist">
 
                         <!-- New status -->
                         <div>
@@ -955,28 +1152,77 @@
                             <select id="update-status" name="update_status" required style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border-color);background:var(--bg-nav-card);font-family:'Inter';font-size:13px;font-weight:600;color:var(--text-main);outline:none;cursor:pointer;transition:all 0.2s;" onfocus="this.style.borderColor='#8b0000';this.style.boxShadow='0 0 0 3px rgba(139,0,0,0.1)'" onblur="this.style.borderColor='var(--border-color)';this.style.boxShadow='none'">
                                 <option value="Pending">⏳ Pending</option>
                                 <option value="In Progress">🔄 In Progress</option>
+                                <option value="Resolved">✅ Resolved</option>
                                 <option value="Denied">❌ Denied</option>
                             </select>
+                        </div>
+
+                        <!-- On-Site GPS Verification Card -->
+                        <div id="lgu-gps-panel" style="padding:12px 14px;border-radius:10px;border:1.5px solid var(--border-color);background:var(--search-bg);display:flex;flex-direction:column;gap:7px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;">
+                                <span style="font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:inline-flex;align-items:center;gap:5px;">
+                                    <i class="fas fa-location-crosshairs" style="color:var(--primary-red);"></i> Strict On-Site GPS Check
+                                </span>
+                                <button type="button" onclick="lguTriggerGPS()" style="background:transparent;border:none;color:var(--primary-red);font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                                    <i class="fas fa-sync-alt" id="gps-spin-icon"></i> Check GPS
+                                </button>
+                            </div>
+                            <div id="lgu-gps-badge" style="font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;color:#d97706;">
+                                <i class="fas fa-satellite fa-spin"></i> Ready to check on-site location
+                            </div>
+                            <div id="lgu-gps-sub" style="font-size:11px;color:var(--text-muted);line-height:1.4;">
+                                Prompt device location to verify proximity (within 500m) to reported incident.
+                            </div>
                         </div>
 
                         <!-- Message -->
                         <div>
                             <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:7px;"><i class="fas fa-align-left" style="color:#8b0000;margin-right:4px;"></i>Documentation / Message</label>
-                            <textarea id="update-text" name="update_description" required rows="5" placeholder="Describe what action was taken, current situation, or reason for denial..." style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border-color);background:var(--bg-nav-card);font-family:'Inter';font-size:13px;color:var(--text-main);resize:vertical;outline:none;line-height:1.5;transition:all 0.2s;" onfocus="this.style.borderColor='#8b0000';this.style.boxShadow='0 0 0 3px rgba(139,0,0,0.1)'" onblur="this.style.borderColor='var(--border-color)';this.style.boxShadow='none'"></textarea>
+                            <textarea id="update-text" name="update_description" required rows="4" placeholder="Describe action taken, current situation, or resolution details..." style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border-color);background:var(--bg-nav-card);font-family:'Inter';font-size:13px;color:var(--text-main);resize:vertical;outline:none;line-height:1.5;transition:all 0.2s;" onfocus="this.style.borderColor='#8b0000';this.style.boxShadow='0 0 0 3px rgba(139,0,0,0.1)'" onblur="this.style.borderColor='var(--border-color)';this.style.boxShadow='none'"></textarea>
                         </div>
 
-                        <!-- Photo upload -->
+                        <!-- Real-Time Camera Proof (Gallery Upload Strictly Prohibited) -->
                         <div>
-                            <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);display:block;margin-bottom:7px;"><i class="fas fa-camera" style="color:#8b0000;margin-right:4px;"></i>Attach Photo Proof</label>
-                            <label style="display:block;border:2px dashed var(--border-color);border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:var(--search-bg);transition:all 0.2s;" onmouseover="this.style.borderColor='#8b0000'" onmouseout="this.style.borderColor='var(--border-color)'">
-                                <input type="file" id="update-photo" name="update_photo" accept="image/*" style="display:none;" onclick="if(!this.dataset.prompting){ event.preventDefault(); showCameraGalleryPrompt(this); }" onchange="lguPreviewPhoto(this)">
-                                <i id="lgu-upload-icon" class="fas fa-cloud-upload-alt" style="font-size:20px;color:var(--text-muted);display:block;margin-bottom:6px;"></i>
-                                <div id="lgu-upload-text" style="font-size:12px;color:var(--text-muted);font-weight:600;">Click to upload photo evidence</div>
-                                <div style="font-size:10px;color:var(--text-muted);opacity:0.7;margin-top:3px;">JPG, PNG, WEBP — max 10MB</div>
-                            </label>
-                            <div id="lgu-photo-preview-wrap" style="display:none;margin-top:10px;border-radius:10px;overflow:hidden;position:relative;">
-                                <img id="lgu-photo-preview" src="" style="width:100%;max-height:130px;object-fit:cover;display:block;">
-                                <button type="button" onclick="lguRemovePhoto()" style="position:absolute;top:7px;right:7px;background:rgba(0,0,0,0.6);color:white;border:none;padding:4px 10px;border-radius:50px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter';"><i class="fas fa-trash"></i> Remove</button>
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
+                                <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);margin:0;"><i class="fas fa-camera" style="color:#8b0000;margin-right:4px;"></i>Real-Time Camera Proof</label>
+                                <span style="font-size:9.5px;font-weight:800;color:#dc2626;background:rgba(220,38,38,0.1);padding:2px 7px;border-radius:4px;"><i class="fas fa-ban"></i> Gallery Upload Prohibited</span>
+                            </div>
+
+                            <!-- Hardware Camera Input -->
+                            <input type="file" id="update-photo" name="update_photo" accept="image/*" capture="environment" style="display:none;" onchange="lguHandleCameraPhoto(this)">
+
+                            <!-- Camera Trigger Button -->
+                            <div id="lgu-camera-trigger" onclick="lguStartCameraCapture()" style="border:2px dashed var(--border-color);border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;background:var(--search-bg);transition:all 0.2s;" onmouseover="this.style.borderColor='#8b0000'" onmouseout="this.style.borderColor='var(--border-color)'">
+                                <div style="width:40px;height:40px;border-radius:50%;background:rgba(220,38,38,0.1);color:var(--primary-red);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:16px;">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                                <div style="font-size:12.5px;color:var(--text-main);font-weight:800;">Capture Live Camera Photo</div>
+                                <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px;">Strict real-time camera viewfinder — gallery disabled</div>
+                            </div>
+
+                            <!-- WebRTC Live Video Viewfinder Box -->
+                            <div id="lgu-live-cam-box" style="display:none;margin-top:10px;border-radius:10px;overflow:hidden;position:relative;background:#000;border:1.5px solid var(--border-color);">
+                                <video id="lgu-live-video" autoplay playsinline muted style="width:100%;height:190px;object-fit:cover;display:block;"></video>
+                                <div style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.75);color:#4ade80;font-size:10px;font-weight:800;padding:3px 8px;border-radius:4px;display:flex;align-items:center;gap:4px;">
+                                    <span style="width:6px;height:6px;border-radius:50%;background:#ef4444;"></span> LIVE CAMERA
+                                </div>
+                                <div style="position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:10px;z-index:10;">
+                                    <button type="button" onclick="lguSnapLiveVideo()" style="background:#ffffff;color:#111;border:none;padding:8px 16px;border-radius:50px;font-weight:800;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(0,0,0,0.5);font-family:'Inter';">
+                                        <i class="fas fa-camera" style="color:#dc2626;"></i> Snap Proof
+                                    </button>
+                                    <button type="button" onclick="lguStopLiveVideo()" style="background:rgba(0,0,0,0.65);color:#fff;border:none;padding:8px 14px;border-radius:50px;font-weight:700;font-size:11.5px;cursor:pointer;font-family:'Inter';">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Captured Photo Preview -->
+                            <div id="lgu-photo-preview-wrap" style="display:none;margin-top:10px;border-radius:10px;overflow:hidden;position:relative;border:1.5px solid #10b981;">
+                                <img id="lgu-photo-preview" src="" style="width:100%;max-height:140px;object-fit:cover;display:block;">
+                                <div style="position:absolute;top:8px;left:8px;background:rgba(16,185,129,0.92);color:white;font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:4px;display:flex;align-items:center;gap:4px;">
+                                    <i class="fas fa-check-circle"></i> Camera Photo Verified
+                                </div>
+                                <button type="button" onclick="lguRemovePhoto()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.7);color:white;border:none;padding:4px 10px;border-radius:50px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:'Inter';"><i class="fas fa-redo"></i> Retake</button>
                             </div>
                         </div>
 
@@ -1557,9 +1803,210 @@
     function closeLguModal() {
         document.getElementById('lgu-update-modal').style.display = 'none';
         document.body.style.overflow = '';
+        lguStopLiveVideo();
+    }
+
+    let currentReportLat = null;
+    let currentReportLng = null;
+    let liveVideoStream = null;
+    window._lguOnSiteVerified = null;
+
+    function lguTriggerGPS() {
+        const badge = document.getElementById('lgu-gps-badge');
+        const sub = document.getElementById('lgu-gps-sub');
+        const spin = document.getElementById('gps-spin-icon');
+        if (spin) spin.classList.add('fa-spin');
+
+        if (badge) {
+            badge.style.color = '#d97706';
+            badge.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Detecting device GPS location...';
+        }
+
+        if (!navigator.geolocation) {
+            if (badge) {
+                badge.style.color = '#ef4444';
+                badge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Geolocation not supported by browser.';
+            }
+            if (spin) spin.classList.remove('fa-spin');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                if (spin) spin.classList.remove('fa-spin');
+                const myLat = pos.coords.latitude;
+                const myLng = pos.coords.longitude;
+                const latInp = document.getElementById('update-lgu-lat');
+                const lngInp = document.getElementById('update-lgu-lng');
+                const distInp = document.getElementById('update-onsite-dist');
+                if (latInp) latInp.value = myLat;
+                if (lngInp) lngInp.value = myLng;
+
+                if (currentReportLat && currentReportLng && !isNaN(parseFloat(currentReportLat)) && !isNaN(parseFloat(currentReportLng))) {
+                    const dist = haversineDistanceMeters(myLat, myLng, parseFloat(currentReportLat), parseFloat(currentReportLng));
+                    if (distInp) distInp.value = Math.round(dist);
+
+                    if (dist <= 500) {
+                        window._lguOnSiteVerified = true;
+                        if (badge) {
+                            badge.style.color = '#10b981';
+                            badge.innerHTML = `<i class="fas fa-check-circle"></i> 🟢 On-Site Verified (${Math.round(dist)}m from report)`;
+                        }
+                        if (sub) sub.innerHTML = `LGU GPS: ${myLat.toFixed(5)}, ${myLng.toFixed(5)} — On-site location confirmed.`;
+                    } else {
+                        window._lguOnSiteVerified = false;
+                        if (badge) {
+                            badge.style.color = '#ef4444';
+                            const distTxt = dist >= 1000 ? (dist/1000).toFixed(1) + 'km' : Math.round(dist) + 'm';
+                            badge.innerHTML = `<i class="fas fa-times-circle"></i> 🔴 Out of Range (${distTxt} away)`;
+                        }
+                        if (sub) sub.innerHTML = `<span style="color:#ef4444;font-weight:700;">Resolution warning:</span> Device location must be within 500m of the reported incident.`;
+                    }
+                } else {
+                    window._lguOnSiteVerified = true;
+                    if (badge) {
+                        badge.style.color = '#10b981';
+                        badge.innerHTML = `<i class="fas fa-check-circle"></i> 🟢 GPS Recorded (${myLat.toFixed(5)}, ${myLng.toFixed(5)})`;
+                    }
+                    if (sub) sub.innerHTML = `Device coordinates logged for resolution verification.`;
+                }
+            },
+            function(err) {
+                if (spin) spin.classList.remove('fa-spin');
+                if (badge) {
+                    badge.style.color = '#ef4444';
+                    badge.innerHTML = '<i class="fas fa-exclamation-circle"></i> GPS location access required.';
+                }
+                if (sub) sub.innerHTML = 'Please enable location permissions on your device to verify on-site presence.';
+            },
+            { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+        );
+    }
+
+    function haversineDistanceMeters(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    function lguStartCameraCapture() {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+            }).then(function(stream) {
+                liveVideoStream = stream;
+                const video = document.getElementById('lgu-live-video');
+                if (video) {
+                    video.srcObject = stream;
+                    video.play();
+                }
+                const camBox = document.getElementById('lgu-live-cam-box');
+                const trigger = document.getElementById('lgu-camera-trigger');
+                if (camBox) camBox.style.display = 'block';
+                if (trigger) trigger.style.display = 'none';
+            }).catch(function(err) {
+                const photoInput = document.getElementById('update-photo');
+                if (photoInput) photoInput.click();
+            });
+        } else {
+            const photoInput = document.getElementById('update-photo');
+            if (photoInput) photoInput.click();
+        }
+    }
+
+    function lguStopLiveVideo() {
+        if (liveVideoStream) {
+            liveVideoStream.getTracks().forEach(t => t.stop());
+            liveVideoStream = null;
+        }
+        const camBox = document.getElementById('lgu-live-cam-box');
+        if (camBox) camBox.style.display = 'none';
+        const prevWrap = document.getElementById('lgu-photo-preview-wrap');
+        const trigger = document.getElementById('lgu-camera-trigger');
+        if (trigger && (!prevWrap || prevWrap.style.display === 'none')) {
+            trigger.style.display = 'block';
+        }
+    }
+
+    function lguSnapLiveVideo() {
+        const video = document.getElementById('lgu-live-video');
+        if (!video) return;
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(function(blob) {
+            const file = new File([blob], `onsite_resolved_${Date.now()}.jpg`, { type: 'image/jpeg' });
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            const photoInput = document.getElementById('update-photo');
+            if (photoInput) photoInput.files = dt.files;
+
+            const preview = document.getElementById('lgu-photo-preview');
+            const prevWrap = document.getElementById('lgu-photo-preview-wrap');
+            if (preview) preview.src = canvas.toDataURL('image/jpeg');
+            if (prevWrap) prevWrap.style.display = 'block';
+            lguStopLiveVideo();
+        }, 'image/jpeg', 0.92);
+    }
+
+    function lguHandleCameraPhoto(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('lgu-photo-preview');
+                const prevWrap = document.getElementById('lgu-photo-preview-wrap');
+                const trigger = document.getElementById('lgu-camera-trigger');
+                if (preview) preview.src = e.target.result;
+                if (prevWrap) prevWrap.style.display = 'block';
+                if (trigger) trigger.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function lguRemovePhoto() {
+        lguStopLiveVideo();
+        const photoInput = document.getElementById('update-photo');
+        if (photoInput) photoInput.value = '';
+        const preview = document.getElementById('lgu-photo-preview');
+        if (preview) preview.src = '';
+        const prevWrap = document.getElementById('lgu-photo-preview-wrap');
+        if (prevWrap) prevWrap.style.display = 'none';
+        const trigger = document.getElementById('lgu-camera-trigger');
+        if (trigger) trigger.style.display = 'block';
     }
 
     function resolveReport() {
+        const photoInput = document.getElementById('update-photo');
+        const hasPhoto = photoInput && photoInput.files && photoInput.files.length > 0;
+        if (!hasPhoto) {
+            alert("Real-time camera photo proof is strictly required before marking a report as Resolved.");
+            return;
+        }
+
+        const latVal = document.getElementById('update-lgu-lat').value;
+        if (!latVal) {
+            alert("Device GPS location is required to verify on-site resolution. Please click 'Check GPS' and ensure location access is enabled.");
+            return;
+        }
+
+        if (window._lguOnSiteVerified === false) {
+            const confirmAnyway = confirm("Location Warning: You appear to be further than 500m away from the reported incident location.\n\nAre you sure you want to proceed with resolving this report?");
+            if (!confirmAnyway) return;
+        } else {
+            const confirmResolve = confirm("Are you sure you want to mark this report as RESOLVED with the verified on-site camera proof and GPS coordinates?");
+            if (!confirmResolve) return;
+        }
+
         const sel = document.getElementById('update-status');
         let opt = Array.from(sel.options).find(o => o.value === 'Resolved');
         if (!opt) {
@@ -1569,6 +2016,12 @@
             sel.add(opt);
         }
         sel.value = 'Resolved';
+
+        const desc = document.getElementById('update-text');
+        if (desc && !desc.value.trim()) {
+            desc.value = "Issue addressed and resolved on-site with real-time camera proof and GPS verification.";
+        }
+
         const resBtn = document.getElementById('resolve-btn');
         if (resBtn) {
             resBtn.disabled = true;
@@ -1583,20 +2036,25 @@
         document.getElementById('update-report-id').value = d.id;
         document.getElementById('update-status').value = d.status; // Pre-select current status
         document.getElementById('update-text').value = '';
-        document.getElementById('update-photo').value = '';
         lguRemovePhoto();
 
-        // NEW LOGIC: Disable the Resolve button if status is Pending
-    const resolveBtn = document.getElementById('resolve-btn');
-    if (d.status === 'Pending') {
-        resolveBtn.disabled = true;
-        resolveBtn.style.opacity = '0.45';
-        resolveBtn.style.cursor = 'not-allowed';
-    } else {
-        resolveBtn.disabled = false;
-        resolveBtn.style.opacity = '1';
-        resolveBtn.style.cursor = 'pointer';
-    }
+        // Target coordinates from original report
+        currentReportLat = d.lat || null;
+        currentReportLng = d.lng || null;
+        window._lguOnSiteVerified = null;
+        lguTriggerGPS();
+
+        // Disable the Resolve button if status is Pending
+        const resolveBtn = document.getElementById('resolve-btn');
+        if (d.status === 'Pending') {
+            resolveBtn.disabled = true;
+            resolveBtn.style.opacity = '0.45';
+            resolveBtn.style.cursor = 'not-allowed';
+        } else {
+            resolveBtn.disabled = false;
+            resolveBtn.style.opacity = '1';
+            resolveBtn.style.cursor = 'pointer';
+        }
 
         // Header
         document.getElementById('lgu-modal-header-title').textContent = d.title;
@@ -1763,29 +2221,7 @@
         }
     }
 
-    function lguPreviewPhoto(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                document.getElementById('lgu-photo-preview').src = e.target.result;
-                document.getElementById('lgu-photo-preview-wrap').style.display = 'block';
-                document.getElementById('lgu-upload-icon').className = 'fas fa-check-circle';
-                document.getElementById('lgu-upload-icon').style.color = 'var(--primary-red)';
-                document.getElementById('lgu-upload-text').textContent = input.files[0].name;
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
 
-    function lguRemovePhoto() {
-        document.getElementById('lgu-photo-preview-wrap').style.display = 'none';
-        document.getElementById('lgu-photo-preview').src = '';
-        document.getElementById('lgu-upload-icon').className = 'fas fa-cloud-upload-alt';
-        document.getElementById('lgu-upload-icon').style.color = 'var(--text-muted)';
-        document.getElementById('lgu-upload-text').textContent = 'Click to upload photo evidence';
-        const inp = document.getElementById('update-photo');
-        if (inp) inp.value = '';
-    }
 
     // ===== AJAX COMMENT SUBMISSION (SMOOTH & NO PAGE RESET) =====
     document.addEventListener('submit', async function(e) {

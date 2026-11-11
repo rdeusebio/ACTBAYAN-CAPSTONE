@@ -1309,6 +1309,9 @@ def lgu():
     sql_reps = f"""
         SELECT
             r.*,
+            l.x AS lat,
+            l.y AS lng,
+            COALESCE(NULLIF(l.locname, ''), CONCAT(l.x, ', ', l.y)) AS locname,
             (SELECT rm.path FROM reports_media rm WHERE rm.report_id = r.report_id LIMIT 1) AS image_url,
             COALESCE(r.category, 'General') AS category,
             cra.activity_type,
@@ -1317,6 +1320,7 @@ def lgu():
             CASE WHEN cra.activity_type = 'report_created_anon' THEN 1 ELSE 0 END AS is_anonymous,
             '' AS profile_photo
         FROM reports r
+        LEFT JOIN location l ON r.location_id = l.location_id
         LEFT JOIN (
             SELECT report_id, MIN(account_id) AS account_id, MIN(activity_type) AS activity_type
             FROM report_activity
@@ -1335,6 +1339,20 @@ def lgu():
         if not report_id or not description:
             return redirect(url_for('lgu'))
 
+        status = data.get('update_status')
+
+        # Phase 2: On-site GPS coordinate verification logging
+        lgu_lat = data.get('lgu_lat')
+        lgu_lng = data.get('lgu_lng')
+        onsite_distance = data.get('onsite_distance')
+        if lgu_lat and lgu_lng:
+            try:
+                dist_num = round(float(onsite_distance)) if onsite_distance else None
+                dist_str = f"{dist_num}m away" if dist_num is not None else "location verified"
+                description += f"\n\n[📍 Verified On-Site: {dist_str} | GPS: {lgu_lat}, {lgu_lng}]"
+            except Exception:
+                description += f"\n\n[📍 GPS Recorded: {lgu_lat}, {lgu_lng}]"
+
         image_url = None
         update_photo = request.files.get('update_photo')
         if update_photo and update_photo.filename:
@@ -1343,6 +1361,11 @@ def lgu():
             filepath = f"static/uploads/{filename}"
             update_photo.save(filepath)
             image_url = filepath
+
+        # Phase 2: If marking as Resolved, photo proof captured on-site is strictly required
+        if status == 'Resolved' and not image_url:
+            flash("Real-time photo proof captured on-site is strictly required to resolve a concern.", "error")
+            return redirect(url_for('lgu'))
 
         con = connect_db()
         cursor = con.cursor()
@@ -1461,6 +1484,31 @@ def lgu():
         for row in cursor.fetchall():
             user_upvoted.add(row['report_id'])
 
+    # Phase 2: Fetch resolution ("After") photos for reports
+    resolved_photos_by_report = {}
+    if report_ids:
+        try:
+            _lgu_ph = ",".join(["%s"] * len(report_ids))
+            cursor.execute(
+                f"""
+                SELECT rp.report_id, am.path
+                FROM report_activity rp
+                JOIN activity_media am ON am.activity_id = rp.activity_id
+                WHERE rp.activity_type = 'report_update' AND rp.report_id IN ({_lgu_ph})
+                ORDER BY rp.activity_id DESC
+                """,
+                tuple(report_ids)
+            )
+            for row in cursor.fetchall():
+                rid = row.get('report_id')
+                if rid not in resolved_photos_by_report and row.get('path'):
+                    resolved_photos_by_report[rid] = row.get('path')
+        except Exception:
+            resolved_photos_by_report = {}
+
+    for r in reps:
+        r['resolved_photo'] = resolved_photos_by_report.get(r.get('report_id'), '')
+
     cursor.execute(
         "SELECT first_name, last_name, '' AS profile_photo FROM accounts WHERE account_id = %s",
         (account_id,)
@@ -1476,6 +1524,7 @@ def lgu():
         feedback_counts_by_report=feedback_counts_by_report,
         upvote_counts=upvote_counts,
         user_upvoted=user_upvoted,
+        resolved_photos_by_report=resolved_photos_by_report,
         user=user_data,
         sort=sort
     )
@@ -2301,6 +2350,20 @@ def file_concern():
                     return jsonify({'success': True, 'message': 'Comment sent successfully!'})
 
         else:
+            # Phase 2: Strictly require at least one photo attachment. Text-only reports are no longer allowed.
+            if not saved_paths:
+                con.close()
+                wants_json = (
+                    request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+                    or 'application/json' in (request.headers.get('Accept') or '')
+                    or request.args.get('format') == 'json'
+                )
+                err_msg = 'A photo attachment is required. Text-only reports are no longer allowed.'
+                if wants_json:
+                    return jsonify({'success': False, 'message': err_msg}), 400
+                flash(err_msg, 'error')
+                return redirect(url_for('file_concern'))
+
             # 1. Insert coordinates + location name into location (x, y, locname)
             cursor.execute("INSERT INTO location (x, y, locname) VALUES (%s, %s, %s)", (geox, geoy, locname))
             location_id = cursor.lastrowid
@@ -2489,6 +2552,17 @@ def file_concern():
             continue
         updates_by_report.setdefault(rid, []).append(upd)
 
+    # Phase 2: Find "After" resolution proof photo for Resolved concerns
+    resolved_photos_by_report = {}
+    for rid, upds in updates_by_report.items():
+        for u in upds:
+            if u.get('image_url'):
+                resolved_photos_by_report[rid] = u.get('image_url')
+                break
+
+    for c in all_concerns:
+        c['resolved_photo'] = resolved_photos_by_report.get(c.get('report_id'), '')
+
     # ===== UPVOTES (from reports.upvote_count INT column) =====
     upvote_counts = {c['report_id']: int(c.get('upvote_count') or 0) for c in all_concerns if c.get('report_id') is not None}
     user_upvoted = set()
@@ -2524,6 +2598,7 @@ def file_concern():
         feedback_counts_by_report=feedback_counts_by_report,
         upvote_counts=upvote_counts,
         user_upvoted=user_upvoted,
+        resolved_photos_by_report=resolved_photos_by_report,
         user=user_data
     )
 
@@ -3319,6 +3394,7 @@ def barangay_map():
             COALESCE(r.category, 'General') AS category, 
             r.description, 
             (SELECT rm.path FROM reports_media rm WHERE rm.report_id = r.report_id LIMIT 1) AS image_url, 
+            (SELECT am.path FROM report_activity rp JOIN activity_media am ON am.activity_id = rp.activity_id WHERE rp.report_id = r.report_id AND rp.activity_type = 'report_update' ORDER BY rp.activity_id DESC LIMIT 1) AS resolved_photo,
             r.status, 
             r.public_key,
             r.upvote_count,
@@ -3688,6 +3764,7 @@ def lgu_map():
             COALESCE(r.category, 'General') AS category, 
             r.description, 
             (SELECT rm.path FROM reports_media rm WHERE rm.report_id = r.report_id LIMIT 1) AS image_url, 
+            (SELECT am.path FROM report_activity rp JOIN activity_media am ON am.activity_id = rp.activity_id WHERE rp.report_id = r.report_id AND rp.activity_type = 'report_update' ORDER BY rp.activity_id DESC LIMIT 1) AS resolved_photo,
             r.status, 
             r.public_key,
             r.upvote_count,

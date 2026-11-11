@@ -449,7 +449,7 @@
                                                 <form action="{{ url_for('verify_user') }}" method="POST">
                                                     <input type="hidden" name="account_id" value="{{ u.account_id }}">
                                                     <input type="hidden" name="action" value="revoke">
-                                                    <button type="submit" class="btn-reject" style="background:var(--search-bg); color:var(--text-muted); border:1px solid var(--border-color);" onclick="return confirm('Revoke verification for this resident?')">
+                                                    <button type="submit" class="btn-reject" style="background:var(--search-bg); color:var(--text-muted); border:1px solid var(--border-color);" onclick="return confirm('Are you sure you want to REVOKE verification for resident {{ u.first_name }} {{ u.last_name }}?');">
                                                         <i class="fas fa-undo"></i> Revoke
                                                     </button>
                                                 </form>
@@ -457,18 +457,18 @@
                                                 <form action="{{ url_for('verify_user') }}" method="POST">
                                                     <input type="hidden" name="account_id" value="{{ u.account_id }}">
                                                     <input type="hidden" name="action" value="accept">
-                                                    <button type="submit" class="btn-accept"><i class="fas fa-check"></i> Re-approve</button>
+                                                    <button type="submit" class="btn-accept" onclick="return confirm('Are you sure you want to RE-APPROVE registration for resident {{ u.first_name }} {{ u.last_name }}?');"><i class="fas fa-check"></i> Re-approve</button>
                                                 </form>
                                             {% else %}
                                                 <form action="{{ url_for('verify_user') }}" method="POST">
                                                     <input type="hidden" name="account_id" value="{{ u.account_id }}">
                                                     <input type="hidden" name="action" value="accept">
-                                                    <button type="submit" class="btn-accept" title="Approve resident registration"><i class="fas fa-check"></i> Accept</button>
+                                                    <button type="submit" class="btn-accept" title="Approve resident registration" onclick="return confirm('Are you sure you want to APPROVE registration for resident {{ u.first_name }} {{ u.last_name }}?');"><i class="fas fa-check"></i> Accept</button>
                                                 </form>
                                                 <form action="{{ url_for('verify_user') }}" method="POST">
                                                     <input type="hidden" name="account_id" value="{{ u.account_id }}">
                                                     <input type="hidden" name="action" value="reject">
-                                                    <button type="submit" class="btn-reject" onclick="return confirm('Are you sure you want to reject this registration?')"><i class="fas fa-times"></i> Reject</button>
+                                                    <button type="submit" class="btn-reject" onclick="return confirm('Are you sure you want to REJECT registration for resident {{ u.first_name }} {{ u.last_name }}?');"><i class="fas fa-times"></i> Reject</button>
                                                 </form>
                                             {% endif %}
                                         </div>

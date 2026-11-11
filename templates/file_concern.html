@@ -369,6 +369,158 @@
         .status-resolved { background: rgba(34,197,94,0.92); color: white; }
         .status-denied, .status-rejected { background: rgba(239,68,68,0.92); color: white; }
 
+        /* ===== PHASE 2: BEFORE & AFTER VISUAL COMPARISON FOR RESOLVED POSTS ===== */
+        .resolved-ba-container {
+            width: 100%;
+            background: var(--bg-nav-card);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+            position: relative;
+        }
+        .resolved-ba-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.05));
+            border-bottom: 1px solid var(--border-color);
+        }
+        .resolved-ba-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #10b981;
+            color: white;
+            font-size: 10.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 3px 10px;
+            border-radius: 50px;
+            box-shadow: 0 2px 6px rgba(16,185,129,0.3);
+        }
+        .resolved-ba-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .resolved-ba-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: stretch;
+            background: #000;
+            min-height: 220px;
+            position: relative;
+        }
+        @media (max-width: 620px) {
+            .resolved-ba-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .resolved-ba-card {
+            position: relative;
+            min-height: 220px;
+            height: 240px;
+            overflow: hidden;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            background: #0f172a;
+        }
+        .resolved-ba-card img, .resolved-ba-card video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0;
+            transition: transform 0.35s ease;
+        }
+        .resolved-ba-card:hover img {
+            transform: scale(1.04);
+        }
+        .resolved-ba-tag {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 3;
+            font-size: 10.5px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .tag-before {
+            background: #dc2626;
+            color: white;
+        }
+        .tag-after {
+            background: #16a34a;
+            color: white;
+        }
+        .resolved-ba-footer {
+            position: relative;
+            z-index: 2;
+            padding: 8px 12px;
+            background: linear-gradient(to top, rgba(0,0,0,0.88), rgba(0,0,0,0.4) 65%, transparent);
+            color: white;
+            font-size: 11.5px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .resolved-ba-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-nav-card);
+            width: 38px;
+            z-index: 4;
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+        }
+        @media (max-width: 620px) {
+            .resolved-ba-divider {
+                width: 100%;
+                height: 32px;
+                border-top: 1px solid var(--border-color);
+                border-bottom: 1px solid var(--border-color);
+                border-left: none;
+                border-right: none;
+            }
+        }
+        .resolved-ba-divider-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #10b981;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            box-shadow: 0 2px 8px rgba(16,185,129,0.4);
+        }
+        .ba-placeholder-content {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            background: rgba(16, 185, 129, 0.04);
+        }
+
         /* Post body */
         .post-body { padding: 16px 20px 14px; }
         .post-title {
@@ -1379,7 +1531,9 @@
                          data-raw-title="{{ c.title|e }}"
                          data-raw-desc="{{ c.description|e }}"
                          data-location="{{ c.location|lower }}"
-                         data-user-relation="{{ c.user_relation }}">
+                         data-user-relation="{{ c.user_relation }}"
+                         data-cover-photo="{{ c.image_url or '' }}"
+                         data-resolved-photo="{{ c.resolved_photo or '' }}">
                         <div class="post-header">
                             <div class="post-avatar" style="overflow:hidden; {% if c.is_anonymous %}background:#374151; color:white; display:flex; align-items:center; justify-content:center;{% endif %}">
                                 {% if c.is_anonymous %}
@@ -1425,7 +1579,61 @@
                             {% endif %}
                         </div>
                         
-                        {% if c.image_url %}
+                        {% if c.status|lower == 'resolved' %}
+                        {# ===== PHASE 2: BEFORE & AFTER COMPARISON FOR RESOLVED POSTS ===== #}
+                        {% set _before_raw = (c.image_url|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if c.image_url else '' %}
+                        {% set _before_url = url_for('static', filename=_before_raw.replace('static/', '')) if _before_raw else '' %}
+                        {% set _after_raw = (c.resolved_photo|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") if c.resolved_photo else '' %}
+                        {% set _after_url = url_for('static', filename=_after_raw.replace('static/', '')) if _after_raw else '' %}
+                        
+                        <div class="resolved-ba-container" data-id="{{ c.report_id }}">
+                            <div class="resolved-ba-header">
+                                <span class="resolved-ba-pill"><i class="fas fa-check-circle"></i> Resolved Post</span>
+                                <span class="resolved-ba-label"><i class="fas fa-columns"></i> Before & After Visual Comparison</span>
+                            </div>
+                            <div class="resolved-ba-grid">
+                                <!-- BEFORE (Resident's Initial Report) -->
+                                <div class="resolved-ba-card ba-before-card" onclick="event.stopPropagation(); {% if _before_url %}openLightbox('{{ _before_url }}', 'Before: Initial Report', 'image'){% endif %}">
+                                    <span class="resolved-ba-tag tag-before"><i class="fas fa-history"></i> BEFORE</span>
+                                    {% if _before_url %}
+                                    <img src="{{ _before_url }}" alt="Before: Initial Condition" loading="lazy">
+                                    {% else %}
+                                    <div class="ba-placeholder-content">
+                                        <i class="fas fa-image" style="font-size:28px;margin-bottom:6px;opacity:0.5;"></i>
+                                        <span>Initial Report Evidence</span>
+                                    </div>
+                                    {% endif %}
+                                    <div class="resolved-ba-footer">
+                                        <span>Initial Condition (Reported)</span>
+                                        <i class="fas fa-search-plus" style="opacity:0.8;"></i>
+                                    </div>
+                                </div>
+
+                                <!-- DIVIDER -->
+                                <div class="resolved-ba-divider">
+                                    <div class="resolved-ba-divider-icon"><i class="fas fa-arrow-right"></i></div>
+                                </div>
+
+                                <!-- AFTER (LGU Resolved State) -->
+                                <div class="resolved-ba-card ba-after-card" onclick="event.stopPropagation(); {% if _after_url %}openLightbox('{{ _after_url }}', 'After: Resolved by LGU', 'image'){% endif %}">
+                                    <span class="resolved-ba-tag tag-after"><i class="fas fa-check-double"></i> AFTER</span>
+                                    {% if _after_url %}
+                                    <img src="{{ _after_url }}" alt="After: Resolved State" loading="lazy">
+                                    {% else %}
+                                    <div class="ba-placeholder-content">
+                                        <i class="fas fa-check-circle" style="font-size:32px;color:#10b981;margin-bottom:8px;"></i>
+                                        <span style="font-weight:800;color:var(--text-main);font-size:13px;">Resolved by LGU</span>
+                                        <small style="font-size:11px;">Official on-site resolution</small>
+                                    </div>
+                                    {% endif %}
+                                    <div class="resolved-ba-footer" style="color:#4ade80;">
+                                        <span>Resolved State (LGU)</span>
+                                        {% if _after_url %}<i class="fas fa-search-plus" style="opacity:0.8;"></i>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% elif c.image_url %}
                         {# ===== FB-STYLE COLLAGE: cover (image_url) + extras (reports_media) ===== #}
                         {% set _cover = (c.image_url|string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
                         {% set _cl = _cover.lower() %}
@@ -1723,12 +1931,15 @@
             </div>
 
             <div class="modal-panel" id="mpanel-3">
-                <div class="modal-section-head">Attach evidence (optional) — up to 5 photos/videos</div>
+                <div class="modal-section-head">Attach Evidence <span style="color:#ef4444;font-size:11px;font-weight:800;background:rgba(239,68,68,0.12);padding:2px 8px;border-radius:12px;margin-left:6px;letter-spacing:0.3px;">MANDATORY</span></div>
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+                    <i class="fas fa-camera" style="color:var(--primary-red);"></i> Text-only reports are strictly prohibited. You must attach at least 1 photo evidence.
+                </div>
                 <label class="modal-upload-tile" id="modal-upload-tile">
                     <input type="file" id="modal-photo-input" accept="image/*,video/*" multiple onclick="if(!this.dataset.prompting){ event.preventDefault(); showCameraGalleryPrompt(this); }" onchange="mPreviewFiles(this)">
                     <i class="fas fa-camera" id="modal-upload-icon"></i>
-                    <p id="modal-upload-text">Click to upload photos or videos</p>
-                    <small id="modal-upload-hint">Images + any video — max 5 files, no size limit</small>
+                    <p id="modal-upload-text">Click to capture or upload photo evidence</p>
+                    <small id="modal-upload-hint">Images + any video — max 5 files (at least 1 required)</small>
                 </label>
                 <div class="modal-preview-grid" id="modal-preview-grid" style="display:none;"></div>
                 <div class="modal-preview-actions" id="modal-preview-actions" style="display:none;margin-top:10px;">
@@ -1738,7 +1949,7 @@
                 </div>
                 <div class="modal-action-row">
                     <button class="modal-btn-back" type="button" onclick="mGoStep(2)"><i class="fas fa-arrow-left"></i> Back</button>
-                    <button class="modal-btn-next" type="button" onclick="mGoStep(4)"><i class="fas fa-eye"></i> Preview & Review</button>
+                    <button class="modal-btn-next" id="mbtn-step3" type="button" onclick="mGoStep(4)" disabled><i class="fas fa-eye"></i> Preview & Review</button>
                 </div>
             </div>
 
@@ -2192,6 +2403,10 @@
     });
 
     function mGoStep(n) {
+        if (n === 4 && (!mState.imgFiles || mState.imgFiles.length === 0)) {
+            showToast('Photo evidence is mandatory. Text-only reports are not allowed.', 'fa-exclamation-circle');
+            return;
+        }
         document.getElementById('mpanel-' + mCurStep).classList.remove('active');
         document.getElementById('mpanel-' + n).classList.add('active');
 
@@ -2474,6 +2689,10 @@
         const tile = document.getElementById('modal-upload-tile');
         const icon = document.getElementById('modal-upload-icon');
         const txt = document.getElementById('modal-upload-text');
+        const btnStep3 = document.getElementById('mbtn-step3');
+        if (btnStep3) {
+            btnStep3.disabled = (!mState.imgFiles || mState.imgFiles.length === 0);
+        }
         if (!tile) return;
         if (mState.imgFiles.length) {
             tile.classList.add('has-file');
@@ -2482,7 +2701,7 @@
         } else {
             tile.classList.remove('has-file');
             if (icon) icon.className = 'fas fa-camera';
-            if (txt) txt.textContent = 'Click to upload photos or videos';
+            if (txt) txt.textContent = 'Click to capture or upload photo evidence';
         }
     }
 
@@ -2559,6 +2778,12 @@
     }
 
     function mDoSubmitConcern() {
+        if (!mState.imgFiles || !mState.imgFiles.length) {
+            showToast('Photo evidence is mandatory. Text-only reports are not allowed.', 'fa-exclamation-circle');
+            mGoStep(3);
+            return;
+        }
+
         // Populating the hidden form fields that interact with Flask
         document.getElementById('hf-category').value    = mState.cat;
         document.getElementById('hf-title').value       = mState.title;
@@ -2676,6 +2901,12 @@
     }
 
     function mSubmitConcern() {
+        if (!mState.imgFiles || !mState.imgFiles.length) {
+            showToast('Photo evidence is mandatory. Text-only reports are not allowed.', 'fa-exclamation-circle');
+            mGoStep(3);
+            return;
+        }
+
         // Populating the hidden form fields that interact with Flask
         document.getElementById('hf-category').value    = mState.cat;
         document.getElementById('hf-title').value       = mState.title;
@@ -3479,7 +3710,56 @@
         const photoCont = document.getElementById('cdm-photo-container');
         const photoImg = document.getElementById('cdm-photo');
         const noPhoto = document.getElementById('cdm-no-photo');
-        // FB-grid cells carry every file (cover + reports_media extras)
+
+        // Phase 2: If Resolved, render the Before & After comparison inside details modal
+        if (stLower === 'resolved') {
+            const resolvedPhoto = postEl.dataset.resolvedPhoto || '';
+            let beforePhoto = postEl.dataset.coverPhoto || (cells[0] ? cells[0].dataset.full : '');
+            let beforeUrl = beforePhoto;
+            if (beforeUrl && !beforeUrl.startsWith('/') && !beforeUrl.startsWith('http')) {
+                beforeUrl = '/static/' + beforeUrl.replace('static/', '');
+            }
+            let afterUrl = resolvedPhoto;
+            if (afterUrl && !afterUrl.startsWith('/') && !afterUrl.startsWith('http')) {
+                afterUrl = '/static/' + afterUrl.replace('static/', '');
+            }
+
+            if (photoCont) {
+                photoCont.style.display = 'flex';
+                photoCont.style.position = 'relative';
+                if (noPhoto) noPhoto.style.display = 'none';
+
+                photoCont.innerHTML = `
+                    <div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;padding:24px;box-sizing:border-box;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);padding:10px 18px;border-radius:12px;">
+                            <span style="display:inline-flex;align-items:center;gap:6px;background:#10b981;color:white;font-size:11.5px;font-weight:800;text-transform:uppercase;padding:4px 12px;border-radius:50px;">
+                                <i class="fas fa-check-circle"></i> Resolved Post
+                            </span>
+                            <span style="font-size:12px;font-weight:700;color:#34d399;"><i class="fas fa-columns"></i> Before & After Visual Comparison</span>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;max-height:85%;">
+                            <div style="position:relative;background:#0f172a;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in;display:flex;flex-direction:column;" onclick="openLightbox('${beforeUrl}', 'Before: Initial Report', 'image')">
+                                <span style="position:absolute;top:12px;left:12px;z-index:3;background:#dc2626;color:white;font-size:11px;font-weight:800;padding:4px 10px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.5);">BEFORE</span>
+                                ${beforeUrl ? `<img src="${beforeUrl}" style="width:100%;height:100%;object-fit:contain;background:#000;" alt="Before">` : `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#64748b;">No Initial Photo</div>`}
+                                <div style="position:absolute;bottom:0;inset-inline:0;padding:8px 14px;background:rgba(0,0,0,0.85);color:white;font-size:12px;font-weight:700;display:flex;justify-content:space-between;">
+                                    <span>Resident Initial Report</span>
+                                    <i class="fas fa-search-plus" style="opacity:0.7;"></i>
+                                </div>
+                            </div>
+                            <div style="position:relative;background:#0f172a;border-radius:14px;overflow:hidden;border:1px solid rgba(16,185,129,0.3);cursor:zoom-in;display:flex;flex-direction:column;" onclick="openLightbox('${afterUrl || beforeUrl}', 'After: Resolved by LGU', 'image')">
+                                <span style="position:absolute;top:12px;left:12px;z-index:3;background:#16a34a;color:white;font-size:11px;font-weight:800;padding:4px 10px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.5);">AFTER</span>
+                                ${afterUrl ? `<img src="${afterUrl}" style="width:100%;height:100%;object-fit:contain;background:#000;" alt="After">` : `<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#10b981;text-align:center;padding:20px;"><i class="fas fa-shield-alt" style="font-size:42px;margin-bottom:10px;"></i><span style="font-weight:800;font-size:14px;color:white;">Resolved by LGU</span><small style="color:#94a3b8;font-size:11.5px;margin-top:4px;">Official on-site action verified</small></div>`}
+                                <div style="position:absolute;bottom:0;inset-inline:0;padding:8px 14px;background:rgba(0,0,0,0.85);color:#4ade80;font-size:12px;font-weight:700;display:flex;justify-content:space-between;">
+                                    <span>LGU Resolved Proof</span>
+                                    <i class="fas fa-search-plus" style="opacity:0.7;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        } else {
+            // FB-grid cells carry every file (cover + reports_media extras)
         const cells = grid ? Array.from(grid.querySelectorAll('.fb-cell')) : [];
         if (cells.length && photoCont) {
             photoCont.style.display = 'flex';
@@ -3578,6 +3858,7 @@
         } else {
             if (photoCont) photoCont.style.display = 'none';
             if (noPhoto) noPhoto.style.display = 'flex';
+        }
         }
         
         // Comments Stream integration

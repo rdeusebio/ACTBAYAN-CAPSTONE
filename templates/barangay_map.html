@@ -705,7 +705,6 @@
                 flex-shrink: 0;
             }
         }
-        }
 
         .poi-list {
             flex: 1;
@@ -1665,7 +1664,26 @@
             }
 
             let imgHtml = '';
-            if (imgUrl) {
+            const resolvedPhoto = r.resolved_photo ? r.resolved_photo.replace(/^\/?static\//, '') : '';
+            if (status.toLowerCase() === 'resolved') {
+                const cleanImg = imgUrl ? imgUrl.replace(/^\/?static\//, '') : '';
+                imgHtml = `<div class="rich-pin-ba-wrap" style="position:relative;background:#0f172a;border-bottom:1px solid var(--border-color);overflow:hidden;border-radius:12px 12px 0 0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:rgba(16,185,129,0.18);border-bottom:1px solid rgba(16,185,129,0.3);">
+                        <span style="font-size:10px;font-weight:800;color:#10b981;text-transform:uppercase;"><i class="fas fa-check-circle"></i> Resolved</span>
+                        <span style="font-size:10px;font-weight:700;color:var(--text-muted);"><i class="fas fa-columns"></i> Before & After</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;height:120px;">
+                        <div style="position:relative;border-right:1px solid rgba(255,255,255,0.12);overflow:hidden;background:#000;cursor:pointer;" onclick="openLightbox('/static/${cleanImg}', 'Before: Initial Report', 'image')">
+                            <span style="position:absolute;top:4px;left:4px;background:#dc2626;color:white;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;z-index:2;">BEFORE</span>
+                            ${cleanImg ? `<img src="/static/${cleanImg}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:10px;">No photo</div>`}
+                        </div>
+                        <div style="position:relative;overflow:hidden;background:#000;cursor:pointer;" onclick="openLightbox('/static/${resolvedPhoto || cleanImg}', 'After: Resolved by LGU', 'image')">
+                            <span style="position:absolute;top:4px;left:4px;background:#16a34a;color:white;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;z-index:2;">AFTER</span>
+                            ${resolvedPhoto ? `<img src="/static/${resolvedPhoto}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#10b981;font-size:10px;padding:6px;text-align:center;"><i class="fas fa-shield-alt" style="font-size:18px;margin-bottom:3px;"></i><span>LGU Resolved</span></div>`}
+                        </div>
+                    </div>
+                </div>`;
+            } else if (imgUrl) {
                 const cleanImg = imgUrl.replace(/^\/?static\//, '');
                 imgHtml = `<div class="rich-pin-img-wrap">
                     <img src="/static/${cleanImg}" onerror="this.parentElement.style.display='none'">
