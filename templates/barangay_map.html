@@ -565,74 +565,146 @@
             color: white;
         }
 
-        .map-floating-filter-bar {
+        /* VERTICAL CATEGORY FILTER DOCK (CIRCULAR LOGO/EMOJI BUTTONS) */
+        .map-vertical-filter-dock {
             position: absolute;
             top: 16px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 16px;
             z-index: 1000;
             display: flex;
-            gap: 6px;
-            background: var(--glass-bg, rgba(255,255,255,0.92));
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            padding: 6px 10px;
+            flex-direction: column;
+            gap: 7px;
+            background: var(--glass-bg, rgba(255, 255, 255, 0.94));
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 7px;
             border-radius: 50px;
             border: 1.5px solid var(--border-color);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.14);
-            max-width: calc(100% - 150px);
-            overflow-x: auto;
-            scrollbar-width: none;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+            transition: top 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .map-floating-filter-bar::-webkit-scrollbar {
-            display: none;
+        .map-wrap.sidebar-collapsed .map-vertical-filter-dock {
+            top: 66px;
         }
 
-        .floating-filter-btn {
-            padding: 7px 14px;
-            border-radius: 50px;
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: 'Inter';
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .floating-filter-btn:hover {
+        .filter-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1.5px solid transparent;
+            background: var(--search-bg, #f1f3f4);
             color: var(--text-main);
-            background: var(--icon-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 15px;
+            position: relative;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
+            padding: 0;
+            outline: none;
+            box-sizing: border-box;
         }
 
-        .floating-filter-btn.active {
-            background: var(--primary-red);
-            color: white;
-            box-shadow: 0 2px 8px rgba(139,0,0,0.3);
+        .filter-circle:hover {
+            transform: scale(1.12);
+            border-color: var(--primary-red);
+            background: var(--bg-nav-card);
+            box-shadow: 0 4px 14px rgba(139, 0, 0, 0.18);
         }
 
-        .floating-filter-btn.pill-resolved.active {
-            background: #16a34a;
-            box-shadow: 0 2px 8px rgba(22,163,74,0.3);
+        .filter-circle.active {
+            background: linear-gradient(135deg, var(--primary-red, #8b0000), #b91c1c);
+            color: #ffffff !important;
+            border-color: var(--primary-red);
+            box-shadow: 0 4px 16px rgba(139, 0, 0, 0.38);
+            transform: scale(1.08);
+        }
+
+        .filter-circle.circle-all {
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.6px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-muted);
+        }
+
+        .filter-circle.circle-all.active {
+            color: #ffffff !important;
+        }
+
+        .filter-circle .circle-emoji {
+            font-size: 16px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .filter-circle .v-tooltip {
+            position: absolute;
+            left: calc(100% + 12px);
+            top: 50%;
+            transform: translateY(-50%) translateX(-6px);
+            background: #1c1c1e;
+            color: #ffffff;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 8px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+            font-family: 'Inter', sans-serif;
+            z-index: 1002;
+        }
+
+        .filter-circle .v-tooltip::before {
+            content: '';
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 5px solid transparent;
+            border-right-color: #1c1c1e;
+        }
+
+        .filter-circle:hover .v-tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) translateX(0);
         }
 
         @media (max-width: 768px) {
-            .map-floating-filter-bar {
-                top: 10px;
-                width: calc(100% - 24px);
-                justify-content: space-around;
-                padding: 4px;
+            .map-vertical-filter-dock {
+                top: 10px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                flex-direction: row;
+                padding: 5px 8px;
+                border-radius: 50px;
+                max-width: calc(100% - 24px);
                 overflow-x: auto;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+                gap: 6px;
             }
-            .floating-filter-btn {
-                padding: 6px 10px;
-                font-size: 11px;
+            .map-wrap.sidebar-collapsed .map-vertical-filter-dock {
+                top: 10px !important;
             }
+            .filter-circle .v-tooltip {
+                display: none !important;
+            }
+            .filter-circle {
+                width: 34px;
+                height: 34px;
+                flex-shrink: 0;
+            }
+        }
         }
 
         .poi-list {
@@ -1210,13 +1282,31 @@
                     <i class="fas fa-bars"></i>
                     <span>Show Reports</span>
                 </button>
-                <div class="map-floating-filter-bar" id="category-filter-bar">
-                    <button class="floating-filter-btn active" data-cat="all" onclick="setMapCategoryFilter('all', this)" title="All report types"><i class="fas fa-layer-group"></i> All Reports</button>
-                    <button class="floating-filter-btn" data-cat="road" onclick="setMapCategoryFilter('road', this)" title="Roads, potholes, bridges"><i class="fas fa-road"></i> Roads</button>
-                    <button class="floating-filter-btn" data-cat="flooding" onclick="setMapCategoryFilter('flooding', this)" title="Drainage & flood hazards"><i class="fas fa-water"></i> Flooding</button>
-                    <button class="floating-filter-btn" data-cat="sanitation" onclick="setMapCategoryFilter('sanitation', this)" title="Waste, trash, cleanliness"><i class="fas fa-trash-alt"></i> Sanitation</button>
-                    <button class="floating-filter-btn" data-cat="lighting" onclick="setMapCategoryFilter('lighting', this)" title="Streetlights & electricity"><i class="fas fa-lightbulb"></i> Lighting</button>
-                    <button class="floating-filter-btn" data-cat="other" onclick="setMapCategoryFilter('other', this)" title="Other community concerns"><i class="fas fa-clipboard-list"></i> Other</button>
+                <div class="map-vertical-filter-dock" id="category-filter-bar" title="Filter by Report Type">
+                    <button class="filter-circle circle-all active" data-cat="all" onclick="setMapCategoryFilter('all', this)" title="All Concerns">
+                        <span>ALL</span>
+                        <span class="v-tooltip">All Concerns</span>
+                    </button>
+                    <button class="filter-circle" data-cat="road" onclick="setMapCategoryFilter('road', this)" title="Roads & Bridges">
+                        <span class="circle-emoji">🛣️</span>
+                        <span class="v-tooltip">Roads & Bridges</span>
+                    </button>
+                    <button class="filter-circle" data-cat="flooding" onclick="setMapCategoryFilter('flooding', this)" title="Flooding & Drainage">
+                        <span class="circle-emoji">🌊</span>
+                        <span class="v-tooltip">Flooding & Drainage</span>
+                    </button>
+                    <button class="filter-circle" data-cat="sanitation" onclick="setMapCategoryFilter('sanitation', this)" title="Sanitation & Waste">
+                        <span class="circle-emoji">🗑️</span>
+                        <span class="v-tooltip">Sanitation & Waste</span>
+                    </button>
+                    <button class="filter-circle" data-cat="lighting" onclick="setMapCategoryFilter('lighting', this)" title="Lighting & Streetlights">
+                        <span class="circle-emoji">💡</span>
+                        <span class="v-tooltip">Lighting & Electrical</span>
+                    </button>
+                    <button class="filter-circle" data-cat="other" onclick="setMapCategoryFilter('other', this)" title="Other Concerns">
+                        <span class="circle-emoji">📋</span>
+                        <span class="v-tooltip">Other Concerns</span>
+                    </button>
                 </div>
                 <div id="map"></div>
                 <div class="map-controls">
@@ -1490,7 +1580,7 @@
         function setMapCategoryFilter(cat, clickedBtn) {
             currentMapCategoryFilter = cat;
 
-            document.querySelectorAll('.floating-filter-btn').forEach(btn => {
+            document.querySelectorAll('.filter-circle').forEach(btn => {
                 if (btn.dataset.cat === cat) {
                     btn.classList.add('active');
                 } else {
@@ -1517,9 +1607,13 @@
         function toggleMapSidebar() {
             const sb = document.getElementById('mobile-map-sidebar');
             const reopenBtn = document.getElementById('btn-show-map-sidebar');
+            const mapWrap = document.querySelector('.map-wrap');
             if (!sb) return;
 
             const isCollapsed = sb.classList.toggle('collapsed');
+            if (mapWrap) {
+                mapWrap.classList.toggle('sidebar-collapsed', isCollapsed);
+            }
             if (reopenBtn) {
                 if (isCollapsed) {
                     reopenBtn.classList.add('visible');
@@ -1991,7 +2085,9 @@
         if (localStorage.getItem('actbayan_map_sb_collapsed') === '1' && window.innerWidth > 768) {
             const sb = document.getElementById('mobile-map-sidebar');
             const reopenBtn = document.getElementById('btn-show-map-sidebar');
+            const mapWrap = document.querySelector('.map-wrap');
             if (sb) sb.classList.add('collapsed');
+            if (mapWrap) mapWrap.classList.add('sidebar-collapsed');
             if (reopenBtn) reopenBtn.classList.add('visible');
             setTimeout(() => { if (map) map.invalidateSize(); }, 200);
         }
