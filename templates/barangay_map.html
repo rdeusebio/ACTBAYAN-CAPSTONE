@@ -526,184 +526,158 @@
             color: white;
         }
 
-        /* Map Status Filter Pills */
-        .map-status-filters {
-            display: flex;
-            gap: 6px;
+        /* UNIFIED FILTER PANEL INSIDE SIDEBAR */
+        .sidebar-filter-panel {
             margin-top: 10px;
-            overflow-x: auto;
-            padding-bottom: 2px;
-        }
-
-        .map-filter-pill {
-            flex: 1;
-            white-space: nowrap;
-            padding: 7px 10px;
-            border-radius: 8px;
-            border: 1.5px solid var(--border-color);
-            background: var(--bg-nav-card);
-            color: var(--text-muted);
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: 'Inter';
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        .map-filter-pill:hover {
-            border-color: var(--primary-red);
-            color: var(--primary-red);
-        }
-
-        .map-filter-pill.active {
-            background: var(--primary-red);
-            border-color: var(--primary-red);
-            color: white;
-        }
-
-        /* VERTICAL CATEGORY FILTER DOCK (CIRCULAR LOGO/EMOJI BUTTONS) */
-        .map-vertical-filter-dock {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            z-index: 1000;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            gap: 7px;
-            background: var(--glass-bg, rgba(255, 255, 255, 0.94));
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            padding: 7px;
-            border-radius: 50px;
-            border: 1.5px solid var(--border-color);
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
-            transition: top 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            gap: 8px;
         }
 
-        .map-wrap.sidebar-collapsed .map-vertical-filter-dock {
-            top: 66px;
+        .filter-panel-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .filter-circle {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            border: 1.5px solid transparent;
-            background: var(--search-bg, #f1f3f4);
+        .filter-panel-title {
+            font-size: 10.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
             color: var(--text-main);
             display: flex;
             align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 15px;
-            position: relative;
-            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-            user-select: none;
-            padding: 0;
-            outline: none;
-            box-sizing: border-box;
+            gap: 6px;
         }
 
-        .filter-circle:hover {
-            transform: scale(1.12);
-            border-color: var(--primary-red);
-            background: var(--bg-nav-card);
-            box-shadow: 0 4px 14px rgba(139, 0, 0, 0.18);
-        }
-
-        .filter-circle.active {
-            background: linear-gradient(135deg, var(--primary-red, #8b0000), #b91c1c);
-            color: #ffffff !important;
-            border-color: var(--primary-red);
-            box-shadow: 0 4px 16px rgba(139, 0, 0, 0.38);
-            transform: scale(1.08);
-        }
-
-        .filter-circle.circle-all {
+        .filter-reset-btn {
+            background: transparent;
+            border: none;
+            color: var(--primary-red);
             font-size: 11px;
-            font-weight: 900;
-            letter-spacing: 0.6px;
+            font-weight: 700;
+            cursor: pointer;
             font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 6px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .filter-reset-btn:hover {
+            background: var(--red-light, rgba(139, 0, 0, 0.08));
+            color: var(--primary-red);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             color: var(--text-muted);
         }
 
-        .filter-circle.circle-all.active {
-            color: #ffffff !important;
+        .filter-group-sub {
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: none;
+            opacity: 0.7;
+            letter-spacing: normal;
         }
 
-        .filter-circle .circle-emoji {
-            font-size: 16px;
+        .filter-chips-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 9px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1.5px solid var(--border-color);
+            background: var(--search-bg);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
             line-height: 1;
+            outline: none;
+        }
+
+        .filter-chip:hover {
+            border-color: var(--primary-red);
+            color: var(--text-main);
+            transform: translateY(-1px);
+        }
+
+        .filter-chip.active {
+            background: var(--primary-red);
+            color: #ffffff !important;
+            border-color: var(--primary-red);
+            box-shadow: 0 2px 8px rgba(139, 0, 0, 0.22);
+        }
+
+        .filter-chip .chip-check {
+            font-size: 9px;
+            display: inline-block;
+            opacity: 0;
+            transform: scale(0.4);
+            transition: all 0.18s ease;
+            width: 0;
+            margin-right: -2px;
+            overflow: hidden;
+        }
+
+        .filter-chip.active .chip-check {
+            opacity: 1;
+            transform: scale(1);
+            width: auto;
+            margin-right: 0;
+        }
+
+        .filter-chip .chip-count {
+            font-size: 9.5px;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.08);
+            color: inherit;
+            transition: all 0.18s ease;
+        }
+
+        .filter-chip.active .chip-count {
+            background: rgba(255, 255, 255, 0.28);
+            color: #ffffff;
+        }
+
+        .filter-summary-bar {
             display: flex;
             align-items: center;
-            justify-content: center;
-        }
-
-        .filter-circle .v-tooltip {
-            position: absolute;
-            left: calc(100% + 12px);
-            top: 50%;
-            transform: translateY(-50%) translateX(-6px);
-            background: #1c1c1e;
-            color: #ffffff;
-            font-size: 11.5px;
-            font-weight: 700;
-            padding: 6px 12px;
-            border-radius: 8px;
-            white-space: nowrap;
-            pointer-events: none;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
-            font-family: 'Inter', sans-serif;
-            z-index: 1002;
-        }
-
-        .filter-circle .v-tooltip::before {
-            content: '';
-            position: absolute;
-            right: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            border: 5px solid transparent;
-            border-right-color: #1c1c1e;
-        }
-
-        .filter-circle:hover .v-tooltip {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(-50%) translateX(0);
-        }
-
-        @media (max-width: 768px) {
-            .map-vertical-filter-dock {
-                top: 10px !important;
-                left: 50% !important;
-                transform: translateX(-50%) !important;
-                flex-direction: row;
-                padding: 5px 8px;
-                border-radius: 50px;
-                max-width: calc(100% - 24px);
-                overflow-x: auto;
-                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-                gap: 6px;
-            }
-            .map-wrap.sidebar-collapsed .map-vertical-filter-dock {
-                top: 10px !important;
-            }
-            .filter-circle .v-tooltip {
-                display: none !important;
-            }
-            .filter-circle {
-                width: 34px;
-                height: 34px;
-                flex-shrink: 0;
-            }
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 2px 2px 0;
         }
 
         .poi-list {
@@ -1265,11 +1239,87 @@
                         <button class="layer-btn" onclick="setLayer('topo', this)"><i class="fas fa-mountain"></i>
                             Topo</button>
                     </div>
-                    <div class="map-status-filters">
-                        <button class="map-filter-pill active" data-filter="active" onclick="setMapFilter('active', this)" title="All active concerns"><i class="fas fa-fire"></i> Active</button>
-                        <button class="map-filter-pill" data-filter="pending" onclick="setMapFilter('pending', this)"><i class="fas fa-hourglass-half"></i> Pending</button>
-                        <button class="map-filter-pill" data-filter="in_progress" onclick="setMapFilter('in_progress', this)"><i class="fas fa-tools"></i> In Progress</button>
-                        <button class="map-filter-pill" data-filter="resolved" onclick="setMapFilter('resolved', this)"><i class="fas fa-check-circle"></i> Resolved</button>
+                    <!-- Proposal 1: Unified Filter Controls -->
+                    <div class="sidebar-filter-panel">
+                        <div class="filter-panel-top">
+                            <div class="filter-panel-title">
+                                <i class="fas fa-sliders-h" style="color:var(--primary-red);"></i>
+                                <span>Filter Concerns</span>
+                            </div>
+                            <button type="button" class="filter-reset-btn" onclick="resetFilters()" title="Reset all filters">
+                                <i class="fas fa-undo-alt"></i> Reset
+                            </button>
+                        </div>
+
+                        <!-- Status Multi-Select Group -->
+                        <div class="filter-group">
+                            <div class="filter-group-title">
+                                <span>Status</span>
+                                <span class="filter-group-sub">Multi-Select</span>
+                            </div>
+                            <div class="filter-chips-wrap">
+                                <button type="button" class="filter-chip active" id="chip-status-pending" onclick="toggleStatusFilter('pending')" role="checkbox" aria-checked="true" title="Pending Concerns">
+                                    <i class="fas fa-check chip-check"></i>
+                                    <span class="chip-label">⏳ Pending</span>
+                                    <span class="chip-count" id="count-status-pending">0</span>
+                                </button>
+                                <button type="button" class="filter-chip active" id="chip-status-in_progress" onclick="toggleStatusFilter('in_progress')" role="checkbox" aria-checked="true" title="In Progress Concerns">
+                                    <i class="fas fa-check chip-check"></i>
+                                    <span class="chip-label">🔄 In Progress</span>
+                                    <span class="chip-count" id="count-status-in_progress">0</span>
+                                </button>
+                                <button type="button" class="filter-chip" id="chip-status-resolved" onclick="toggleStatusFilter('resolved')" role="checkbox" aria-checked="false" title="Resolved Concerns">
+                                    <i class="fas fa-check chip-check"></i>
+                                    <span class="chip-label">✅ Resolved</span>
+                                    <span class="chip-count" id="count-status-resolved">0</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Category Multi-Select Group -->
+                        <div class="filter-group">
+                            <div class="filter-group-title">
+                                <span>Category</span>
+                                <span class="filter-group-sub">Multi-Select</span>
+                            </div>
+                            <div class="filter-chips-wrap">
+                                <button type="button" class="filter-chip active" id="chip-cat-all" onclick="toggleCategoryFilter('all')" role="checkbox" aria-checked="true" title="All Categories">
+                                    <i class="fas fa-check chip-check"></i>
+                                    <span class="chip-label">All</span>
+                                    <span class="chip-count" id="count-cat-all">0</span>
+                                </button>
+                                <button type="button" class="filter-chip" id="chip-cat-road" onclick="toggleCategoryFilter('road')" role="checkbox" aria-checked="false" title="Roads & Bridges">
+                                    <i class="fas fa-check chip-check"></i>
+                                    <span class="chip-label">🛣️ Roads</span>
+                                    <span class="chip-count" id="count-cat-road">0</span>
+                                </button>
+                                <button type="button" class="filter-chip" id="chip-cat-flooding" onclick="toggleCategoryFilter('flooding')" role="checkbox" aria-checked="false" title="Flooding & Drainage">
+                                    <i class="fas fa-check chip-check"></i>
+                                    <span class="chip-label">🌊 Flooding</span>
+                                    <span class="chip-count" id="count-cat-flooding">0</span>
+                                </button>
+                                <button type="button" class="filter-chip" id="chip-cat-sanitation" onclick="toggleCategoryFilter('sanitation')" role="checkbox" aria-checked="false" title="Sanitation & Waste">
+                                    <i class="fas fa-check chip-check"></i>
+                                    <span class="chip-label">🗑️ Sanitation</span>
+                                    <span class="chip-count" id="count-cat-sanitation">0</span>
+                                </button>
+                                <button type="button" class="filter-chip" id="chip-cat-lighting" onclick="toggleCategoryFilter('lighting')" role="checkbox" aria-checked="false" title="Lighting & Streetlights">
+                                    <i class="fas fa-check chip-check"></i>
+                                    <span class="chip-label">💡 Lighting</span>
+                                    <span class="chip-count" id="count-cat-lighting">0</span>
+                                </button>
+                                <button type="button" class="filter-chip" id="chip-cat-other" onclick="toggleCategoryFilter('other')" role="checkbox" aria-checked="false" title="Other Concerns">
+                                    <i class="fas fa-check chip-check"></i>
+                                    <span class="chip-label">📋 Other</span>
+                                    <span class="chip-count" id="count-cat-other">0</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Live Status Summary -->
+                        <div class="filter-summary-bar">
+                            <span id="filter-summary-text"><i class="fas fa-filter" style="color:var(--primary-red);margin-right:4px;"></i> Showing active concerns</span>
+                        </div>
                     </div>
                 </div>
                 <div class="poi-list" id="poi-list">
@@ -1281,32 +1331,6 @@
                     <i class="fas fa-bars"></i>
                     <span>Show Reports</span>
                 </button>
-                <div class="map-vertical-filter-dock" id="category-filter-bar" title="Filter by Report Type">
-                    <button class="filter-circle circle-all active" data-cat="all" onclick="setMapCategoryFilter('all', this)" title="All Concerns">
-                        <span>ALL</span>
-                        <span class="v-tooltip">All Concerns</span>
-                    </button>
-                    <button class="filter-circle" data-cat="road" onclick="setMapCategoryFilter('road', this)" title="Roads & Bridges">
-                        <span class="circle-emoji">🛣️</span>
-                        <span class="v-tooltip">Roads & Bridges</span>
-                    </button>
-                    <button class="filter-circle" data-cat="flooding" onclick="setMapCategoryFilter('flooding', this)" title="Flooding & Drainage">
-                        <span class="circle-emoji">🌊</span>
-                        <span class="v-tooltip">Flooding & Drainage</span>
-                    </button>
-                    <button class="filter-circle" data-cat="sanitation" onclick="setMapCategoryFilter('sanitation', this)" title="Sanitation & Waste">
-                        <span class="circle-emoji">🗑️</span>
-                        <span class="v-tooltip">Sanitation & Waste</span>
-                    </button>
-                    <button class="filter-circle" data-cat="lighting" onclick="setMapCategoryFilter('lighting', this)" title="Lighting & Streetlights">
-                        <span class="circle-emoji">💡</span>
-                        <span class="v-tooltip">Lighting & Electrical</span>
-                    </button>
-                    <button class="filter-circle" data-cat="other" onclick="setMapCategoryFilter('other', this)" title="Other Concerns">
-                        <span class="circle-emoji">📋</span>
-                        <span class="v-tooltip">Other Concerns</span>
-                    </button>
-                </div>
                 <div id="map"></div>
                 <div class="map-controls">
                     <div class="map-ctrl-btn" onclick="map.zoomIn()" title="Zoom In"><i class="fas fa-plus"></i></div>
@@ -1507,42 +1531,41 @@
 
         // Store markers for reports
         const reportMarkers = {};
-        let currentMapStatusFilter = 'active'; // 'active' (Resolved pins excluded by default), 'pending', 'in_progress', 'resolved'
-        let currentMapCategoryFilter = 'all';  // 'all', 'road', 'flooding', 'sanitation', 'lighting', 'other'
+
+        // Proposal 1: Multi-Select Filter State
+        let selectedStatuses = new Set(['pending', 'in_progress']); // Excludes resolved by default
+        let selectedCategories = new Set(['all']); // Default: all categories
+
+        function normalizeReportStatus(rawStatus) {
+            const s = (rawStatus || 'pending').toLowerCase().trim();
+            if (s.includes('prog') || s.includes('review') || s.includes('process')) return 'in_progress';
+            if (s === 'resolved' || s === 'completed') return 'resolved';
+            return 'pending';
+        }
+
+        function normalizeReportCategory(rawCat) {
+            const c = (rawCat || 'general').toLowerCase().trim();
+            if (c.includes('road') || c.includes('street') || c.includes('pothole') || c.includes('bridge') || c.includes('traffic')) return 'road';
+            if (c.includes('flood') || c.includes('drain') || c.includes('water') || c.includes('creek') || c.includes('river')) return 'flooding';
+            if (c.includes('sanitat') || c.includes('garbage') || c.includes('waste') || c.includes('trash') || c.includes('clean') || c.includes('dump')) return 'sanitation';
+            if (c.includes('light') || c.includes('lamp') || c.includes('electric') || c.includes('post') || c.includes('wire')) return 'lighting';
+            return 'other';
+        }
 
         function shouldShowReport(r) {
             if (!r) return false;
-            const status = (r.status || 'Pending').toLowerCase().trim();
-            const cat = (r.category || 'General').toLowerCase().trim();
 
-            // 1. Status Filter Check
-            let matchesStatus = true;
-            if (currentMapStatusFilter === 'active') {
-                matchesStatus = (status !== 'resolved' && status !== 'completed');
-            } else if (currentMapStatusFilter === 'resolved') {
-                matchesStatus = (status === 'resolved' || status === 'completed');
-            } else if (currentMapStatusFilter === 'pending') {
-                matchesStatus = (status === 'pending');
-            } else if (currentMapStatusFilter === 'in_progress') {
-                matchesStatus = (status.includes('prog') || status.includes('review') || status.includes('process'));
+            // 1. Status Check
+            const normStatus = normalizeReportStatus(r.status);
+            if (selectedStatuses.size > 0 && !selectedStatuses.has(normStatus)) {
+                return false;
             }
 
-            if (!matchesStatus) return false;
-
-            // 2. Category / Report Type Filter Check
-            if (currentMapCategoryFilter !== 'all') {
-                const c = currentMapCategoryFilter;
-                if (c === 'road') {
-                    if (!cat.includes('road') && !cat.includes('street') && !cat.includes('pothole') && !cat.includes('bridge') && !cat.includes('traffic')) return false;
-                } else if (c === 'flooding') {
-                    if (!cat.includes('flood') && !cat.includes('drain') && !cat.includes('water') && !cat.includes('creek') && !cat.includes('river')) return false;
-                } else if (c === 'sanitation') {
-                    if (!cat.includes('sanitat') && !cat.includes('garbage') && !cat.includes('waste') && !cat.includes('trash') && !cat.includes('clean') && !cat.includes('dump')) return false;
-                } else if (c === 'lighting') {
-                    if (!cat.includes('light') && !cat.includes('lamp') && !cat.includes('electric') && !cat.includes('post') && !cat.includes('wire')) return false;
-                } else if (c === 'other') {
-                    const isStandard = cat.includes('road') || cat.includes('street') || cat.includes('flood') || cat.includes('drain') || cat.includes('sanitat') || cat.includes('garbage') || cat.includes('light');
-                    if (isStandard) return false;
+            // 2. Category Check
+            if (!selectedCategories.has('all')) {
+                const normCat = normalizeReportCategory(r.category);
+                if (!selectedCategories.has(normCat)) {
+                    return false;
                 }
             }
 
@@ -1560,34 +1583,149 @@
                 }
             });
             filterPoi();
+            updateFilterCounts();
         }
 
-        function setMapFilter(filter, clickedBtn) {
-            currentMapStatusFilter = filter;
-
-            document.querySelectorAll('.map-filter-pill').forEach(btn => {
-                if (btn.dataset.filter === filter) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
+        function toggleStatusFilter(status) {
+            if (selectedStatuses.has(status)) {
+                selectedStatuses.delete(status);
+                // If user deselected everything, restore this one so at least one status is active
+                if (selectedStatuses.size === 0) {
+                    selectedStatuses.add(status);
                 }
-            });
-
+            } else {
+                selectedStatuses.add(status);
+            }
+            syncFilterUI();
             refreshReportMarkers();
         }
 
-        function setMapCategoryFilter(cat, clickedBtn) {
-            currentMapCategoryFilter = cat;
-
-            document.querySelectorAll('.filter-circle').forEach(btn => {
-                if (btn.dataset.cat === cat) {
-                    btn.classList.add('active');
+        function toggleCategoryFilter(cat) {
+            if (cat === 'all') {
+                selectedCategories.clear();
+                selectedCategories.add('all');
+            } else {
+                if (selectedCategories.has('all')) {
+                    selectedCategories.delete('all');
+                }
+                if (selectedCategories.has(cat)) {
+                    selectedCategories.delete(cat);
+                    if (selectedCategories.size === 0) {
+                        selectedCategories.add('all');
+                    }
                 } else {
-                    btn.classList.remove('active');
+                    selectedCategories.add(cat);
+                    if (selectedCategories.size >= 5) {
+                        selectedCategories.clear();
+                        selectedCategories.add('all');
+                    }
+                }
+            }
+            syncFilterUI();
+            refreshReportMarkers();
+        }
+
+        function resetFilters() {
+            selectedStatuses = new Set(['pending', 'in_progress']);
+            selectedCategories = new Set(['all']);
+            syncFilterUI();
+            refreshReportMarkers();
+            showToast('Filters reset to default', 'info');
+        }
+
+        function syncFilterUI() {
+            // Update status chips
+            ['pending', 'in_progress', 'resolved'].forEach(st => {
+                const chip = document.getElementById(`chip-status-${st}`);
+                if (chip) {
+                    const isActive = selectedStatuses.has(st);
+                    chip.classList.toggle('active', isActive);
+                    chip.setAttribute('aria-checked', isActive ? 'true' : 'false');
                 }
             });
 
+            // Update category chips
+            ['all', 'road', 'flooding', 'sanitation', 'lighting', 'other'].forEach(cat => {
+                const chip = document.getElementById(`chip-cat-${cat}`);
+                if (chip) {
+                    const isActive = selectedCategories.has(cat);
+                    chip.classList.toggle('active', isActive);
+                    chip.setAttribute('aria-checked', isActive ? 'true' : 'false');
+                }
+            });
+
+            updateFilterCounts();
+        }
+
+        function updateFilterCounts() {
+            let pendingCount = 0;
+            let inProgressCount = 0;
+            let resolvedCount = 0;
+
+            let roadCount = 0;
+            let floodingCount = 0;
+            let sanitationCount = 0;
+            let lightingCount = 0;
+            let otherCount = 0;
+
+            reportPins.forEach(r => {
+                const st = normalizeReportStatus(r.status);
+                if (st === 'pending') pendingCount++;
+                else if (st === 'in_progress') inProgressCount++;
+                else if (st === 'resolved') resolvedCount++;
+
+                const cat = normalizeReportCategory(r.category);
+                if (cat === 'road') roadCount++;
+                else if (cat === 'flooding') floodingCount++;
+                else if (cat === 'sanitation') sanitationCount++;
+                else if (cat === 'lighting') lightingCount++;
+                else otherCount++;
+            });
+
+            const setTxt = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            };
+
+            setTxt('count-status-pending', pendingCount);
+            setTxt('count-status-in_progress', inProgressCount);
+            setTxt('count-status-resolved', resolvedCount);
+
+            setTxt('count-cat-all', reportPins.length);
+            setTxt('count-cat-road', roadCount);
+            setTxt('count-cat-flooding', floodingCount);
+            setTxt('count-cat-sanitation', sanitationCount);
+            setTxt('count-cat-lighting', lightingCount);
+            setTxt('count-cat-other', otherCount);
+
+            const visibleCount = reportPins.filter(shouldShowReport).length;
+            const summaryEl = document.getElementById('filter-summary-text');
+            if (summaryEl) {
+                summaryEl.innerHTML = `<i class="fas fa-filter" style="color:var(--primary-red);margin-right:4px;"></i> Showing <strong>${visibleCount}</strong> of <strong>${reportPins.length}</strong> concerns`;
+            }
+        }
+
+        // Backward compatibility wrappers
+        function setMapFilter(filter) {
+            if (filter === 'resolved') {
+                selectedStatuses.add('resolved');
+            } else if (filter === 'active') {
+                selectedStatuses.add('pending');
+                selectedStatuses.add('in_progress');
+                selectedStatuses.delete('resolved');
+            } else if (filter === 'pending') {
+                selectedStatuses.clear();
+                selectedStatuses.add('pending');
+            } else if (filter === 'in_progress') {
+                selectedStatuses.clear();
+                selectedStatuses.add('in_progress');
+            }
+            syncFilterUI();
             refreshReportMarkers();
+        }
+
+        function setMapCategoryFilter(cat) {
+            toggleCategoryFilter(cat);
         }
 
         function smoothMapResize(duration = 420) {
@@ -1723,6 +1861,9 @@
 
             reportMarkers[idx] = pinMarker;
         });
+
+        // Initialize Filter Chip Badges and State
+        syncFilterUI();
 
         // Handle upvote button clicks in popups
         document.addEventListener('click', function(e) {

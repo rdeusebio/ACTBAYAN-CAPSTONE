@@ -88,6 +88,160 @@
         .layer-btn:hover { border-color: var(--primary-red); color: var(--primary-red); }
         .layer-btn.active { background: var(--primary-red); border-color: var(--primary-red); color: white; }
 
+        /* UNIFIED FILTER PANEL INSIDE SIDEBAR */
+        .sidebar-filter-panel {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-panel-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .filter-panel-title {
+            font-size: 10.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-reset-btn {
+            background: transparent;
+            border: none;
+            color: var(--primary-red);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 6px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .filter-reset-btn:hover {
+            background: var(--red-light, rgba(139, 0, 0, 0.08));
+            color: var(--primary-red);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .filter-group-sub {
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: none;
+            opacity: 0.7;
+            letter-spacing: normal;
+        }
+
+        .filter-chips-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 9px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1.5px solid var(--border-color);
+            background: var(--search-bg);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
+            line-height: 1;
+            outline: none;
+        }
+
+        .filter-chip:hover {
+            border-color: var(--primary-red);
+            color: var(--text-main);
+            transform: translateY(-1px);
+        }
+
+        .filter-chip.active {
+            background: var(--primary-red);
+            color: #ffffff !important;
+            border-color: var(--primary-red);
+            box-shadow: 0 2px 8px rgba(139, 0, 0, 0.22);
+        }
+
+        .filter-chip .chip-check {
+            font-size: 9px;
+            display: inline-block;
+            opacity: 0;
+            transform: scale(0.4);
+            transition: all 0.18s ease;
+            width: 0;
+            margin-right: -2px;
+            overflow: hidden;
+        }
+
+        .filter-chip.active .chip-check {
+            opacity: 1;
+            transform: scale(1);
+            width: auto;
+            margin-right: 0;
+        }
+
+        .filter-chip .chip-count {
+            font-size: 9.5px;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.08);
+            color: inherit;
+            transition: all 0.18s ease;
+        }
+
+        .filter-chip.active .chip-count {
+            background: rgba(255, 255, 255, 0.28);
+            color: #ffffff;
+        }
+
+        .filter-summary-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 2px 2px 0;
+        }
+
         .poi-list { flex: 1; overflow-y: auto; padding: 10px; }
         .poi-category { margin-bottom: 6px; }
         .poi-cat-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text-muted); padding: 8px 8px 4px; display: block; }
@@ -628,6 +782,89 @@
                     <button class="layer-btn" onclick="setLayer('satellite', this)"><i class="fas fa-satellite"></i> Satellite</button>
                     <button class="layer-btn" onclick="setLayer('topo', this)"><i class="fas fa-mountain"></i> Topo</button>
                 </div>
+
+                <!-- Proposal 1: Unified Filter Controls -->
+                <div class="sidebar-filter-panel">
+                    <div class="filter-panel-top">
+                        <div class="filter-panel-title">
+                            <i class="fas fa-sliders-h" style="color:var(--primary-red);"></i>
+                            <span>Filter Concerns</span>
+                        </div>
+                        <button type="button" class="filter-reset-btn" onclick="resetFilters()" title="Reset all filters">
+                            <i class="fas fa-undo-alt"></i> Reset
+                        </button>
+                    </div>
+
+                    <!-- Status Multi-Select Group -->
+                    <div class="filter-group">
+                        <div class="filter-group-title">
+                            <span>Status</span>
+                            <span class="filter-group-sub">Multi-Select</span>
+                        </div>
+                        <div class="filter-chips-wrap">
+                            <button type="button" class="filter-chip active" id="chip-status-pending" onclick="toggleStatusFilter('pending')" role="checkbox" aria-checked="true" title="Pending Concerns">
+                                <i class="fas fa-check chip-check"></i>
+                                <span class="chip-label">⏳ Pending</span>
+                                <span class="chip-count" id="count-status-pending">0</span>
+                            </button>
+                            <button type="button" class="filter-chip active" id="chip-status-in_progress" onclick="toggleStatusFilter('in_progress')" role="checkbox" aria-checked="true" title="In Progress Concerns">
+                                <i class="fas fa-check chip-check"></i>
+                                <span class="chip-label">🔄 In Progress</span>
+                                <span class="chip-count" id="count-status-in_progress">0</span>
+                            </button>
+                            <button type="button" class="filter-chip" id="chip-status-resolved" onclick="toggleStatusFilter('resolved')" role="checkbox" aria-checked="false" title="Resolved Concerns">
+                                <i class="fas fa-check chip-check"></i>
+                                <span class="chip-label">✅ Resolved</span>
+                                <span class="chip-count" id="count-status-resolved">0</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Category Multi-Select Group -->
+                    <div class="filter-group">
+                        <div class="filter-group-title">
+                            <span>Category</span>
+                            <span class="filter-group-sub">Multi-Select</span>
+                        </div>
+                        <div class="filter-chips-wrap">
+                            <button type="button" class="filter-chip active" id="chip-cat-all" onclick="toggleCategoryFilter('all')" role="checkbox" aria-checked="true" title="All Categories">
+                                <i class="fas fa-check chip-check"></i>
+                                <span class="chip-label">All</span>
+                                <span class="chip-count" id="count-cat-all">0</span>
+                            </button>
+                            <button type="button" class="filter-chip" id="chip-cat-road" onclick="toggleCategoryFilter('road')" role="checkbox" aria-checked="false" title="Roads & Bridges">
+                                <i class="fas fa-check chip-check"></i>
+                                <span class="chip-label">🛣️ Roads</span>
+                                <span class="chip-count" id="count-cat-road">0</span>
+                            </button>
+                            <button type="button" class="filter-chip" id="chip-cat-flooding" onclick="toggleCategoryFilter('flooding')" role="checkbox" aria-checked="false" title="Flooding & Drainage">
+                                <i class="fas fa-check chip-check"></i>
+                                <span class="chip-label">🌊 Flooding</span>
+                                <span class="chip-count" id="count-cat-flooding">0</span>
+                            </button>
+                            <button type="button" class="filter-chip" id="chip-cat-sanitation" onclick="toggleCategoryFilter('sanitation')" role="checkbox" aria-checked="false" title="Sanitation & Waste">
+                                <i class="fas fa-check chip-check"></i>
+                                <span class="chip-label">🗑️ Sanitation</span>
+                                <span class="chip-count" id="count-cat-sanitation">0</span>
+                            </button>
+                            <button type="button" class="filter-chip" id="chip-cat-lighting" onclick="toggleCategoryFilter('lighting')" role="checkbox" aria-checked="false" title="Lighting & Streetlights">
+                                <i class="fas fa-check chip-check"></i>
+                                <span class="chip-label">💡 Lighting</span>
+                                <span class="chip-count" id="count-cat-lighting">0</span>
+                            </button>
+                            <button type="button" class="filter-chip" id="chip-cat-other" onclick="toggleCategoryFilter('other')" role="checkbox" aria-checked="false" title="Other Concerns">
+                                <i class="fas fa-check chip-check"></i>
+                                <span class="chip-label">📋 Other</span>
+                                <span class="chip-count" id="count-cat-other">0</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Live Status Summary -->
+                    <div class="filter-summary-bar">
+                        <span id="filter-summary-text"><i class="fas fa-filter" style="color:var(--primary-red);margin-right:4px;"></i> Showing active concerns</span>
+                    </div>
+                </div>
             </div>
             <div class="poi-list" id="poi-list">
             </div>
@@ -769,6 +1006,178 @@ function getCategoryEmoji(cat) {
 // Store markers for reports
 const reportMarkers = {};
 
+// Proposal 1: Multi-Select Filter State
+let selectedStatuses = new Set(['pending', 'in_progress']); // Excludes resolved by default
+let selectedCategories = new Set(['all']); // Default: all categories
+
+function normalizeReportStatus(rawStatus) {
+    const s = (rawStatus || 'pending').toLowerCase().trim();
+    if (s.includes('prog') || s.includes('review') || s.includes('process')) return 'in_progress';
+    if (s === 'resolved' || s === 'completed') return 'resolved';
+    return 'pending';
+}
+
+function normalizeReportCategory(rawCat) {
+    const c = (rawCat || 'general').toLowerCase().trim();
+    if (c.includes('road') || c.includes('street') || c.includes('pothole') || c.includes('bridge') || c.includes('traffic')) return 'road';
+    if (c.includes('flood') || c.includes('drain') || c.includes('water') || c.includes('creek') || c.includes('river')) return 'flooding';
+    if (c.includes('sanitat') || c.includes('garbage') || c.includes('waste') || c.includes('trash') || c.includes('clean') || c.includes('dump')) return 'sanitation';
+    if (c.includes('light') || c.includes('lamp') || c.includes('electric') || c.includes('post') || c.includes('wire')) return 'lighting';
+    return 'other';
+}
+
+function shouldShowReport(r) {
+    if (!r) return false;
+
+    // 1. Status Check
+    const normStatus = normalizeReportStatus(r.status);
+    if (selectedStatuses.size > 0 && !selectedStatuses.has(normStatus)) {
+        return false;
+    }
+
+    // 2. Category Check
+    if (!selectedCategories.has('all')) {
+        const normCat = normalizeReportCategory(r.category);
+        if (!selectedCategories.has(normCat)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function refreshReportMarkers() {
+    reportPins.forEach((r, idx) => {
+        const marker = reportMarkers[idx];
+        if (!marker) return;
+        if (shouldShowReport(r)) {
+            if (!map.hasLayer(marker)) map.addLayer(marker);
+        } else {
+            if (map.hasLayer(marker)) map.removeLayer(marker);
+        }
+    });
+    filterPoi();
+    updateFilterCounts();
+}
+
+function toggleStatusFilter(status) {
+    if (selectedStatuses.has(status)) {
+        selectedStatuses.delete(status);
+        if (selectedStatuses.size === 0) {
+            selectedStatuses.add(status);
+        }
+    } else {
+        selectedStatuses.add(status);
+    }
+    syncFilterUI();
+    refreshReportMarkers();
+}
+
+function toggleCategoryFilter(cat) {
+    if (cat === 'all') {
+        selectedCategories.clear();
+        selectedCategories.add('all');
+    } else {
+        if (selectedCategories.has('all')) {
+            selectedCategories.delete('all');
+        }
+        if (selectedCategories.has(cat)) {
+            selectedCategories.delete(cat);
+            if (selectedCategories.size === 0) {
+                selectedCategories.add('all');
+            }
+        } else {
+            selectedCategories.add(cat);
+            if (selectedCategories.size >= 5) {
+                selectedCategories.clear();
+                selectedCategories.add('all');
+            }
+        }
+    }
+    syncFilterUI();
+    refreshReportMarkers();
+}
+
+function resetFilters() {
+    selectedStatuses = new Set(['pending', 'in_progress']);
+    selectedCategories = new Set(['all']);
+    syncFilterUI();
+    refreshReportMarkers();
+    showToast('Filters reset to default', 'info');
+}
+
+function syncFilterUI() {
+    // Update status chips
+    ['pending', 'in_progress', 'resolved'].forEach(st => {
+        const chip = document.getElementById(`chip-status-${st}`);
+        if (chip) {
+            const isActive = selectedStatuses.has(st);
+            chip.classList.toggle('active', isActive);
+            chip.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        }
+    });
+
+    // Update category chips
+    ['all', 'road', 'flooding', 'sanitation', 'lighting', 'other'].forEach(cat => {
+        const chip = document.getElementById(`chip-cat-${cat}`);
+        if (chip) {
+            const isActive = selectedCategories.has(cat);
+            chip.classList.toggle('active', isActive);
+            chip.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        }
+    });
+
+    updateFilterCounts();
+}
+
+function updateFilterCounts() {
+    let pendingCount = 0;
+    let inProgressCount = 0;
+    let resolvedCount = 0;
+
+    let roadCount = 0;
+    let floodingCount = 0;
+    let sanitationCount = 0;
+    let lightingCount = 0;
+    let otherCount = 0;
+
+    reportPins.forEach(r => {
+        const st = normalizeReportStatus(r.status);
+        if (st === 'pending') pendingCount++;
+        else if (st === 'in_progress') inProgressCount++;
+        else if (st === 'resolved') resolvedCount++;
+
+        const cat = normalizeReportCategory(r.category);
+        if (cat === 'road') roadCount++;
+        else if (cat === 'flooding') floodingCount++;
+        else if (cat === 'sanitation') sanitationCount++;
+        else if (cat === 'lighting') lightingCount++;
+        else otherCount++;
+    });
+
+    const setTxt = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    };
+
+    setTxt('count-status-pending', pendingCount);
+    setTxt('count-status-in_progress', inProgressCount);
+    setTxt('count-status-resolved', resolvedCount);
+
+    setTxt('count-cat-all', reportPins.length);
+    setTxt('count-cat-road', roadCount);
+    setTxt('count-cat-flooding', floodingCount);
+    setTxt('count-cat-sanitation', sanitationCount);
+    setTxt('count-cat-lighting', lightingCount);
+    setTxt('count-cat-other', otherCount);
+
+    const visibleCount = reportPins.filter(shouldShowReport).length;
+    const summaryEl = document.getElementById('filter-summary-text');
+    if (summaryEl) {
+        summaryEl.innerHTML = `<i class="fas fa-filter" style="color:var(--primary-red);margin-right:4px;"></i> Showing <strong>${visibleCount}</strong> of <strong>${reportPins.length}</strong> concerns`;
+    }
+}
+
 // ===== REPORT PINS (from DB via `rloc`) =====
 const reportPins = {{ rloc|tojson }};
 
@@ -798,7 +1207,11 @@ reportPins.forEach((r, idx) => {
     const pinMarker = L.marker([lat, lng], {
         icon: makeIcon(color, emoji),
         riseOnHover: true
-    }).addTo(map);
+    });
+
+    if (shouldShowReport(r)) {
+        pinMarker.addTo(map);
+    }
 
     let imgHtml = '';
     const resolvedPhoto = r.resolved_photo ? r.resolved_photo.replace(/^\/?static\//, '') : '';
@@ -870,6 +1283,9 @@ reportPins.forEach((r, idx) => {
 
     reportMarkers[idx] = pinMarker;
 });
+
+// Initialize Filter Chip Badges and State
+syncFilterUI();
 
 // General Mamerto Natividad highlight circle
 L.circle([15.6010, 121.0710], {
@@ -1014,15 +1430,17 @@ function flyTo(i) {
 }
 
 function filterPoi() {
-    const q = document.getElementById('poi-search').value.toLowerCase();
+    const q = (document.getElementById('poi-search')?.value || '').toLowerCase().trim();
     const filteredPois = q ? pois.filter(p => p.name.toLowerCase().includes(q) || p.sub.toLowerCase().includes(q)) : pois;
-    const filteredReports = q ? reportPins.filter(r => {
+    const filteredReports = reportPins.filter(r => {
+        if (!shouldShowReport(r)) return false;
+        if (!q) return true;
         const title = (r.title ?? r.TITLE ?? '').toLowerCase();
         const loc = (r.locname ?? r.LOCNAME ?? '').toLowerCase();
         const desc = (r.description ?? '').toLowerCase();
         const cat = (r.category ?? '').toLowerCase();
         return title.includes(q) || loc.includes(q) || desc.includes(q) || cat.includes(q);
-    }) : reportPins;
+    });
     renderPoiList(filteredPois, filteredReports);
 }
 
