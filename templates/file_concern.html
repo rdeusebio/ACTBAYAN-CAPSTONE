@@ -112,7 +112,7 @@
 
         .page-header {
             background-color: #166534;
-            background-image: linear-gradient(135deg, rgba(139,0,0,0.88) 0%, rgba(185,28,28,0.82) 50%, rgba(139,0,0,0.88) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}");
+            background-image: linear-gradient(135deg, rgba(22,101,52,0.90) 0%, rgba(22,163,74,0.85) 50%, rgba(5,46,22,0.92) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}");
             background-size: cover;
             background-position: center;
             padding: 40px 50px; position: relative; overflow: hidden; color: white;
@@ -3021,8 +3021,7 @@
         const vid = cell ? cell.querySelector('video') : null;
         if (!vid) return;
         vid.muted = !vid.muted;
-        btn.innerHTML = vid.muted ? '<i class="fas fa-volume-mute">
-    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"></i>' : '<i class="fas fa-volume-up"></i>';
+        btn.innerHTML = vid.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
     }
     let _fbObserver = null;
     function fbInitAutoplay() {
@@ -3811,8 +3810,7 @@
                 }
                 // Highlight active thumb
                 const strip = document.getElementById('cdm-thumb-strip');
-                if (strip) Array.from(strip.children).forEach((t, ti) =>
-    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"> {
+                if (strip) Array.from(strip.children).forEach((t, ti) => {
                     t.style.outline = ti === idx ? '2px solid var(--primary-red)' : 'none';
                 });
             };
@@ -3824,8 +3822,7 @@
                 const th = document.createElement('div');
                 th.style.cssText = 'width:52px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;cursor:pointer;background:#222;position:relative;';
                 th.innerHTML = isVid(it.full)
-                    ? '<video src="' + it.full + '" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;">
-    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"></video><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;"><i class="fas fa-play"></i></span>'
+                    ? '<video src="' + it.full + '" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;"><i class="fas fa-play"></i></span>'
                     : '<img src="' + it.full + '" style="width:100%;height:100%;object-fit:cover;">';
                 th.onclick = function(e) { e.stopPropagation(); showMain(i); };
                 strip.appendChild(th);
@@ -3908,8 +3905,7 @@
         }
     }
 
-    document.querySelectorAll('.concern-post').forEach(post =>
-    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"> {
+    document.querySelectorAll('.concern-post').forEach(post => {
         post.addEventListener('click', function(e) {
             if (e.target.closest('button, .post-img-wrap, .fb-media-grid, .comment-drawer, .post-avatar')) return;
             openPostModalForCard(this);
@@ -4061,13 +4057,11 @@ function showCameraGalleryPrompt(inputElement) {
     
     const btnCamera = document.createElement('button');
     btnCamera.style.cssText = btnStyle;
-    btnCamera.innerHTML = '<i class="fas fa-camera" style="' + iconStyle + 'color:#3498db;">
-    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"></i> Take a Photo';
+    btnCamera.innerHTML = '<i class="fas fa-camera" style="' + iconStyle + 'color:#3498db;"></i> Take a Photo';
     
     const btnGallery = document.createElement('button');
     btnGallery.style.cssText = btnStyle;
-    btnGallery.innerHTML = '<i class="fas fa-images" style="' + iconStyle + 'color:#2ecc71;">
-    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"></i> Choose from Gallery';
+    btnGallery.innerHTML = '<i class="fas fa-images" style="' + iconStyle + 'color:#2ecc71;"></i> Choose from Gallery';
     
     const btnCancel = document.createElement('button');
     btnCancel.style.cssText = btnStyle + 'background:#fff;color:#e74c3c;justify-content:center;margin-bottom:0;border:1px solid #fee2e2;';
@@ -4087,8 +4081,7 @@ function showCameraGalleryPrompt(inputElement) {
     function closeSheet() {
         sheet.style.transform = 'translateY(100%)';
         overlay.style.opacity = '0';
-        setTimeout(() =>
-    <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}"> overlay.remove(), 300);
+        setTimeout(() => overlay.remove(), 300);
     }
     
     btnCamera.onclick = () => {
