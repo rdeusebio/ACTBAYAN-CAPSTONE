@@ -175,25 +175,53 @@
         .badge-owner { background: #e7f3ff; color: #1a73e8; border: 1px solid #9ccbf5; }
         .badge-upvoted { background: #fff4e5; color: #b26a00; border: 1px solid #f0c97a; }
 
-        .post-edit-btn {
+        .post-author-actions {
             margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .post-edit-btn {
             background: var(--search-bg);
             border: 1px solid var(--border-color);
-            color: var(--text-muted);
+            color: var(--text-main);
             padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
+            border-radius: 8px;
+            font-size: 11.5px;
             font-weight: 700;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .post-edit-btn:hover {
             background: var(--primary-red);
             border-color: var(--primary-red);
             color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 0, 0, 0.2);
+        }
+        .post-delete-btn {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #ef4444;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .post-delete-btn:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
         }
         .post-edit-locked {
             margin-left: auto;
@@ -201,8 +229,8 @@
             color: var(--text-muted);
             border: 1px solid var(--border-color);
             padding: 3px 8px;
-            border-radius: 6px;
-            font-size: 10px;
+            border-radius: 8px;
+            font-size: 10.5px;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
@@ -1321,8 +1349,12 @@
                          data-id="{{ c.report_id }}"
                          data-status="{{ c.status }}"
                          data-category="{{ c.category|lower|replace(' ', '')|replace('/', '') }}"
+                         data-raw-category="{{ c.category|e }}"
                          data-title="{{ c.title|lower }}"
-                         data-location="{{ c.location|lower }}">
+                         data-raw-title="{{ c.title|e }}"
+                         data-raw-desc="{{ c.description|e }}"
+                         data-location="{{ c.location|lower }}"
+                         data-user-relation="{{ c.user_relation }}">
                         <div class="post-header">
                             <div class="post-avatar" style="overflow:hidden; {% if c.is_anonymous %}background:#374151; color:white; display:flex; align-items:center; justify-content:center;{% endif %}">
                                 {% if c.is_anonymous %}
@@ -1348,13 +1380,18 @@
                             <span class="post-category cat-{{ c.category|lower|replace(' ', '')|replace('/', '') }}">{{ c.category }}</span>
                             {% if c.user_relation == 'owner' %}
                             <span class="post-relation badge-owner">My Report</span>
-                            {% set lgu_interacted = (c.status|lower != 'pending') or (updates_by_report.get(c.report_id, [])|length > 0) %}
+                            {% set lgu_interacted = (c.status|lower != 'pending') or ((updates_by_report.get(c.report_id) or [])|length > 0) %}
                             {% if not lgu_interacted %}
-                            <button type="button" class="post-edit-btn" onclick="event.stopPropagation(); openEditConcernModal('{{ c.report_id }}');" title="Edit your concern (Allowed before LGU acknowledgement)">
-                                <i class="fas fa-pen-to-square"></i> Edit
-                            </button>
+                            <div class="post-author-actions">
+                                <button type="button" class="post-edit-btn" onclick="event.stopPropagation(); openEditConcernModal('{{ c.report_id }}');" title="Edit concern details (Title, Category, Description)">
+                                    <i class="fas fa-pen-to-square"></i> <span>Edit</span>
+                                </button>
+                                <button type="button" class="post-delete-btn" onclick="event.stopPropagation(); confirmDeleteConcern('{{ c.report_id }}');" title="Remove concern filing">
+                                    <i class="fas fa-trash-alt"></i> <span>Remove</span>
+                                </button>
+                            </div>
                             {% else %}
-                            <span class="post-edit-locked" title="Editing locked: The LGU has already acknowledged or updated this report.">
+                            <span class="post-edit-locked" title="Locked: The LGU has already acknowledged or updated this report. Editing and removal are disabled.">
                                 <i class="fas fa-lock"></i> Locked
                             </span>
                             {% endif %}
@@ -1808,6 +1845,7 @@
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span id="cdm-status-pill" class="status-overlay" style="position:static; font-size:10px; padding:2px 8px; border-radius:50px;">Pending</span>
                     <span id="cdm-category-badge" class="post-category" style="margin:0; font-size:10px; padding:2px 8px;">General</span>
+                    <div id="cdm-author-actions" style="display:none; align-items:center; gap:6px; margin-left:4px;"></div>
                 </div>
             </div>
             
@@ -1999,6 +2037,7 @@
                     <option value="Lighting">Lighting</option>
                     <option value="Public Safety">Public Safety</option>
                     <option value="General">General</option>
+                    <option value="Other">Other</option>
                 </select>
             </div>
             <div>
@@ -2006,7 +2045,7 @@
                 <textarea id="edit-concern-desc" rows="4" required style="width:100%; box-sizing:border-box; padding:10px 14px; border-radius:10px; border:1.5px solid var(--border-color); background:var(--search-bg); color:var(--text-main); font-family:inherit; font-size:13.5px; outline:none; resize:vertical;"></textarea>
             </div>
             <div style="font-size:11px; color:var(--text-muted); background:var(--search-bg); padding:10px 12px; border-radius:8px;">
-                <i class="fas fa-info-circle" style="color:var(--primary-red);"></i> <strong>Note:</strong> Concerns can only be edited while pending. Once the LGU acknowledges or updates this concern, editing is automatically locked.
+                <i class="fas fa-info-circle" style="color:var(--primary-red);"></i> <strong>Note:</strong> Concerns can only be edited or removed while pending. Once the LGU acknowledges or updates this concern, changes and deletion are automatically locked.
             </div>
             <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
                 <button type="button" onclick="closeEditConcernModal()" style="padding:9px 16px; border-radius:8px; border:1px solid var(--border-color); background:transparent; color:var(--text-muted); font-weight:700; cursor:pointer;">Cancel</button>
@@ -2015,6 +2054,28 @@
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- DELETE CONCERN CONFIRMATION MODAL (Allowed only before LGU interacts) -->
+<div class="modal-backdrop" id="delete-concern-modal" onclick="if(event.target===this) closeDeleteConcernModal()" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(0,0,0,0.65); align-items:center; justify-content:center;">
+    <div style="width:92%; max-width:440px; background:var(--bg-nav-card); border-radius:18px; border:1px solid var(--border-color); box-shadow:0 15px 45px rgba(0,0,0,0.3); overflow:hidden; display:flex; flex-direction:column; text-align:center; padding:28px 24px;">
+        <div style="width:54px; height:54px; border-radius:50%; background:rgba(239, 68, 68, 0.12); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:22px; margin:0 auto 16px;">
+            <i class="fas fa-trash-alt"></i>
+        </div>
+        <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:800; color:var(--text-main);">Remove This Concern?</h3>
+        <p style="margin:0 0 22px 0; font-size:13px; color:var(--text-muted); line-height:1.5;">
+            Are you sure you want to remove this concern filing? This will permanently delete your report and attached evidence. This action cannot be undone.
+        </p>
+        <input type="hidden" id="delete-concern-id">
+        <div style="display:flex; justify-content:center; gap:12px;">
+            <button type="button" onclick="closeDeleteConcernModal()" style="padding:10px 20px; border-radius:10px; border:1px solid var(--border-color); background:transparent; color:var(--text-main); font-weight:700; font-size:13px; cursor:pointer;">
+                Cancel
+            </button>
+            <button type="button" id="btn-confirm-delete" onclick="executeDeleteConcern()" style="padding:10px 22px; border-radius:10px; border:none; background:#dc2626; color:white; font-weight:700; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                <i class="fas fa-trash-alt"></i> Yes, Remove
+            </button>
+        </div>
     </div>
 </div>
 
@@ -3298,6 +3359,34 @@
         if (cdmRefKey) {
             cdmRefKey.textContent = reportId ? ('ACT-' + String(reportId).padStart(4, '0')) : 'GMN-REP';
         }
+
+        // CDM Author Actions (Edit / Remove / Locked)
+        const cdmAuthorActions = document.getElementById('cdm-author-actions');
+        if (cdmAuthorActions) {
+            const editBtn = postEl.querySelector('.post-edit-btn');
+            const lockedBadge = postEl.querySelector('.post-edit-locked');
+            if (editBtn) {
+                cdmAuthorActions.style.display = 'inline-flex';
+                cdmAuthorActions.innerHTML = `
+                    <button type="button" class="post-edit-btn" onclick="openEditConcernModal('${reportId}');" style="padding:3px 9px; font-size:11px;" title="Edit concern">
+                        <i class="fas fa-pen-to-square"></i> Edit
+                    </button>
+                    <button type="button" class="post-delete-btn" onclick="confirmDeleteConcern('${reportId}');" style="padding:3px 9px; font-size:11px;" title="Remove concern">
+                        <i class="fas fa-trash-alt"></i> Remove
+                    </button>
+                `;
+            } else if (lockedBadge) {
+                cdmAuthorActions.style.display = 'inline-flex';
+                cdmAuthorActions.innerHTML = `
+                    <span class="post-edit-locked" style="padding:2px 7px; font-size:10px;" title="Locked: The LGU has already acknowledged or updated this report.">
+                        <i class="fas fa-lock"></i> Locked
+                    </span>
+                `;
+            } else {
+                cdmAuthorActions.style.display = 'none';
+                cdmAuthorActions.innerHTML = '';
+            }
+        }
         
         // Body
         document.getElementById('cdm-title').textContent = title;
@@ -3736,14 +3825,24 @@ function showCameraGalleryPrompt(inputElement) {
 </script>
 
 <script>
-    // ===== POST EDITING (Allowed only before LGU interacts) =====
+    // ===== POST EDITING & REMOVAL (Allowed only before LGU interacts) =====
     function openEditConcernModal(reportId) {
         const post = document.querySelector(`.concern-post[data-id="${reportId}"]`);
-        if (!post) return;
+        const cdm = document.getElementById('concern-details-modal');
 
-        const title = post.querySelector('.post-title')?.textContent.trim() || '';
-        const desc = post.querySelector('.post-caption')?.textContent.trim() || '';
-        const cat = post.querySelector('.post-category')?.textContent.trim() || 'General';
+        let title = '';
+        let desc = '';
+        let cat = 'General';
+
+        if (post) {
+            title = post.dataset.rawTitle || post.querySelector('.post-title')?.textContent.trim() || '';
+            desc = post.dataset.rawDesc || post.querySelector('.post-caption')?.textContent.trim() || '';
+            cat = post.dataset.rawCategory || post.querySelector('.post-category')?.textContent.trim() || 'General';
+        } else if (cdm && cdm.dataset.activeReportId === String(reportId)) {
+            title = document.getElementById('cdm-title')?.textContent.trim() || '';
+            desc = document.getElementById('cdm-desc')?.textContent.trim() || '';
+            cat = document.getElementById('cdm-category-badge')?.textContent.trim() || 'General';
+        }
 
         document.getElementById('edit-concern-id').value = reportId;
         document.getElementById('edit-concern-title').value = title;
@@ -3752,8 +3851,9 @@ function showCameraGalleryPrompt(inputElement) {
         const catSelect = document.getElementById('edit-concern-category');
         if (catSelect) {
             let found = false;
+            const targetCat = cat.toLowerCase().replace(/[^a-z0-9]/g, '');
             for (let opt of catSelect.options) {
-                if (opt.value.toLowerCase() === cat.toLowerCase()) {
+                if (opt.value.toLowerCase().replace(/[^a-z0-9]/g, '') === targetCat) {
                     opt.selected = true;
                     found = true;
                     break;
@@ -3766,6 +3866,10 @@ function showCameraGalleryPrompt(inputElement) {
         if (modal) {
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                const titleInp = document.getElementById('edit-concern-title');
+                if (titleInp) titleInp.focus();
+            }, 50);
         }
     }
 
@@ -3801,22 +3905,44 @@ function showCameraGalleryPrompt(inputElement) {
             const data = await res.json();
 
             if (data.success) {
+                const finalTitle = data.title || title;
+                const finalDesc = data.description || desc;
+                const finalCat = data.category || category;
+
                 const post = document.querySelector(`.concern-post[data-id="${reportId}"]`);
                 if (post) {
                     const titleEl = post.querySelector('.post-title');
-                    if (titleEl) titleEl.textContent = title;
+                    if (titleEl) titleEl.textContent = finalTitle;
                     const descEl = post.querySelector('.post-caption');
-                    if (descEl) descEl.textContent = desc;
+                    if (descEl) descEl.textContent = finalDesc;
                     const catEl = post.querySelector('.post-category');
                     if (catEl) {
-                        catEl.textContent = category;
-                        catEl.className = 'post-category cat-' + category.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        catEl.textContent = finalCat;
+                        catEl.className = 'post-category cat-' + finalCat.toLowerCase().replace(/[^a-z0-9]/g, '');
                     }
-                    post.dataset.title = title.toLowerCase();
-                    post.dataset.category = category.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    post.dataset.title = finalTitle.toLowerCase();
+                    post.dataset.category = finalCat.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    post.dataset.rawTitle = finalTitle;
+                    post.dataset.rawDesc = finalDesc;
+                    post.dataset.rawCategory = finalCat;
                 }
+
+                // Also update Concern Details Modal if currently open for this report
+                const cdm = document.getElementById('concern-details-modal');
+                if (cdm && cdm.dataset.activeReportId === String(reportId)) {
+                    const cdmTitle = document.getElementById('cdm-title');
+                    if (cdmTitle) cdmTitle.textContent = finalTitle;
+                    const cdmDesc = document.getElementById('cdm-desc');
+                    if (cdmDesc) cdmDesc.textContent = finalDesc;
+                    const cdmCat = document.getElementById('cdm-category-badge');
+                    if (cdmCat) {
+                        cdmCat.textContent = finalCat;
+                        cdmCat.className = 'post-category cat-' + finalCat.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    }
+                }
+
                 closeEditConcernModal();
-                showToast('Concern updated successfully!', 'fa-check-circle');
+                showToast(data.message || 'Concern updated successfully!', 'fa-check-circle');
             } else {
                 showToast(data.message || 'Could not update concern.', 'fa-exclamation-circle');
             }
@@ -3826,6 +3952,73 @@ function showCameraGalleryPrompt(inputElement) {
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
+        }
+    }
+
+    // ===== POST REMOVAL / DELETION (Allowed only before LGU interacts) =====
+    function confirmDeleteConcern(reportId) {
+        document.getElementById('delete-concern-id').value = reportId;
+        const modal = document.getElementById('delete-concern-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeDeleteConcernModal() {
+        const modal = document.getElementById('delete-concern-modal');
+        if (modal) modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    async function executeDeleteConcern() {
+        const reportId = document.getElementById('delete-concern-id').value;
+        if (!reportId) return;
+
+        const btn = document.getElementById('btn-confirm-delete');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
+
+        try {
+            const res = await fetch(`/api/delete_concern/${reportId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                closeDeleteConcernModal();
+
+                // Close concern details viewer modal if open for this concern
+                const cdm = document.getElementById('concern-details-modal');
+                if (cdm && cdm.dataset.activeReportId === String(reportId)) {
+                    closePostModal();
+                }
+
+                // Smoothly fade out and remove post card from feed
+                const post = document.querySelector(`.concern-post[data-id="${reportId}"]`);
+                if (post) {
+                    post.style.transition = 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+                    post.style.opacity = '0';
+                    post.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        post.remove();
+                        if (typeof runFilter === 'function') runFilter();
+                    }, 350);
+                }
+
+                showToast(data.message || 'Concern removed successfully.', 'fa-check-circle');
+            } else {
+                showToast(data.message || 'Could not remove concern.', 'fa-exclamation-circle');
+            }
+        } catch (err) {
+            console.error('Delete error:', err);
+            showToast('Network error while removing concern.', 'fa-exclamation-circle');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            closeDeleteConcernModal();
         }
     }
 </script>

@@ -2551,26 +2551,25 @@ def api_edit_concern(report_id):
     con = connect_db()
     cursor = con.cursor(dictionary=True)
 
-    # 1. Verify user is owner of the report
-    cursor.execute("""
-        SELECT ra.account_id, r.status, r.title, r.description, r.category
-        FROM reports r
-        JOIN (
-            SELECT report_id, MIN(account_id) AS account_id
-            FROM report_activity
-            WHERE activity_type IN ('report_created', 'report_created_anon')
-            GROUP BY report_id
-        ) ra ON ra.report_id = r.report_id
-        WHERE r.report_id = %s
-    """, (report_id,))
+    # 1. Fetch report details
+    cursor.execute("SELECT status, title, description, category, location_id FROM reports WHERE report_id = %s", (report_id,))
     rep = cursor.fetchone()
-
     if not rep:
-        # Fallback query if report_created activity not found
-        cursor.execute("SELECT status, title, description, category FROM reports WHERE report_id = %s", (report_id,))
-        rep = cursor.fetchone()
+        con.close()
+        return jsonify({'success': False, 'message': 'Concern not found.'}), 404
 
-    # 2. Check if LGU has interacted (status is not Pending or updates exist)
+    # 2. Check ownership: must be the creator (or Admin)
+    cursor.execute("""
+        SELECT account_id FROM report_activity
+        WHERE report_id = %s AND activity_type IN ('report_created', 'report_created_anon')
+        LIMIT 1
+    """, (report_id,))
+    creator = cursor.fetchone()
+    if creator and creator['account_id'] != account_id and session.get('role') not in ('Admin', 'Super Admin'):
+        con.close()
+        return jsonify({'success': False, 'message': 'You are only authorized to edit your own concerns.'}), 403
+
+    # 3. Check if LGU has interacted (status is not Pending or updates exist)
     cursor.execute("""
         SELECT COUNT(*) AS update_count
         FROM report_activity
@@ -2579,14 +2578,14 @@ def api_edit_concern(report_id):
     upd_row = cursor.fetchone()
     has_lgu_update = upd_row and upd_row['update_count'] > 0
 
-    if (rep.get('status') or '').lower() != 'pending' or has_lgu_update:
+    if (rep.get('status') or '').strip().lower() != 'pending' or has_lgu_update:
         con.close()
         return jsonify({
             'success': False,
-            'message': 'Editing disabled: The LGU has already acknowledged or updated this report.'
+            'message': 'Editing disabled: The LGU has already acknowledged or updated this concern.'
         }), 403
 
-    data = request.get_json(silent=True) or request.form
+    data = request.get_json(silent=True) or request.form or {}
     new_title = (data.get('title') or '').strip()
     new_desc = (data.get('description') or '').strip()
     new_cat = (data.get('category') or '').strip()
@@ -2605,26 +2604,123 @@ def api_edit_concern(report_id):
     except Exception:
         pass
 
-    cursor.execute("""
-        UPDATE reports
-        SET title = %s, description = %s, category = %s, last_activity = %s
-        WHERE report_id = %s
-    """, (new_title, new_desc, new_cat or rep.get('category') or 'General', datetime.now(), report_id))
+    try:
+        cursor.execute("""
+            UPDATE reports
+            SET title = %s, description = %s, category = %s, last_activity = %s
+            WHERE report_id = %s
+        """, (new_title, new_desc, new_cat or rep.get('category') or 'General', datetime.now(), report_id))
 
-    cursor.execute("""
-        INSERT INTO report_activity (account_id, report_id, activity_type, content)
-        VALUES (%s, %s, 'report_edited', 'Author edited report title/description')
-    """, (account_id, report_id))
+        cursor.execute("""
+            INSERT INTO report_activity (account_id, report_id, activity_type, content)
+            VALUES (%s, %s, 'report_edited', %s)
+        """, (account_id, report_id, f"Edited: {new_title}"))
 
-    con.commit()
-    con.close()
-    return jsonify({
-        'success': True,
-        'message': 'Concern updated successfully!',
-        'title': new_title,
-        'description': new_desc,
-        'category': new_cat or 'General'
-    })
+        con.commit()
+        con.close()
+        return jsonify({
+            'success': True,
+            'message': 'Concern updated successfully!',
+            'title': new_title,
+            'description': new_desc,
+            'category': new_cat or rep.get('category') or 'General'
+        })
+    except Exception as e:
+        con.rollback()
+        con.close()
+        return jsonify({'success': False, 'message': f'Database error updating concern: {str(e)}'}), 500
+
+
+# ===== API: Delete / Remove concern (Only allowed before LGU interacts/updates status) =====
+@app.route('/api/delete_concern/<int:report_id>', methods=['POST', 'DELETE'])
+def api_delete_concern(report_id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'You must be logged in.'}), 401
+
+    account_id = session.get('user_id')
+    con = connect_db()
+    cursor = con.cursor(dictionary=True)
+
+    # 1. Fetch report details
+    cursor.execute("SELECT report_id, status, location_id FROM reports WHERE report_id = %s", (report_id,))
+    rep = cursor.fetchone()
+    if not rep:
+        con.close()
+        return jsonify({'success': False, 'message': 'Concern not found or already removed.'}), 404
+
+    # 2. Check ownership
+    cursor.execute("""
+        SELECT account_id FROM report_activity
+        WHERE report_id = %s AND activity_type IN ('report_created', 'report_created_anon')
+        LIMIT 1
+    """, (report_id,))
+    creator = cursor.fetchone()
+    if creator and creator['account_id'] != account_id and session.get('role') not in ('Admin', 'Super Admin'):
+        con.close()
+        return jsonify({'success': False, 'message': 'Unauthorized: You can only remove your own concerns.'}), 403
+
+    # 3. Check if LGU has interacted (status not Pending or updates exist)
+    cursor.execute("""
+        SELECT COUNT(*) AS update_count
+        FROM report_activity
+        WHERE report_id = %s AND activity_type = 'report_update'
+    """, (report_id,))
+    upd_row = cursor.fetchone()
+    has_lgu_update = upd_row and upd_row['update_count'] > 0
+
+    if (rep.get('status') or '').strip().lower() != 'pending' or has_lgu_update:
+        con.close()
+        return jsonify({
+            'success': False,
+            'message': 'Cannot remove concern: The LGU has already acknowledged or updated this report.'
+        }), 403
+
+    # 4. Perform cascade deletion
+    try:
+        # A. Delete activity media
+        cursor.execute("""
+            DELETE am FROM activity_media am
+            JOIN report_activity ra ON am.activity_id = ra.activity_id
+            WHERE ra.report_id = %s
+        """, (report_id,))
+
+        # B. Delete all report activities (comments, updates, upvotes, creation)
+        cursor.execute("DELETE FROM report_activity WHERE report_id = %s", (report_id,))
+
+        # C. Query attached media paths to remove from disk, then delete from reports_media
+        cursor.execute("SELECT path FROM reports_media WHERE report_id = %s", (report_id,))
+        media_rows = cursor.fetchall()
+        cursor.execute("DELETE FROM reports_media WHERE report_id = %s", (report_id,))
+
+        # D. Delete report record
+        cursor.execute("DELETE FROM reports WHERE report_id = %s", (report_id,))
+
+        # E. Clean up location if orphaned
+        loc_id = rep.get('location_id')
+        if loc_id:
+            cursor.execute("SELECT COUNT(*) AS cnt FROM reports WHERE location_id = %s", (loc_id,))
+            cnt_row = cursor.fetchone()
+            if cnt_row and cnt_row['cnt'] == 0:
+                cursor.execute("DELETE FROM location WHERE location_id = %s", (loc_id,))
+
+        con.commit()
+
+        # Safely remove uploaded media files from disk
+        for m in media_rows:
+            p = m.get('path')
+            if p and os.path.exists(p) and 'uploads' in p:
+                try:
+                    os.remove(p)
+                except Exception:
+                    pass
+
+        con.close()
+        return jsonify({'success': True, 'message': 'Concern removed successfully.'})
+
+    except Exception as e:
+        con.rollback()
+        con.close()
+        return jsonify({'success': False, 'message': f'Database error removing concern: {str(e)}'}), 500
 
 
 # ===== API: Fetch report details by public_key (UUID) =====
