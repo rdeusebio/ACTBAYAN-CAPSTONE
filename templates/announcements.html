@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -40,7 +40,7 @@
         .theme-toggle-btn:hover { background-color: var(--icon-hover); color: var(--text-main); }
         .user-profile-btn { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; cursor: pointer; transition: background 0.2s; border: 1px solid var(--border-color); text-decoration: none; }
         .user-profile-btn:hover { background-color: var(--icon-hover); }
-        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #c0392b); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; overflow: hidden;}
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #16a34a); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; overflow: hidden;}
         .user-info { display: flex; flex-direction: column; overflow: hidden; }
         .user-name { font-size: 13px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-role { font-size: 11px; color: var(--text-muted); }
@@ -73,7 +73,7 @@
         .featured-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
         .meta-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
         .meta-item i { color: var(--primary-red); font-size: 11px; }
-        .featured-img { background: linear-gradient(135deg, #166534, #c0392b); display: flex; align-items: center; justify-content: center; font-size: 80px; min-height: 240px; }
+        .featured-img { background: linear-gradient(135deg, #166534, #16a34a); display: flex; align-items: center; justify-content: center; font-size: 80px; min-height: 240px; }
 
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; width: 100%; }
         .section-title { font-size: 18px; font-weight: 800; color: var(--text-main); margin: 0; }
@@ -95,7 +95,7 @@
         .modal-backdrop.open { opacity: 1; visibility: visible; }
         .modal { background: var(--bg-nav-card); border-radius: 20px; max-width: 560px; width: 100%; transform: translateY(20px) scale(0.97); transition: transform 0.35s cubic-bezier(0.16,1,0.3,1); box-shadow: 0 28px 80px rgba(0,0,0,0.28); max-height: 92vh; overflow-y: auto; }
         .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
-        .modal-head { background: linear-gradient(135deg, #5a0000 0%, #166534 55%, #16a34a 100%); padding: 22px 24px 20px; position: relative; overflow: hidden; display: flex; align-items: flex-start; justify-content: space-between; border-radius: 20px 20px 0 0; }
+        .modal-head { background: linear-gradient(135deg, #052e16 0%, #166534 55%, #16a34a 100%); padding: 22px 24px 20px; position: relative; overflow: hidden; display: flex; align-items: flex-start; justify-content: space-between; border-radius: 20px 20px 0 0; }
         .modal-close-btn { background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.2); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; flex-shrink: 0; transition: background 0.2s; }
         .modal-head-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.22); border-radius: 50px; padding: 4px 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: white; margin-bottom: 8px; }
         .modal-head-title { font-size: 20px; font-weight: 900; color: white; letter-spacing: -0.3px; line-height: 1.2; margin: 0; }
@@ -152,7 +152,7 @@
             .sidebar-link:not(.active):hover i { color: var(--primary-red) !important; transform: scale(1.15) !important; }
             .sidebar-link.active {
                 flex: 0 1 auto !important; max-width: calc(100% - 140px) !important; background: var(--primary-red) !important; color: #ffffff !important; padding: 0 14px !important;
-                gap: 6px !important; box-shadow: 0 6px 20px rgba(185, 28, 28, 0.42) !important; transform: translateY(-2px) !important; overflow: hidden !important;
+                gap: 6px !important; box-shadow: 0 6px 20px rgba(22, 101, 52, 0.35) !important; transform: translateY(-2px) !important; overflow: hidden !important;
             }
             .sidebar-link.active i { color: #ffffff !important; font-size: 18px !important; flex-shrink: 0 !important; }
             .sidebar-link.active span:not(.notif-badge) {
@@ -328,7 +328,7 @@ function renderCards(data) {
     }
     grid.innerHTML = data.map((a, index) => `
         <div class="ann-card" onclick="openModalByIndex(${index})">
-            <div class="ann-card-img" style="background: linear-gradient(135deg, #166534, #c0392b);">${a.emoji}</div>
+            <div class="ann-card-img" style="background: linear-gradient(135deg, #166534, #16a34a);">${a.emoji}</div>
             <div class="ann-card-body">
                 <div class="ann-card-tag">${a.tag}</div>
                 <div class="ann-card-title">${a.title}</div>

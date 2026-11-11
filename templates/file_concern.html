@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -102,7 +102,7 @@
         .theme-toggle-btn:hover { background-color: var(--icon-hover); color: var(--text-main); }
         
         .user-profile-btn { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer; }
-        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #c0392b); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #16a34a); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; }
         .user-info { display: flex; flex-direction: column; overflow: hidden; }
         .user-name { font-size: 13px; font-weight: 700; color: var(--text-main); }
         .user-role { font-size: 11px; color: var(--text-muted); }
@@ -200,7 +200,7 @@
             border-color: var(--primary-red);
             color: white;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(139, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.2);
         }
         .post-delete-btn {
             background: rgba(239, 68, 68, 0.08);
@@ -275,10 +275,10 @@
         }
         .post-avatar {
             width: 42px; height: 42px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-red), #c0392b);
+            background: linear-gradient(135deg, var(--primary-red), #16a34a);
             color: white; font-size: 16px; font-weight: 800;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 12px rgba(139,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(22,101,52,0.3);
             flex-shrink: 0;
         }
         .post-user { flex: 1; }
@@ -632,7 +632,7 @@
             width: 30px;
             height: 30px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-red), #c0392b);
+            background: linear-gradient(135deg, var(--primary-red), #16a34a);
             color: white;
             font-size: 11px;
             font-weight: 800;
@@ -653,7 +653,7 @@
             position: relative;
             transition: border-color 0.2s;
         }
-        .comment-bubble:hover { border-color: rgba(139,0,0,0.2); }
+        .comment-bubble:hover { border-color: rgba(22,101,52,0.2); }
         .comment-author {
             font-size: 11px;
             font-weight: 800;
@@ -940,7 +940,7 @@
         .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
 
         .modal-head {
-            background: linear-gradient(135deg, #5a0000 0%, #166534 55%, #16a34a 100%);
+            background: linear-gradient(135deg, #052e16 0%, #166534 55%, #16a34a 100%);
             padding: 22px 24px 20px; position: relative; overflow: hidden;
             display: flex; align-items: flex-start; justify-content: space-between;
             border-radius: 20px 20px 0 0;
@@ -1081,7 +1081,7 @@
         }
 
         .loc-map-selected {
-            border-color: rgba(139,0,0,0.55) !important;
+            border-color: rgba(22,101,52,0.55) !important;
             box-shadow: 0 0 0 3px rgba(139,0,0,0.12);
         }
 
@@ -1116,7 +1116,7 @@
         .modal-review-val { font-size: 13px; font-weight: 600; color: var(--text-main); line-height: 1.4; flex: 1; }
         .modal-review-cat-pill { display: inline-flex; align-items: center; gap: 5px; background: var(--red-light); color: var(--primary-red); padding: 3px 10px; border-radius: 50px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; }
 
-        .modal-disclaimer { display: flex; align-items: flex-start; gap: 9px; background: var(--red-light); border: 1px solid rgba(139,0,0,0.2); border-radius: 11px; padding: 11px 13px; margin-bottom: 16px; }
+        .modal-disclaimer { display: flex; align-items: flex-start; gap: 9px; background: var(--red-light); border: 1px solid rgba(22,101,52,0.2); border-radius: 11px; padding: 11px 13px; margin-bottom: 16px; }
         .modal-disclaimer i { color: var(--primary-red); font-size: 12px; margin-top: 2px; flex-shrink: 0; }
         .modal-disclaimer p { font-size: 11px; color: var(--text-main); line-height: 1.5; font-weight: 500; margin: 0; }
 
@@ -1214,7 +1214,7 @@
             content: '';
             flex: 1;
             height: 1px;
-            background: linear-gradient(to right, rgba(139,0,0,0.3), transparent);
+            background: linear-gradient(to right, rgba(22,101,52,0.3), transparent);
         }
         .update-item {
             display: flex;
@@ -1228,7 +1228,7 @@
         }
         .update-item:hover {
             box-shadow: 0 4px 16px rgba(0,0,0,0.07);
-            border-color: rgba(139,0,0,0.2);
+            border-color: rgba(22,101,52,0.2);
         }
         .update-thumb {
             width: 100px;
@@ -1325,7 +1325,7 @@
             .sidebar-link:not(.active):hover i { color: var(--primary-red) !important; transform: scale(1.15) !important; }
             .sidebar-link.active {
                 flex: 0 1 auto !important; max-width: calc(100% - 140px) !important; background: var(--primary-red) !important; color: #ffffff !important; padding: 0 14px !important;
-                gap: 6px !important; box-shadow: 0 6px 20px rgba(185, 28, 28, 0.42) !important; transform: translateY(-2px) !important; overflow: hidden !important;
+                gap: 6px !important; box-shadow: 0 6px 20px rgba(22, 101, 52, 0.35) !important; transform: translateY(-2px) !important; overflow: hidden !important;
             }
             .sidebar-link.active i { color: #ffffff !important; font-size: 18px !important; flex-shrink: 0 !important; }
             .sidebar-link.active span:not(.notif-badge) {

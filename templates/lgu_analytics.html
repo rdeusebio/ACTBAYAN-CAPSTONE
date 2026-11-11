@@ -20,7 +20,7 @@
             --search:   #f3f4f6;
             --red:      #166534;
             --red-h:    #14532d;
-            --red-lt:   rgba(139,0,0,0.07);
+            --red-lt:   rgba(22,101,52,0.07);
             --red-md:   rgba(22,101,52,0.15);
             --sh-sm:    0 1px 3px rgba(0,0,0,0.06);
             --sh-md:    0 4px 18px rgba(0,0,0,0.08);
@@ -34,8 +34,8 @@
             --main:     #e8eaed;
             --hover-bg: #1d2130;
             --search:   #1d2130;
-            --red-lt:   rgba(139,0,0,0.18);
-            --red-md:   rgba(139,0,0,0.30);
+            --red-lt:   rgba(22,101,52,0.18);
+            --red-md:   rgba(22,101,52,0.30);
             --sh-sm:    0 1px 3px rgba(0,0,0,0.4);
             --sh-md:    0 4px 18px rgba(0,0,0,0.5);
             --sh-lg:    0 12px 40px rgba(0,0,0,0.6);
@@ -77,7 +77,7 @@
         /* ── HERO ── */
         .hero{
             background: #166534;
-            background-image: linear-gradient(135deg, rgba(139,0,0,0.88) 0%, rgba(185,28,28,0.82) 50%, rgba(139,0,0,0.88) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}");
+            background-image: linear-gradient(135deg, rgba(22,101,52,0.90) 0%, rgba(22,163,74,0.85) 50%, rgba(5,46,22,0.92) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}");
             background-size: cover; background-position: center;
             padding: 44px 50px 36px; position: relative; overflow: hidden; color: #fff;
         }
@@ -166,7 +166,7 @@
         .loc-rank{width:20px;height:20px;border-radius:5px;background:var(--red-lt);color:var(--red);font-size:9.5px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
         .loc-name{font-size:12.5px;font-weight:700;color:var(--main);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .loc-bar-out{flex:1;max-width:100px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
-        .loc-bar-in{height:100%;background:linear-gradient(90deg,var(--red),#c0392b);border-radius:3px;transition:width 1.1s ease;}
+        .loc-bar-in{height:100%;background:linear-gradient(90deg, var(--red), #16a34a);border-radius:3px;transition:width 1.1s ease;}
         .loc-cnt{font-size:11.5px;font-weight:800;color:var(--main);min-width:20px;text-align:right;}
 
         /* ── TOP REPORTERS ── */
@@ -217,7 +217,7 @@
         .dow-wrap{display:flex;align-items:flex-end;gap:6px;height:80px;padding-top:8px;}
         .dow-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
         .dow-bar-out{flex:1;width:100%;display:flex;align-items:flex-end;border-radius:4px;}
-        .dow-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--red),#c0392b);min-height:2px;transition:height 1s ease;}
+        .dow-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg, var(--red), #16a34a);min-height:2px;transition:height 1s ease;}
         .dow-lbl{font-size:9.5px;font-weight:700;color:var(--muted);}
         .dow-cnt{font-size:10px;font-weight:800;color:var(--main);}
 
@@ -317,7 +317,7 @@
             .sidebar .sidebar-link:not(.active):hover i { color: var(--red) !important; transform: scale(1.15) !important; }
             .sidebar .sidebar-link.active {
                 flex: 0 1 auto !important; max-width: calc(100% - 140px) !important; background: var(--red) !important; color: #ffffff !important; padding: 0 14px !important;
-                gap: 6px !important; box-shadow: 0 6px 20px rgba(185, 28, 28, 0.42) !important; transform: translateY(-2px) !important; overflow: hidden !important;
+                gap: 6px !important; box-shadow: 0 6px 20px rgba(22, 101, 52, 0.35) !important; transform: translateY(-2px) !important; overflow: hidden !important;
             }
             .sidebar .sidebar-link.active i { color: #ffffff !important; font-size: 18px !important; flex-shrink: 0 !important; }
             .sidebar .sidebar-link.active span:not(.notif-badge) {
@@ -358,7 +358,7 @@
             width: 58px;
             height: 58px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #166534, #c0392b);
+            background: linear-gradient(135deg, #166534, #16a34a);
             color: #fff;
             border: none;
             cursor: pointer;
@@ -366,20 +366,20 @@
             align-items: center;
             justify-content: center;
             font-size: 22px;
-            box-shadow: 0 8px 28px rgba(139,0,0,0.55), 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 28px rgba(22,101,52,0.55), 0 2px 8px rgba(0,0,0,0.2);
             z-index: 3000;
             transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
         }
         .autosumm-fab:hover {
             transform: scale(1.12) translateY(-2px);
-            box-shadow: 0 14px 38px rgba(139,0,0,0.65), 0 4px 12px rgba(0,0,0,0.22);
+            box-shadow: 0 14px 38px rgba(22,101,52,0.65), 0 4px 12px rgba(0,0,0,0.22);
         }
         .autosumm-fab::before {
             content: '';
             position: absolute;
             inset: -4px;
             border-radius: 50%;
-            border: 2.5px solid rgba(139,0,0,0.35);
+            border: 2.5px solid rgba(22,101,52,0.35);
             animation: fab-pulse 2.2s infinite;
         }
         .autosumm-fab::after {
@@ -450,7 +450,7 @@
         .asd-header {
             padding: 20px 22px 16px;
             border-bottom: 1px solid var(--border);
-            background: linear-gradient(135deg, rgba(22,101,52,0.08), rgba(185,28,28,0.04));
+            background: linear-gradient(135deg, rgba(22,101,52,0.08), rgba(22,101,52,0.03));
             flex-shrink: 0;
         }
         .asd-header-top {
@@ -462,10 +462,10 @@
         }
         .asd-brand-ico {
             width: 38px; height: 38px; border-radius: 12px;
-            background: linear-gradient(135deg, #166534, #c0392b);
+            background: linear-gradient(135deg, #166534, #16a34a);
             color: #fff; display: flex; align-items: center; justify-content: center;
             font-size: 17px; flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(139,0,0,0.35);
+            box-shadow: 0 4px 12px rgba(22,101,52,0.35);
         }
         .asd-brand-text .asd-brand-title {
             font-size: 15px; font-weight: 900; color: var(--main); line-height: 1.1;
@@ -508,7 +508,7 @@
 
         /* Executive Summary Card */
         .asd-exec-card {
-            background: linear-gradient(135deg, rgba(22,101,52,0.08), rgba(185,28,28,0.04));
+            background: linear-gradient(135deg, rgba(22,101,52,0.08), rgba(22,101,52,0.03));
             border: 1.5px solid var(--red-md);
             border-radius: 14px; padding: 16px;
             position: relative; overflow: hidden;
@@ -584,13 +584,13 @@
             font-family: 'Inter', sans-serif;
         }
         .asd-btn-primary {
-            background: linear-gradient(135deg, #166534, #c0392b);
+            background: linear-gradient(135deg, #166534, #16a34a);
             color: #fff; border-color: transparent;
-            box-shadow: 0 4px 14px rgba(139,0,0,0.4);
+            box-shadow: 0 4px 14px rgba(22,101,52,0.4);
         }
         .asd-btn-primary:hover {
-            background: linear-gradient(135deg, #14532d, #d44);
-            box-shadow: 0 6px 20px rgba(139,0,0,0.5);
+            background: linear-gradient(135deg, #14532d, #16a34a);
+            box-shadow: 0 6px 20px rgba(22,101,52,0.5);
             transform: translateY(-1px);
         }
         .asd-btn-secondary {

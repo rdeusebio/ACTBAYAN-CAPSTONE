@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -234,7 +234,7 @@
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-red), #c0392b);
+            background: linear-gradient(135deg, var(--primary-red), #16a34a);
             color: white;
             font-weight: 800;
             display: flex;
@@ -496,7 +496,7 @@
             align-items: center;
             gap: 8px;
             transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(139, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.2);
             font-family: 'Inter';
             text-decoration: none;
         }
@@ -722,7 +722,7 @@
         }
 
         .modal-head {
-            background: linear-gradient(135deg, #5a0000 0%, #166534 55%, #16a34a 100%);
+            background: linear-gradient(135deg, #052e16 0%, #166534 55%, #16a34a 100%);
             padding: 22px 24px 20px;
             position: relative;
             overflow: hidden;
@@ -1176,7 +1176,7 @@
             align-items: flex-start;
             gap: 9px;
             background: var(--red-light);
-            border: 1px solid rgba(139, 0, 0, 0.2);
+            border: 1px solid rgba(22, 101, 52, 0.2);
             border-radius: 11px;
             padding: 11px 13px;
             margin-bottom: 16px;
@@ -1467,7 +1467,7 @@
                 color: #ffffff !important;
                 padding: 0 14px !important;
                 gap: 6px !important;
-                box-shadow: 0 6px 20px rgba(185, 28, 28, 0.42) !important;
+                box-shadow: 0 6px 20px rgba(22, 101, 52, 0.35) !important;
                 transform: translateY(-2px) !important;
                 overflow: hidden !important;
             }
@@ -1734,7 +1734,7 @@
                     {% if latest_ann %}
                     <div class="card" onclick="window.location.href='{{ url_for('announcements') }}'">
                         <div class="card-body"
-                            style="background: linear-gradient(135deg, #166534, #c0392b); color: white; padding: 24px;">
+                            style="background: linear-gradient(135deg, #166534, #16a34a); color: white; padding: 24px;">
                             <div class="card-meta" style="color: rgba(255,255,255,0.8); margin-bottom: 12px;"><span><i
                                         class="fas fa-calendar"></i> {{ latest_ann.formatted_date }}</span></div>
                             <h3 class="card-headline" style="color: white; font-size: 18px;">{{ latest_ann.ann_title }}

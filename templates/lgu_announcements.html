@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -15,7 +15,7 @@
             --backdrop-blur: blur(16px);
             --text-muted: #5f6368; --border-color: #e0e0e0; --icon-hover: #f1f3f4;
             --search-bg: #f1f3f4; --primary-red: #166534; --primary-red-hover: #14532d;
-            --red-light: rgba(22,101,52,0.08); --hero-overlay: rgba(139,0,0,0.85);
+            --red-light: rgba(22,101,52,0.08); --hero-overlay: rgba(5,46,22,0.88);
         }
         body.dark-mode {
             --bg-main: #121212; --bg-nav-card: #1e1e1e; --text-main: #e8eaed;
@@ -72,7 +72,7 @@
         .theme-toggle-btn:hover { background-color: var(--icon-hover); color: var(--text-main); }
         
         .user-profile-btn { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; }
-        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #c0392b); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-red), #16a34a); color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; }
         .user-info { display: flex; flex-direction: column; overflow: hidden; }
         .user-name { font-size: 13px; font-weight: 700; color: var(--text-main); }
         .user-role { font-size: 11px; color: var(--text-muted); }
@@ -92,7 +92,7 @@
 
         /* POST FORM */
         .post-card { background: var(--glass-bg); backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur); border-radius: 20px; border: 1px solid var(--glass-border); padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .post-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); border-color: rgba(139,0,0,0.2); }
+        .post-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); border-color: rgba(22,101,52,0.2); }
         .section-title { font-size: 18px; font-weight: 800; color: var(--text-main); margin: 0 0 20px; display: flex; align-items: center; gap: 8px;}
         .section-title i { color: var(--primary-red); }
         
@@ -103,11 +103,11 @@
         textarea.form-input { min-height: 150px; resize: vertical; }
 
         .btn-post { width: 100%; background: var(--primary-red); color: white; border: none; padding: 14px; border-radius: 10px; font-size: 14px; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; font-family: 'Inter'; }
-        .btn-post:hover { background: var(--primary-red-hover); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(139,0,0,0.2);}
+        .btn-post:hover { background: var(--primary-red-hover); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(22,101,52,0.2);}
 
         /* ANNOUNCEMENT LIST */
         .list-card { background: var(--glass-bg); backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur); border-radius: 20px; border: 1px solid var(--glass-border); overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03); transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .list-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); border-color: rgba(139,0,0,0.2); }
+        .list-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); border-color: rgba(22,101,52,0.2); }
         .list-header { padding: 20px 24px; border-bottom: 1px solid var(--border-color); }
         
         .ann-item { padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; transition: 0.2s;}
@@ -169,7 +169,7 @@
             .sidebar-link:not(.active):hover i { color: var(--primary-red) !important; transform: scale(1.15) !important; }
             .sidebar-link.active {
                 flex: 0 1 auto !important; max-width: calc(100% - 140px) !important; background: var(--primary-red) !important; color: #ffffff !important; padding: 0 14px !important;
-                gap: 6px !important; box-shadow: 0 6px 20px rgba(185, 28, 28, 0.42) !important; transform: translateY(-2px) !important; overflow: hidden !important;
+                gap: 6px !important; box-shadow: 0 6px 20px rgba(22, 101, 52, 0.35) !important; transform: translateY(-2px) !important; overflow: hidden !important;
             }
             .sidebar-link.active i { color: #ffffff !important; font-size: 18px !important; flex-shrink: 0 !important; }
             .sidebar-link.active span:not(.notif-badge) {
