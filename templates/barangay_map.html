@@ -686,6 +686,23 @@
             padding: 10px;
         }
 
+        .poi-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .poi-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .poi-list::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 10px;
+        }
+
+        .poi-list::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
         .poi-category {
             margin-bottom: 6px;
         }
@@ -1270,7 +1287,7 @@
                                 </button>
                                 <button type="button" class="filter-chip" id="chip-status-resolved" onclick="toggleStatusFilter('resolved')" role="checkbox" aria-checked="false" title="Resolved Concerns">
                                     <i class="fas fa-check chip-check"></i>
-                                    <span class="chip-label">✅ Resolved</span>
+                                    <span class="chip-label">🛡️ Resolved</span>
                                     <span class="chip-count" id="count-status-resolved">0</span>
                                 </button>
                             </div>
