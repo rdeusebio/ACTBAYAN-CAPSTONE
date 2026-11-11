@@ -2079,7 +2079,10 @@ def login():
                     )
                 con.commit()
 
-                session['user_id'] = account_id
+                try:
+                    session['user_id'] = int(account_id) if account_id is not None else None
+                except (ValueError, TypeError):
+                    session['user_id'] = account_id
                 session['user_name'] = pangalan
                 session['emorph'] = u
                 session['log_id'] = log_id
@@ -2531,7 +2534,12 @@ def api_edit_concern(report_id):
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': 'You must be logged in.'}), 401
 
-    account_id = session.get('user_id')
+    session_uid = session.get('user_id')
+    try:
+        account_id = int(session_uid) if session_uid is not None else None
+    except (ValueError, TypeError):
+        account_id = None
+
     con = connect_db()
     cursor = con.cursor(dictionary=True)
 
@@ -2546,10 +2554,22 @@ def api_edit_concern(report_id):
     cursor.execute("""
         SELECT account_id FROM report_activity
         WHERE report_id = %s AND activity_type IN ('report_created', 'report_created_anon')
+        ORDER BY activity_id ASC
         LIMIT 1
     """, (report_id,))
     creator = cursor.fetchone()
-    if creator and creator.get('account_id') and creator.get('account_id') != account_id and session.get('user_role') not in ('admin', 'super admin'):
+
+    creator_acc_id = None
+    if creator and creator.get('account_id') is not None:
+        try:
+            creator_acc_id = int(creator['account_id'])
+        except (ValueError, TypeError):
+            creator_acc_id = None
+
+    is_admin = session.get('user_role') in ('admin', 'super admin')
+    is_owner = (creator_acc_id is not None and account_id is not None and creator_acc_id == account_id)
+
+    if not is_owner and not is_admin:
         con.close()
         return jsonify({'success': False, 'message': 'You are only authorized to edit your own concerns.'}), 403
 
@@ -2621,7 +2641,12 @@ def api_delete_concern(report_id):
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': 'You must be logged in.'}), 401
 
-    account_id = session.get('user_id')
+    session_uid = session.get('user_id')
+    try:
+        account_id = int(session_uid) if session_uid is not None else None
+    except (ValueError, TypeError):
+        account_id = None
+
     con = connect_db()
     cursor = con.cursor(dictionary=True)
 
@@ -2632,14 +2657,26 @@ def api_delete_concern(report_id):
         con.close()
         return jsonify({'success': False, 'message': 'Concern not found or already removed.'}), 404
 
-    # 2. Check ownership
+    # 2. Check ownership: must be the creator (or Admin)
     cursor.execute("""
         SELECT account_id FROM report_activity
         WHERE report_id = %s AND activity_type IN ('report_created', 'report_created_anon')
+        ORDER BY activity_id ASC
         LIMIT 1
     """, (report_id,))
     creator = cursor.fetchone()
-    if creator and creator.get('account_id') and creator.get('account_id') != account_id and session.get('user_role') not in ('admin', 'super admin'):
+
+    creator_acc_id = None
+    if creator and creator.get('account_id') is not None:
+        try:
+            creator_acc_id = int(creator['account_id'])
+        except (ValueError, TypeError):
+            creator_acc_id = None
+
+    is_admin = session.get('user_role') in ('admin', 'super admin')
+    is_owner = (creator_acc_id is not None and account_id is not None and creator_acc_id == account_id)
+
+    if not is_owner and not is_admin:
         con.close()
         return jsonify({'success': False, 'message': 'Unauthorized: You can only remove your own concerns.'}), 403
 
@@ -3168,7 +3205,10 @@ def id_verification():
         user_name = row[0] if row else "Resident"
         con.close()
 
-        session['user_id'] = user_id
+        try:
+            session['user_id'] = int(user_id) if user_id is not None else None
+        except (ValueError, TypeError):
+            session['user_id'] = user_id
         session['user_name'] = user_name
         session['user_role'] = 'resident'
         session.pop('pending_user_id', None)
