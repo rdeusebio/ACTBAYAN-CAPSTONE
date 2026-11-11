@@ -175,6 +175,41 @@
         .badge-owner { background: #e7f3ff; color: #1a73e8; border: 1px solid #9ccbf5; }
         .badge-upvoted { background: #fff4e5; color: #b26a00; border: 1px solid #f0c97a; }
 
+        .post-edit-btn {
+            margin-left: auto;
+            background: var(--search-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+        .post-edit-btn:hover {
+            background: var(--primary-red);
+            border-color: var(--primary-red);
+            color: white;
+        }
+        .post-edit-locked {
+            margin-left: auto;
+            background: rgba(100, 116, 139, 0.1);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            cursor: help;
+        }
+
         /* Post Header */
         .post-header {
             display: flex; align-items: center; gap: 12px;
@@ -1274,6 +1309,16 @@
                             <span class="post-category cat-{{ c.category|lower|replace(' ', '')|replace('/', '') }}">{{ c.category }}</span>
                             {% if c.user_relation == 'owner' %}
                             <span class="post-relation badge-owner">My Report</span>
+                            {% set lgu_interacted = (c.status|lower != 'pending') or (updates_by_report.get(c.report_id)|length > 0) %}
+                            {% if not lgu_interacted %}
+                            <button type="button" class="post-edit-btn" onclick="event.stopPropagation(); openEditConcernModal('{{ c.report_id }}');" title="Edit your concern (Allowed before LGU acknowledgement)">
+                                <i class="fas fa-pen-to-square"></i> Edit
+                            </button>
+                            {% else %}
+                            <span class="post-edit-locked" title="Editing locked: The LGU has already acknowledged or updated this report.">
+                                <i class="fas fa-lock"></i> Locked
+                            </span>
+                            {% endif %}
                             {% elif c.user_relation == 'upvoted' %}
                             <span class="post-relation badge-upvoted">You upvoted</span>
                             {% endif %}
@@ -1684,15 +1729,30 @@
     </div>
     <!-- RIGHT PANEL: DETAILS & COMMENTS SIDEBAR (FIXED HEIGHT 100% SO IT NEVER CUTS OFF AT BOTTOM) -->
     <div class="cdm-sidebar" style="width:420px; max-width:100%; height:100%; max-height:100%; background:var(--bg-nav-card, #1c1c1e); border-left:1px solid var(--border-color, #2c2c2e); display:flex; flex-direction:column; flex-shrink:0; box-shadow:-5px 0 25px rgba(0,0,0,0.3); z-index:5; box-sizing:border-box; overflow:hidden;" onclick="event.stopPropagation()">
-        <!-- SIDEBAR HEADER (NO SECOND CANCEL BUTTON) -->
-        <div style="padding:16px 20px; border-bottom:1px solid var(--border-color, rgba(255,255,255,0.1)); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; background:var(--bg-nav-card); box-sizing:border-box;">
-            <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
-                <div id="cdm-avatar" style="width:40px; height:40px; border-radius:50%; background:var(--primary-red); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; flex-shrink:0; overflow:hidden;"></div>
-                <div style="min-width:0; flex:1;">
-                    <div id="cdm-author-name" style="font-weight:700; font-size:15px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
-                    <div style="font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
-                        <span id="cdm-time"></span> • <span id="cdm-category-badge" style="color:var(--primary-red); font-weight:700;"></span>
+        <!-- DEDICATED CONCERN HEADER -->
+        <div class="cdm-concern-header" style="padding:16px 20px; border-bottom:1.5px solid var(--border-color); display:flex; flex-direction:column; gap:10px; flex-shrink:0; background:linear-gradient(135deg, rgba(139,0,0,0.06), transparent);">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                <div style="display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.6px; color:var(--primary-red);">
+                    <i class="fas fa-shield-halved"></i> Public Concern Filing
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span id="cdm-status-pill" class="status-overlay" style="position:static; font-size:10px; padding:2px 8px; border-radius:50px;">Pending</span>
+                    <span id="cdm-category-badge" class="post-category" style="margin:0; font-size:10px; padding:2px 8px;">General</span>
+                </div>
+            </div>
+            
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
+                    <div id="cdm-avatar" style="width:38px; height:38px; border-radius:50%; background:var(--primary-red); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0; overflow:hidden;"></div>
+                    <div style="min-width:0; flex:1;">
+                        <div id="cdm-author-name" style="font-weight:800; font-size:13.5px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Resident</div>
+                        <div style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+                            <i class="far fa-clock"></i> <span id="cdm-time">Recently</span>
+                        </div>
                     </div>
+                </div>
+                <div id="cdm-ref-badge" style="font-size:10px; font-family:monospace; font-weight:700; color:var(--text-muted); background:var(--search-bg); padding:3px 8px; border-radius:6px; border:1px solid var(--border-color); white-space:nowrap;">
+                    <i class="fas fa-hashtag"></i> <span id="cdm-ref-key">GMN-REP</span>
                 </div>
             </div>
         </div>
@@ -1829,6 +1889,52 @@
                 </button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- EDIT CONCERN MODAL (Allowed only before LGU interacts) -->
+<div class="modal-backdrop" id="edit-concern-modal" onclick="if(event.target===this) closeEditConcernModal()" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(0,0,0,0.65); align-items:center; justify-content:center;">
+    <div style="width:92%; max-width:540px; background:var(--bg-nav-card); border-radius:18px; border:1px solid var(--border-color); box-shadow:0 15px 45px rgba(0,0,0,0.3); overflow:hidden; display:flex; flex-direction:column;">
+        <div style="padding:18px 24px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-pen-to-square" style="color:var(--primary-red); font-size:18px;"></i>
+                <h3 style="margin:0; font-size:17px; font-weight:800; color:var(--text-main);">Edit Concern Details</h3>
+            </div>
+            <button type="button" onclick="closeEditConcernModal()" style="background:var(--search-bg); border:none; width:32px; height:32px; border-radius:50%; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="edit-concern-form" onsubmit="submitEditConcern(event)" style="padding:20px 24px; display:flex; flex-direction:column; gap:16px;">
+            <input type="hidden" id="edit-concern-id">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Concern Title</label>
+                <input type="text" id="edit-concern-title" required style="width:100%; box-sizing:border-box; padding:10px 14px; border-radius:10px; border:1.5px solid var(--border-color); background:var(--search-bg); color:var(--text-main); font-family:inherit; font-size:13.5px; outline:none;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Category</label>
+                <select id="edit-concern-category" required style="width:100%; box-sizing:border-box; padding:10px 14px; border-radius:10px; border:1.5px solid var(--border-color); background:var(--search-bg); color:var(--text-main); font-family:inherit; font-size:13.5px; outline:none;">
+                    <option value="Road">Road</option>
+                    <option value="Sanitation">Sanitation</option>
+                    <option value="Flooding">Flooding</option>
+                    <option value="Lighting">Lighting</option>
+                    <option value="Public Safety">Public Safety</option>
+                    <option value="General">General</option>
+                </select>
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Description</label>
+                <textarea id="edit-concern-desc" rows="4" required style="width:100%; box-sizing:border-box; padding:10px 14px; border-radius:10px; border:1.5px solid var(--border-color); background:var(--search-bg); color:var(--text-main); font-family:inherit; font-size:13.5px; outline:none; resize:vertical;"></textarea>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); background:var(--search-bg); padding:10px 12px; border-radius:8px;">
+                <i class="fas fa-info-circle" style="color:var(--primary-red);"></i> <strong>Note:</strong> Concerns can only be edited while pending. Once the LGU acknowledges or updates this concern, editing is automatically locked.
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
+                <button type="button" onclick="closeEditConcernModal()" style="padding:9px 16px; border-radius:8px; border:1px solid var(--border-color); background:transparent; color:var(--text-muted); font-weight:700; cursor:pointer;">Cancel</button>
+                <button type="submit" id="btn-save-edit" style="padding:9px 20px; border-radius:8px; border:none; background:var(--primary-red); color:white; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -2882,6 +2988,16 @@
             
             const cdmCatBadge = document.getElementById('cdm-category-badge');
             if (cdmCatBadge) cdmCatBadge.textContent = r.category || 'Other';
+
+            const cdmStatusPill = document.getElementById('cdm-status-pill');
+            if (cdmStatusPill) {
+                cdmStatusPill.textContent = r.status || 'Pending';
+                cdmStatusPill.className = 'status-overlay status-' + (r.status || 'pending').toLowerCase().replace(/[^a-z0-9]/g, '');
+            }
+            const cdmRefKey = document.getElementById('cdm-ref-key');
+            if (cdmRefKey) {
+                cdmRefKey.textContent = r.public_key ? (r.public_key.slice(0, 8).toUpperCase()) : ('ACT-' + String(r.report_id).padStart(4, '0'));
+            }
             
             // Body
             document.getElementById('cdm-title').textContent = r.title || '';
@@ -3040,6 +3156,16 @@
         if (cdmTime) cdmTime.textContent = time;
         const cdmCatBadge = document.getElementById('cdm-category-badge');
         if (cdmCatBadge) cdmCatBadge.textContent = catEl ? catEl.textContent : '';
+
+        const cdmStatusPill = document.getElementById('cdm-status-pill');
+        if (cdmStatusPill) {
+            cdmStatusPill.textContent = statusText;
+            cdmStatusPill.className = 'status-overlay status-' + statusText.toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+        const cdmRefKey = document.getElementById('cdm-ref-key');
+        if (cdmRefKey) {
+            cdmRefKey.textContent = reportId ? ('ACT-' + String(reportId).padStart(4, '0')) : 'GMN-REP';
+        }
         
         // Body
         document.getElementById('cdm-title').textContent = title;
@@ -3475,6 +3601,101 @@ function showCameraGalleryPrompt(inputElement) {
             document.querySelectorAll('.emoji-popup').forEach(p => p.style.display = 'none');
         }
     });
+</script>
+
+<script>
+    // ===== POST EDITING (Allowed only before LGU interacts) =====
+    function openEditConcernModal(reportId) {
+        const post = document.querySelector(`.concern-post[data-id="${reportId}"]`);
+        if (!post) return;
+
+        const title = post.querySelector('.post-title')?.textContent.trim() || '';
+        const desc = post.querySelector('.post-caption')?.textContent.trim() || '';
+        const cat = post.querySelector('.post-category')?.textContent.trim() || 'General';
+
+        document.getElementById('edit-concern-id').value = reportId;
+        document.getElementById('edit-concern-title').value = title;
+        document.getElementById('edit-concern-desc').value = desc;
+
+        const catSelect = document.getElementById('edit-concern-category');
+        if (catSelect) {
+            let found = false;
+            for (let opt of catSelect.options) {
+                if (opt.value.toLowerCase() === cat.toLowerCase()) {
+                    opt.selected = true;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) catSelect.value = 'General';
+        }
+
+        const modal = document.getElementById('edit-concern-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeEditConcernModal() {
+        const modal = document.getElementById('edit-concern-modal');
+        if (modal) modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    async function submitEditConcern(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btn-save-edit');
+        const originalText = btn.innerHTML;
+        const reportId = document.getElementById('edit-concern-id').value;
+        const title = document.getElementById('edit-concern-title').value.trim();
+        const category = document.getElementById('edit-concern-category').value;
+        const desc = document.getElementById('edit-concern-desc').value.trim();
+
+        if (!title || !desc) {
+            showToast('Title and description are required.', 'fa-exclamation-circle');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        try {
+            const res = await fetch(`/api/edit_concern/${reportId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, category, description: desc })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                const post = document.querySelector(`.concern-post[data-id="${reportId}"]`);
+                if (post) {
+                    const titleEl = post.querySelector('.post-title');
+                    if (titleEl) titleEl.textContent = title;
+                    const descEl = post.querySelector('.post-caption');
+                    if (descEl) descEl.textContent = desc;
+                    const catEl = post.querySelector('.post-category');
+                    if (catEl) {
+                        catEl.textContent = category;
+                        catEl.className = 'post-category cat-' + category.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    }
+                    post.dataset.title = title.toLowerCase();
+                    post.dataset.category = category.toLowerCase().replace(/[^a-z0-9]/g, '');
+                }
+                closeEditConcernModal();
+                showToast('Concern updated successfully!', 'fa-check-circle');
+            } else {
+                showToast(data.message || 'Could not update concern.', 'fa-exclamation-circle');
+            }
+        } catch (err) {
+            console.error('Edit error:', err);
+            showToast('Network error while saving changes.', 'fa-exclamation-circle');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
 </script>
 </body>
 </html>

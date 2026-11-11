@@ -2450,6 +2450,92 @@ def file_concern():
     )
 
 
+# ===== API: Edit concern (Only allowed before LGU interacts/updates status) =====
+@app.route('/api/edit_concern/<int:report_id>', methods=['POST'])
+def api_edit_concern(report_id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'You must be logged in.'}), 401
+
+    account_id = session.get('user_id')
+    con = connect_db()
+    cursor = con.cursor(dictionary=True)
+
+    # 1. Verify user is owner of the report
+    cursor.execute("""
+        SELECT ra.account_id, r.status, r.title, r.description, r.category
+        FROM reports r
+        JOIN (
+            SELECT report_id, MIN(account_id) AS account_id
+            FROM report_activity
+            WHERE activity_type IN ('report_created', 'report_created_anon')
+            GROUP BY report_id
+        ) ra ON ra.report_id = r.report_id
+        WHERE r.report_id = %s
+    """, (report_id,))
+    rep = cursor.fetchone()
+
+    if not rep:
+        # Fallback query if report_created activity not found
+        cursor.execute("SELECT status, title, description, category FROM reports WHERE report_id = %s", (report_id,))
+        rep = cursor.fetchone()
+
+    # 2. Check if LGU has interacted (status is not Pending or updates exist)
+    cursor.execute("""
+        SELECT COUNT(*) AS update_count
+        FROM report_activity
+        WHERE report_id = %s AND activity_type = 'report_update'
+    """, (report_id,))
+    upd_row = cursor.fetchone()
+    has_lgu_update = upd_row and upd_row['update_count'] > 0
+
+    if (rep.get('status') or '').lower() != 'pending' or has_lgu_update:
+        con.close()
+        return jsonify({
+            'success': False,
+            'message': 'Editing disabled: The LGU has already acknowledged or updated this report.'
+        }), 403
+
+    data = request.get_json(silent=True) or request.form
+    new_title = (data.get('title') or '').strip()
+    new_desc = (data.get('description') or '').strip()
+    new_cat = (data.get('category') or '').strip()
+
+    if not new_title or not new_desc:
+        con.close()
+        return jsonify({'success': False, 'message': 'Title and description cannot be empty.'}), 400
+
+    # Profanity check
+    try:
+        from profanity import check_profanity
+        is_bad, matched = check_profanity(f"{new_title} {new_desc}")
+        if is_bad:
+            con.close()
+            return jsonify({'success': False, 'message': f'Inappropriate language detected ("{matched}"). Please revise.'}), 400
+    except Exception:
+        pass
+
+    cursor.execute("""
+        UPDATE reports
+        SET title = %s, description = %s, category = %s, last_activity = %s
+        WHERE report_id = %s
+    """, (new_title, new_desc, new_cat or rep.get('category') or 'General', datetime.now(), report_id))
+
+    cursor.execute("""
+        INSERT INTO report_activity (account_id, report_id, activity_type, content)
+        VALUES (%s, %s, 'report_edited', 'Author edited report title/description')
+    """, (account_id, report_id))
+
+    con.commit()
+    con.close()
+    return jsonify({
+        'success': True,
+        'message': 'Concern updated successfully!',
+        'title': new_title,
+        'description': new_desc,
+        'category': new_cat or 'General'
+    })
+
+
 # ===== API: Fetch report details by public_key (UUID) =====
 @app.route('/api/report/<public_key>')
 def api_report_by_key(public_key):
