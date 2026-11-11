@@ -1275,6 +1275,37 @@
 
     <div class="main-wrap">
         <div>
+            {% if user and user.account_status != 'Verified' %}
+            <div class="verification-alert-banner" style="background: rgba(220,38,38,0.06); border: 1.5px solid rgba(220,38,38,0.25); border-radius: 16px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                <div style="display:flex; align-items:center; gap:14px; min-width:0; flex:1;">
+                    <div style="width:40px; height:40px; border-radius:50%; background:rgba(220,38,38,0.12); color:var(--primary-red); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">
+                        <i class="fas fa-shield-halved"></i>
+                    </div>
+                    <div style="min-width:0;">
+                        <div style="font-weight:800; font-size:14px; color:var(--text-main); margin-bottom:2px;">
+                            {% if user.account_status == 'Pending' %}
+                                Identity Verification Under Review
+                            {% else %}
+                                Account Not Verified (Unvalidated Resident)
+                            {% endif %}
+                        </div>
+                        <div style="font-size:12.5px; color:var(--text-muted); line-height:1.4;">
+                            {% if user.account_status == 'Pending' %}
+                                Your government ID is currently being reviewed by the LGU. Posting concerns, commenting, and anonymous interactions will unlock once verified.
+                            {% else %}
+                                Posting concerns, commenting, and anonymous interactions are strictly restricted to verified residents. Submit your ID to verify your account.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% if user.account_status != 'Pending' %}
+                <a href="{{ url_for('id_verification') }}" style="background:var(--primary-red); color:white; padding:10px 18px; border-radius:10px; font-weight:800; text-decoration:none; display:inline-flex; align-items:center; gap:8px; font-size:13px; white-space:nowrap; box-shadow:0 3px 10px rgba(139,0,0,0.25);">
+                    <i class="fas fa-id-card"></i> Verify Account
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
             <div class="filter-chips" id="filter-chips">
                 <button class="chip active" data-filter="all">All</button>
                 <button class="chip" data-filter="road">Road</button>
@@ -1293,8 +1324,10 @@
                          data-title="{{ c.title|lower }}"
                          data-location="{{ c.location|lower }}">
                         <div class="post-header">
-                            <div class="post-avatar" style="overflow:hidden;">
-                                {% if c.profile_photo %}
+                            <div class="post-avatar" style="overflow:hidden; {% if c.is_anonymous %}background:#374151; color:white; display:flex; align-items:center; justify-content:center;{% endif %}">
+                                {% if c.is_anonymous %}
+                                    <i class="fas fa-user-secret" style="font-size:18px;"></i>
+                                {% elif c.profile_photo %}
                                     {% set raw_pp = (c.profile_photo|string).replace("bytearray(b'","").replace("b'","").replace("')","").replace("'","") %}
                                     {% set clean_pp = raw_pp.replace("static/","",1) if raw_pp.startswith("static/") else raw_pp %}
                                     <img src="{{ url_for('static', filename=clean_pp) }}" alt="DP" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
@@ -1303,7 +1336,13 @@
                                 {% endif %}
                             </div>
                             <div class="post-user">
-                                <div class="post-username">{{ c.first_name }} {{ c.last_name }}</div>
+                                <div class="post-username">
+                                    {% if c.is_anonymous %}
+                                        Anonymous Resident <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:11px;" title="Verified Anonymous Resident"></i>
+                                    {% else %}
+                                        {{ c.first_name }} {{ c.last_name }}
+                                    {% endif %}
+                                </div>
                                 <div class="post-time">{{ c.created_at.strftime('%B %d, %Y') if c.created_at else 'Just now' }}</div>
                             </div>
                             <span class="post-category cat-{{ c.category|lower|replace(' ', '')|replace('/', '') }}">{{ c.category }}</span>
@@ -1400,8 +1439,10 @@
                                     {% if fbs %}
                                         {% for fb in fbs %}
                                         <div class="comment-item">
-                                            <div class="comment-mono">
-                                                {% if fb.profile_photo %}
+                                            <div class="comment-mono" {% if fb.is_anonymous %}style="background:#374151; color:white; display:flex; align-items:center; justify-content:center;"{% endif %}>
+                                                {% if fb.is_anonymous %}
+                                                    <i class="fas fa-user-secret" style="font-size:14px;"></i>
+                                                {% elif fb.profile_photo %}
                                                     {% set raw_path = (fb.profile_photo | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
                                                     {% set clean_path = raw_path.replace("static/", "", 1) if raw_path.startswith("static/") else raw_path %}
                                                     <img src="{{ url_for('static', filename=clean_path) }}" alt="DP" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
@@ -1411,7 +1452,13 @@
                                             </div>
                                             <div style="display:flex; flex-direction:column; flex:1; min-width:0;">
                                                 <div class="comment-bubble">
-                                                    <div class="comment-author">{{ fb.fullname if fb.fullname else 'User' }}</div>
+                                                    <div class="comment-author">
+                                                        {% if fb.is_anonymous %}
+                                                            Anonymous Resident <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:10px;" title="Verified Anonymous Resident"></i>
+                                                        {% else %}
+                                                            {{ fb.fullname if fb.fullname else 'User' }}
+                                                        {% endif %}
+                                                    </div>
                                                     <div class="comment-text">{{ fb.feedback }}</div>
                                                 </div>
                                                 <div style="display:flex; gap:12px; margin-top:4px; margin-left:8px; font-size:11px; font-weight:600; color:var(--text-muted);">
@@ -1482,10 +1529,14 @@
                 <button class="qs-btn" onclick="openModal()">
                     <i class="fas fa-plus"></i> Submit a Concern
                 </button>
-                {% else %}
-                <button class="qs-btn" style="opacity: 0.6; cursor: not-allowed;" onclick="showToast('Your account is pending verification. You cannot submit a concern.', 'info')">
-                    <i class="fas fa-plus"></i> Submit a Concern
+                {% elif user and user.account_status == 'Pending' %}
+                <button class="qs-btn" style="opacity: 0.7; cursor: not-allowed;" onclick="showToast('Your verification documents are currently under review by the LGU.', 'info')">
+                    <i class="fas fa-hourglass-half"></i> Verification Pending
                 </button>
+                {% else %}
+                <a href="{{ url_for('id_verification') }}" class="qs-btn" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <i class="fas fa-id-card"></i> Verify Account to Report
+                </a>
                 {% endif %}
             </div>
         </div>
@@ -1659,10 +1710,28 @@
                             <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">First file is the cover → saved to <b>reports.image_url</b>; the rest → <b>reports_media</b>.</div>
                         </div>
                     </div>
+                    <div class="modal-review-row" style="align-items: center; padding: 12px 0; border-top: 1px dashed var(--border-color);">
+                        <div class="modal-review-key" style="display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-user-secret" style="color:var(--primary-red);"></i> Anonymous Post
+                        </div>
+                        <div class="modal-review-val">
+                            {% if user and user.account_status == 'Verified' %}
+                            <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; font-size:13px; color:var(--text-main);">
+                                <input type="checkbox" id="m-anon-toggle" name="is_anonymous_checkbox" style="width:16px; height:16px; accent-color:var(--primary-red);">
+                                <span>Post anonymously as "Anonymous Resident"</span>
+                            </label>
+                            {% else %}
+                            <div style="font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+                                <i class="fas fa-lock" style="color:#d32f2f;"></i>
+                                <span>Verified Residents Only</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-action-row">
                     <button class="modal-btn-back" type="button" onclick="mGoStep(3)"><i class="fas fa-arrow-left"></i> Back</button>
-                    <button class="modal-btn-next" type="button" onclick="mSubmitConcern()"><i class="fas fa-paper-plane"></i> Post Concern</button>
+                    <button class="modal-btn-next" type="button" id="m-post-concern-btn" onclick="mSubmitConcern()"><i class="fas fa-paper-plane"></i> Post Concern</button>
                 </div>
             </div>
 
@@ -1682,6 +1751,7 @@
                 <input type="hidden" name="geox" id="hf-geox">
                 <input type="hidden" name="geoy" id="hf-geoy">
                 <input type="hidden" name="description" id="hf-description">
+                <input type="hidden" name="is_anonymous" id="hf-anonymous" value="0">
                 <input type="file" name="concern_photos" id="hf-photo" accept="image/*,video/*" multiple onclick="if(!this.dataset.prompting){ event.preventDefault(); showCameraGalleryPrompt(this); }">
             </form>
 
@@ -1803,24 +1873,34 @@
         </div>
         <!-- Comment Input Bar (FIXED BOTTOM PADDING SO IT NEVER CUTS OR OVERLAPS) -->
         <div style="padding:14px 20px 24px 20px; border-top:1px solid var(--border-color); background:var(--bg-nav-card); flex-shrink:0; box-sizing:border-box;">
-            {% if user.account_status == 'Verified' %}
-            <form action="/file_concern" method="POST" id="cdm-comment-form" style="display:flex; gap:10px; align-items:center; margin:0;">
+            {% if user and user.account_status == 'Verified' %}
+            <form action="/file_concern" method="POST" id="cdm-comment-form" style="display:flex; flex-direction:column; gap:8px; margin:0;">
                 <input type="hidden" name="fn" value="pc">
                 <input type="hidden" name="report_id" id="cdm-form-report-id" value="">
-                <div style="position:relative; flex:1; display:flex; align-items:center;">
-                    <button type="button" class="emoji-btn" onclick="toggleEmoji(this)" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;display:flex;align-items:center;justify-content:center;padding:8px 12px;transition:color 0.2s;"><i class="far fa-smile"></i></button>
-                    <div class="emoji-popup" style="display:none;position:absolute;bottom:50px;left:0;z-index:10005;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.3);">
-                        <emoji-picker></emoji-picker>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <div style="position:relative; flex:1; display:flex; align-items:center;">
+                        <button type="button" class="emoji-btn" onclick="toggleEmoji(this)" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;display:flex;align-items:center;justify-content:center;padding:8px 12px;transition:color 0.2s;"><i class="far fa-smile"></i></button>
+                        <div class="emoji-popup" style="display:none;position:absolute;bottom:50px;left:0;z-index:10005;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.3);">
+                            <emoji-picker></emoji-picker>
+                        </div>
+                        <input type="text" name="comment" placeholder="Write a comment..." required autocomplete="off" style="width:100%; padding:10px 16px; border-radius:20px; border:1px solid var(--border-color); background:var(--search-bg); color:var(--text-main); font-size:13px; outline:none; transition:border-color 0.2s;">
                     </div>
-                    <input type="text" name="comment" placeholder="Write a comment..." required autocomplete="off" style="width:100%; padding:10px 16px; border-radius:20px; border:1px solid var(--border-color); background:var(--search-bg); color:var(--text-main); font-size:13px; outline:none; transition:border-color 0.2s;">
+                    <button type="submit" class="comment-submit-btn" style="background:var(--primary-red); color:white; border:none; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; flex-shrink:0; box-shadow:0 3px 10px rgba(231,76,60,0.3); transition:transform 0.2s;" title="Send Comment" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
-                <button type="submit" class="comment-submit-btn" style="background:var(--primary-red); color:white; border:none; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; flex-shrink:0; box-shadow:0 3px 10px rgba(231,76,60,0.3); transition:transform 0.2s;" title="Send Comment" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:0 4px; font-size:12px;">
+                    <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; color:var(--text-muted); font-weight:600;">
+                        <input type="checkbox" name="comment_anonymous" value="1" style="width:14px; height:14px; accent-color:var(--primary-red);">
+                        <span><i class="fas fa-user-secret" style="color:var(--primary-red);"></i> Comment anonymously</span>
+                    </label>
+                    <span style="font-size:11px; color:var(--primary-red); font-weight:700;"><i class="fas fa-shield-alt"></i> Verified Resident</span>
+                </div>
             </form>
             {% else %}
-            <div style="width:100%; padding:10px 16px; border-radius:20px; background:#fff3f3; color:#d32f2f; font-size:13px; text-align:center; border: 1px solid #ffdcdc;">
-                <i class="fas fa-lock" style="margin-right:5px;"></i> You must be a verified user to comment.
+            <div style="width:100%; padding:12px 16px; border-radius:12px; background:rgba(220,38,38,0.06); color:var(--primary-red); font-size:12.5px; text-align:center; border: 1.5px solid rgba(220,38,38,0.2); font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <i class="fas fa-lock"></i>
+                <span>Only fully verified residents can comment. <a href="{{ url_for('id_verification') }}" style="color:var(--primary-red); text-decoration:underline; font-weight:800;">Verify now</a></span>
             </div>
             {% endif %}
         </div>
@@ -2398,6 +2478,11 @@
         document.getElementById('hf-title').value       = mState.title;
         document.getElementById('hf-location').value    = mState.loc;
         document.getElementById('hf-description').value = mState.desc;
+        const anonCheck = document.getElementById('m-anon-toggle');
+        const hfAnon = document.getElementById('hf-anonymous');
+        if (hfAnon) {
+            hfAnon.value = (anonCheck && anonCheck.checked) ? '1' : '0';
+        }
 
         // Multi-file: copy ALL selected files (1st=cover, rest=reports_media)
         const hfPhoto = document.getElementById('hf-photo');
@@ -2405,6 +2490,12 @@
             const dt = new DataTransfer();
             mState.imgFiles.forEach((f) => { try { dt.items.add(f); } catch (e) {} });
             hfPhoto.files = dt.files;
+        }
+
+        const postBtn = document.getElementById('m-post-concern-btn') || document.querySelector('#mpanel-4 .modal-btn-next');
+        if (postBtn) {
+            postBtn.disabled = true;
+            postBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
         }
 
         // Hide the steps indicator and show the Success panel
@@ -2421,11 +2512,23 @@
         if (mDuplicateCheckInProgress) return;
         mDuplicateCheckInProgress = true;
 
+        const postBtn = document.getElementById('m-post-concern-btn') || document.querySelector('#mpanel-4 .modal-btn-next');
+        if (postBtn) {
+            postBtn.disabled = true;
+            postBtn.dataset.originalHtml = postBtn.innerHTML;
+            postBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking duplicates...';
+        }
+
         // Populate hidden fields first so we can read them if needed
         document.getElementById('hf-category').value    = mState.cat;
         document.getElementById('hf-title').value       = mState.title;
         document.getElementById('hf-location').value    = mState.loc;
         document.getElementById('hf-description').value = mState.desc;
+        const anonCheck = document.getElementById('m-anon-toggle');
+        const hfAnon = document.getElementById('hf-anonymous');
+        if (hfAnon) {
+            hfAnon.value = (anonCheck && anonCheck.checked) ? '1' : '0';
+        }
 
         // Build payload
         const payload = {
@@ -2479,6 +2582,10 @@
             mDoSubmitConcern();
         } finally {
             mDuplicateCheckInProgress = false;
+            if (postBtn && postBtn.dataset.originalHtml && !postBtn.innerHTML.includes('Submitting')) {
+                postBtn.disabled = false;
+                postBtn.innerHTML = postBtn.dataset.originalHtml;
+            }
         }
     }
 
@@ -2488,6 +2595,11 @@
         document.getElementById('hf-title').value       = mState.title;
         document.getElementById('hf-location').value    = mState.loc;
         document.getElementById('hf-description').value = mState.desc;
+        const anonCheck = document.getElementById('m-anon-toggle');
+        const hfAnon = document.getElementById('hf-anonymous');
+        if (hfAnon) {
+            hfAnon.value = (anonCheck && anonCheck.checked) ? '1' : '0';
+        }
 
         // Multi-file: copy ALL selected files (1st=cover, rest=reports_media)
         const hfPhoto2 = document.getElementById('hf-photo');
@@ -2970,18 +3082,28 @@
             // Avatar
             const cdmAvatar = document.getElementById('cdm-avatar');
             if (cdmAvatar) {
-                if (r.profile_photo) {
+                if (r.is_anonymous) {
+                    cdmAvatar.style.background = '#374151';
+                    cdmAvatar.innerHTML = '<i class="fas fa-user-secret" style="font-size:16px;color:white;"></i>';
+                } else if (r.profile_photo) {
                     const photoStr = String(r.profile_photo).replace(/\bbytearray\(b['"]/g, '').replace(/['"]\)$/g, '').replace(/^b['"]/, '').replace(/['"]$/, '');
                     const clean = photoStr.replace('static/', '');
                     cdmAvatar.innerHTML = `<img src="/static/${clean}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
                 } else {
+                    cdmAvatar.style.background = 'var(--primary-red)';
                     cdmAvatar.textContent = (r.first_name || '?')[0].toUpperCase();
                 }
             }
             
             // Header
             const cdmAuthor = document.getElementById('cdm-author-name');
-            if (cdmAuthor) cdmAuthor.textContent = `${r.first_name || ''} ${r.last_name || ''}`.trim() || 'Anonymous';
+            if (cdmAuthor) {
+                if (r.is_anonymous) {
+                    cdmAuthor.innerHTML = 'Anonymous Resident <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:11px;" title="Verified Anonymous Resident"></i>';
+                } else {
+                    cdmAuthor.textContent = `${r.first_name || ''} ${r.last_name || ''}`.trim() || 'Resident';
+                }
+            }
             
             const cdmTime = document.getElementById('cdm-time');
             if (cdmTime) cdmTime.textContent = r.created_at || '';
@@ -3094,19 +3216,29 @@
                 stream.innerHTML = '';
                 if (r.comments && r.comments.length > 0) {
                     r.comments.forEach(c => {
-                        const initials = (c.fullname || 'U')[0].toUpperCase();
-                        let avatarHtml = initials;
-                        if (c.profile_photo) {
-                            const photoStr = String(c.profile_photo).replace(/\bbytearray\(b['"]/g, '').replace(/['"]\)$/g, '').replace(/^b['"]/, '').replace(/['"]$/, '');
-                            const clean = photoStr.replace('static/', '');
-                            avatarHtml = `<img src="/static/${clean}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                        let avatarHtml = '';
+                        let monoStyle = '';
+                        let authorHtml = '';
+                        if (c.is_anonymous) {
+                            avatarHtml = '<i class="fas fa-user-secret" style="font-size:13px;color:white;"></i>';
+                            monoStyle = 'style="background:#374151;color:white;display:flex;align-items:center;justify-content:center;"';
+                            authorHtml = 'Anonymous Resident <i class="fas fa-shield-alt" style="color:var(--primary-red);font-size:10px;" title="Verified Anonymous Resident"></i>';
+                        } else {
+                            const initials = (c.fullname || 'U')[0].toUpperCase();
+                            avatarHtml = initials;
+                            if (c.profile_photo) {
+                                const photoStr = String(c.profile_photo).replace(/\bbytearray\(b['"]/g, '').replace(/['"]\)$/g, '').replace(/^b['"]/, '').replace(/['"]$/, '');
+                                const clean = photoStr.replace('static/', '');
+                                avatarHtml = `<img src="/static/${clean}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                            }
+                            authorHtml = c.fullname || 'Resident';
                         }
                         stream.innerHTML += `
                             <div class="comment-item">
-                                <div class="comment-mono">${avatarHtml}</div>
+                                <div class="comment-mono" ${monoStyle}>${avatarHtml}</div>
                                 <div style="display:flex;flex-direction:column;flex:1;min-width:0;">
                                     <div class="comment-bubble">
-                                        <div class="comment-author">${c.fullname || 'User'}</div>
+                                        <div class="comment-author">${authorHtml}</div>
                                         <div class="comment-text">${c.feedback || ''}</div>
                                     </div>
                                     <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-top:4px;margin-left:8px;">${c.uploaded_at || ''}</div>

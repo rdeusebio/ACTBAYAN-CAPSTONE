@@ -391,6 +391,44 @@ def api_analytics_summary_regenerate():
     return {'success': True, 'message': 'Cache cleared. Refresh the analytics page to regenerate.'}
 
 
+# ===== USER VERIFICATION HELPER =====
+def get_user_account_status(account_id):
+    """
+    Returns the account verification status:
+      - 'Verified'   : LGU/Admin staff, or resident with verified category / uploaded valid ID
+      - 'Pending'    : Uploaded ID awaiting LGU review
+      - 'Unvalidated': Registered resident with no ID uploaded or rejected
+      - 'Guest'      : Not logged in
+    """
+    if not account_id:
+        return 'Guest'
+    role = session.get('user_role', '')
+    if role in ('admin', 'lgu'):
+        return 'Verified'
+
+    try:
+        con = connect_db()
+        cursor = con.cursor(dictionary=True)
+        cursor.execute("SELECT category, id_path, selfie_path FROM accounts WHERE account_id = %s", (account_id,))
+        row = cursor.fetchone()
+        con.close()
+        if not row:
+            return 'Unvalidated'
+        cat = (row.get('category') or '').strip().title()
+        if cat == 'Verified':
+            return 'Verified'
+        elif cat == 'Pending':
+            return 'Pending'
+        elif cat == 'Rejected':
+            return 'Unvalidated'
+        elif row.get('id_path'):
+            return 'Verified'
+        return 'Unvalidated'
+    except Exception as e:
+        print("get_user_account_status error:", e)
+        return 'Unvalidated'
+
+
 # ===== API: Get Reports by Category =====
 @app.route('/api/reports')
 def api_reports():
@@ -1443,19 +1481,20 @@ def notifications():
     cursor = con.cursor(dictionary=True)
 
     cursor.execute(
-        "SELECT first_name, last_name, '' AS profile_photo, 'Verified' AS account_status FROM accounts WHERE account_id = %s",
+        "SELECT first_name, last_name, '' AS profile_photo FROM accounts WHERE account_id = %s",
         (account_id,)
     )
     user_rows = cursor.fetchall()
-    user_data = user_rows[0] if user_rows else None
+    user_data = user_rows[0] if user_rows else {}
+    user_data['account_status'] = get_user_account_status(account_id)
 
-    # Find reports created by the logged-in user to prioritize/tag them
+    # Notification Rules: Users should only receive notifications for posts/concerns that they have actively upvoted
     cursor.execute("""
         SELECT DISTINCT report_id
         FROM report_activity
-        WHERE account_id = %s AND activity_type = 'report_created'
+        WHERE account_id = %s AND activity_type = 'upvote'
     """, (account_id,))
-    my_report_ids = {row['report_id'] for row in cursor.fetchall()}
+    upvoted_report_ids = [row['report_id'] for row in cursor.fetchall() if row.get('report_id')]
 
     notifications_list = []
     now = datetime.now()
@@ -1476,107 +1515,150 @@ def notifications():
                 return f"{seconds // 60}m ago"
             return "Just now"
 
-    # 1. LGU Progress Updates on Reports (activity_type = 'report_update')
-    cursor.execute("""
-        SELECT
-            rp.activity_id,
-            rp.report_id,
-            rp.content AS update_text,
-            r.title AS report_title,
-            r.status,
-            r.public_key,
-            COALESCE(r.last_activity, r.created_at) AS dt,
-            l.x,
-            l.y,
-            CONCAT(l.x, ', ', l.y) AS locname
-        FROM report_activity rp
-        JOIN reports r ON rp.report_id = r.report_id
-        LEFT JOIN location l ON r.location_id = l.location_id
-        WHERE rp.activity_type = 'report_update'
-        ORDER BY rp.activity_id DESC
-        LIMIT 30
-    """)
-    for row in cursor.fetchall():
-        dt_val = row.get('dt')
-        is_mine = row['report_id'] in my_report_ids
-        has_coords = row.get('x') is not None and row.get('y') is not None
-        notifications_list.append({
-            'id': f"upd_{row['activity_id']}",
-            'type': 'concern_update',
-            'category_label': 'Your Report Update' if is_mine else 'LGU Status Update',
-            'icon': 'fa-clipboard-check',
-            'color': 'blue',
-            'title': f"LGU updated \"{row['report_title']}\"",
-            'message': (row['update_text'][:140] + '...') if row.get('update_text') and len(row['update_text']) > 140 else (row.get('update_text') or f"Status is now {row.get('status', 'Pending')}."),
-            'status': row.get('status') or 'Pending',
-            'report_id': row['report_id'],
-            'public_key': row.get('public_key') or '',
-            'has_coords': has_coords,
-            'locname': row.get('locname') or 'Barangay GMN',
-            'time_ago': format_time_ago(dt_val),
-            'timestamp': dt_val.strftime('%Y-%m-%d %H:%M:%S') if dt_val else ''
-        })
+    # Only fetch concern updates, comments, and map alerts if user has upvoted reports
+    if upvoted_report_ids:
+        placeholders = ",".join(["%s"] * len(upvoted_report_ids))
 
-    # 2. Community Comments & Upvotes (activity_type IN ('feedback', 'feedbacks', 'upvote'))
-    cursor.execute("""
-        SELECT
-            ra.activity_id,
-            ra.report_id,
-            ra.account_id,
-            ra.activity_type,
-            ra.content,
-            r.title AS report_title,
-            r.status,
-            r.public_key,
-            COALESCE(r.last_activity, r.created_at) AS dt,
-            COALESCE(CONCAT(a.first_name, ' ', a.last_name), 'A resident') AS actor_name,
-            l.x,
-            l.y,
-            CONCAT(l.x, ', ', l.y) AS locname
-        FROM report_activity ra
-        JOIN reports r ON ra.report_id = r.report_id
-        LEFT JOIN accounts a ON ra.account_id = a.account_id
-        LEFT JOIN location l ON r.location_id = l.location_id
-        WHERE ra.activity_type IN ('feedback', 'feedbacks', 'upvote')
-        ORDER BY ra.activity_id DESC
-        LIMIT 30
-    """)
-    for row in cursor.fetchall():
-        dt_val = row.get('dt')
-        act_type = row.get('activity_type')
-        actor = row.get('actor_name', 'A resident').strip() or 'A resident'
-        has_coords = row.get('x') is not None and row.get('y') is not None
-        if act_type == 'upvote':
-            notif_title = f"{actor} upvoted \"{row['report_title']}\""
-            notif_msg = "Community support increased on this concern."
-            icon = 'fa-arrow-up'
-            color = 'orange'
-            cat_lbl = 'Community Upvote'
-        else:
+        # 1. LGU Progress Updates on Upvoted Reports
+        cursor.execute(f"""
+            SELECT
+                rp.activity_id,
+                rp.report_id,
+                rp.content AS update_text,
+                r.title AS report_title,
+                r.status,
+                r.public_key,
+                COALESCE(r.last_activity, r.created_at) AS dt,
+                l.x,
+                l.y,
+                CONCAT(l.x, ', ', l.y) AS locname
+            FROM report_activity rp
+            JOIN reports r ON rp.report_id = r.report_id
+            LEFT JOIN location l ON r.location_id = l.location_id
+            WHERE rp.activity_type = 'report_update' AND rp.report_id IN ({placeholders})
+            ORDER BY rp.activity_id DESC
+            LIMIT 30
+        """, tuple(upvoted_report_ids))
+        for row in cursor.fetchall():
+            dt_val = row.get('dt')
+            has_coords = row.get('x') is not None and row.get('y') is not None
+            notifications_list.append({
+                'id': f"upd_{row['activity_id']}",
+                'type': 'concern_update',
+                'category_label': 'Upvoted Concern Update',
+                'icon': 'fa-clipboard-check',
+                'color': 'blue',
+                'title': f"LGU updated \"{row['report_title']}\"",
+                'message': (row['update_text'][:140] + '...') if row.get('update_text') and len(row['update_text']) > 140 else (row.get('update_text') or f"Status is now {row.get('status', 'Pending')}."),
+                'status': row.get('status') or 'Pending',
+                'report_id': row['report_id'],
+                'public_key': row.get('public_key') or '',
+                'has_coords': has_coords,
+                'locname': row.get('locname') or 'Barangay GMN',
+                'time_ago': format_time_ago(dt_val),
+                'timestamp': dt_val.strftime('%Y-%m-%d %H:%M:%S') if dt_val else ''
+            })
+
+        # 2. Community Comments on Upvoted Reports
+        cursor.execute(f"""
+            SELECT
+                ra.activity_id,
+                ra.report_id,
+                ra.account_id,
+                ra.activity_type,
+                ra.content,
+                r.title AS report_title,
+                r.status,
+                r.public_key,
+                COALESCE(r.last_activity, r.created_at) AS dt,
+                CASE WHEN ra.activity_type = 'feedback_anon' THEN 'Anonymous Resident'
+                     ELSE COALESCE(CONCAT(a.first_name, ' ', a.last_name), 'A resident') END AS actor_name,
+                l.x,
+                l.y,
+                CONCAT(l.x, ', ', l.y) AS locname
+            FROM report_activity ra
+            JOIN reports r ON ra.report_id = r.report_id
+            LEFT JOIN accounts a ON ra.account_id = a.account_id
+            LEFT JOIN location l ON r.location_id = l.location_id
+            WHERE ra.activity_type IN ('feedback', 'feedbacks', 'feedback_anon')
+              AND ra.report_id IN ({placeholders})
+              AND ra.account_id != %s
+            ORDER BY ra.activity_id DESC
+            LIMIT 30
+        """, tuple(upvoted_report_ids) + (account_id,))
+        for row in cursor.fetchall():
+            dt_val = row.get('dt')
+            actor = row.get('actor_name', 'A resident').strip() or 'A resident'
+            has_coords = row.get('x') is not None and row.get('y') is not None
             notif_title = f"{actor} commented on \"{row['report_title']}\""
             notif_msg = (row['content'][:140] + '...') if row.get('content') and len(row['content']) > 140 else (row.get('content') or '')
             icon = 'fa-comment-dots'
             color = 'green'
-            cat_lbl = 'New Comment'
+            cat_lbl = 'New Comment on Upvoted Post'
 
-        notifications_list.append({
-            'id': f"act_{row['activity_id']}",
-            'type': 'concern_update',
-            'category_label': cat_lbl,
-            'icon': icon,
-            'color': color,
-            'title': notif_title,
-            'message': notif_msg,
-            'status': row.get('status') or 'Pending',
-            'report_id': row['report_id'],
-            'public_key': row.get('public_key') or '',
-            'has_coords': has_coords,
-            'locname': row.get('locname') or 'Barangay GMN',
-            'time_ago': format_time_ago(dt_val),
-            'timestamp': dt_val.strftime('%Y-%m-%d %H:%M:%S') if dt_val else ''
-        })
+            notifications_list.append({
+                'id': f"act_{row['activity_id']}",
+                'type': 'concern_update',
+                'category_label': cat_lbl,
+                'icon': icon,
+                'color': color,
+                'title': notif_title,
+                'message': notif_msg,
+                'status': row.get('status') or 'Pending',
+                'report_id': row['report_id'],
+                'public_key': row.get('public_key') or '',
+                'has_coords': has_coords,
+                'locname': row.get('locname') or 'Barangay GMN',
+                'time_ago': format_time_ago(dt_val),
+                'timestamp': dt_val.strftime('%Y-%m-%d %H:%M:%S') if dt_val else ''
+            })
 
-    # 3. Official Announcements
+        # 3. Mapped Community Reports / Area Alerts for Upvoted Concerns
+        cursor.execute(f"""
+            SELECT
+                r.report_id,
+                r.title,
+                r.description,
+                r.status,
+                r.public_key,
+                r.created_at AS dt,
+                l.x,
+                l.y,
+                CONCAT(l.x, ', ', l.y) AS locname,
+                CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Anonymous Resident'
+                     ELSE COALESCE(CONCAT(a.first_name, ' ', a.last_name), 'Resident') END AS reporter_name
+            FROM reports r
+            JOIN location l ON r.location_id = l.location_id
+            LEFT JOIN report_activity cra ON cra.report_id = r.report_id
+                AND cra.activity_type IN ('report_created', 'report_created_anon')
+            LEFT JOIN accounts a ON cra.account_id = a.account_id
+            WHERE l.x IS NOT NULL AND l.y IS NOT NULL
+              AND r.report_id IN ({placeholders})
+              AND (r.status != 'Resolved' OR COALESCE(r.last_activity, r.created_at) >= NOW() - INTERVAL 7 DAY)
+            ORDER BY r.created_at DESC
+            LIMIT 25
+        """, tuple(upvoted_report_ids))
+        for row in cursor.fetchall():
+            dt_val = row.get('dt')
+            desc = row.get('description') or ''
+            notifications_list.append({
+                'id': f"map_{row['report_id']}",
+                'type': 'map_alert',
+                'category_label': 'Upvoted Map Pin',
+                'icon': 'fa-map-marker-alt',
+                'color': 'purple',
+                'title': f"Pinned Concern: \"{row['title']}\"",
+                'message': (desc[:130] + '...') if len(desc) > 130 else (desc or f"Reported by {row.get('reporter_name')} at {row.get('locname')}"),
+                'status': row.get('status') or 'Pending',
+                'report_id': row['report_id'],
+                'public_key': row.get('public_key') or '',
+                'has_coords': True,
+                'locname': row.get('locname') or '',
+                'time_ago': format_time_ago(dt_val),
+                'timestamp': dt_val.strftime('%Y-%m-%d %H:%M:%S') if dt_val else ''
+            })
+
+    # 4. Official Announcements (Broadcasted to all residents)
     cursor.execute("""
         SELECT a.ann_id, a.ann_title, a.ann_desc, a.category, a.submitted_at,
                acc.first_name, acc.last_name
@@ -1599,52 +1681,6 @@ def notifications():
             'message': (desc[:140] + '...') if len(desc) > 140 else desc,
             'ann_id': row['ann_id'],
             'ann_title': row.get('ann_title') or '',
-            'time_ago': format_time_ago(dt_val),
-            'timestamp': dt_val.strftime('%Y-%m-%d %H:%M:%S') if dt_val else ''
-        })
-
-    # 4. Mapped Community Reports / Area Alerts
-    cursor.execute("""
-        SELECT
-            r.report_id,
-            r.title,
-            r.description,
-            r.status,
-            r.public_key,
-            r.created_at AS dt,
-            l.x,
-            l.y,
-            CONCAT(l.x, ', ', l.y) AS locname,
-            COALESCE(CONCAT(a.first_name, ' ', a.last_name), 'Resident') AS reporter_name
-        FROM reports r
-        JOIN location l ON r.location_id = l.location_id
-        LEFT JOIN (
-            SELECT report_id, MIN(account_id) AS account_id
-            FROM report_activity
-            GROUP BY report_id
-        ) ra ON ra.report_id = r.report_id
-        LEFT JOIN accounts a ON ra.account_id = a.account_id
-        WHERE l.x IS NOT NULL AND l.y IS NOT NULL
-          AND (r.status != 'Resolved' OR COALESCE(r.last_activity, r.created_at) >= NOW() - INTERVAL 7 DAY)
-        ORDER BY r.created_at DESC
-        LIMIT 25
-    """)
-    for row in cursor.fetchall():
-        dt_val = row.get('dt')
-        desc = row.get('description') or ''
-        notifications_list.append({
-            'id': f"map_{row['report_id']}",
-            'type': 'map_alert',
-            'category_label': 'Map Pin Alert',
-            'icon': 'fa-map-marker-alt',
-            'color': 'purple',
-            'title': f"Pinned Concern: \"{row['title']}\"",
-            'message': (desc[:130] + '...') if len(desc) > 130 else (desc or f"Reported by {row.get('reporter_name')} at {row.get('locname')}"),
-            'status': row.get('status') or 'Pending',
-            'report_id': row['report_id'],
-            'public_key': row.get('public_key') or '',
-            'has_coords': True,
-            'locname': row.get('locname') or '',
             'time_ago': format_time_ago(dt_val),
             'timestamp': dt_val.strftime('%Y-%m-%d %H:%M:%S') if dt_val else ''
         })
@@ -2104,6 +2140,20 @@ def file_concern():
             return redirect(url_for('login'))
 
         account_id = user_record['account_id']
+        user_status = get_user_account_status(account_id)
+
+        # Restrict posting and commenting privileges to verified residents only
+        if user_status != 'Verified':
+            con.close()
+            wants_json = (
+                request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+                or 'application/json' in (request.headers.get('Accept') or '')
+                or request.args.get('format') == 'json'
+            )
+            if wants_json:
+                return jsonify({'success': False, 'message': 'Only fully verified residents can file concerns or post comments.'}), 403
+            flash('Only fully verified residents can file concerns or post comments. Please complete ID verification.', 'error')
+            return redirect(url_for('file_concern'))
 
         ALLOWED_IMG_EXTS = {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'tif', 'tiff', 'ico', 'heic', 'heif'}
         ALLOWED_VIDEO_EXTS = {'mp4', 'mov', 'avi', 'mkv', 'webm', 'flv', 'wmv', 'm4v', '3gp',
@@ -2221,12 +2271,13 @@ def file_concern():
                 return redirect(url_for('file_concern'))
 
             if report_id and feedback:
-                # Updated for new ERD: insert into report_activity with 'feedbacks'
+                is_anon = str(data.get('comment_anonymous') or data.get('is_anonymous') or '').strip() in ('1', 'true', 'True', 'yes', 'on')
+                act_type = 'feedback_anon' if is_anon else 'feedbacks'
                 comque = """
                     INSERT INTO report_activity (account_id, report_id, activity_type, content)
-                    VALUES (%s, %s, 'feedbacks', %s)
+                    VALUES (%s, %s, %s, %s)
                 """
-                cursor.execute(comque, (account_id, report_id, feedback))
+                cursor.execute(comque, (account_id, report_id, act_type, feedback))
                 cursor.execute(
                     "UPDATE reports SET last_activity = %s WHERE report_id = %s",
                     (datetime.now(), report_id)
@@ -2251,11 +2302,13 @@ def file_concern():
             """, (title, location_id, description, now_ts, now_ts, public_key))
             report_id = cursor.lastrowid
 
-            # 3. Record report creator in report_activity
+            # 3. Record report creator in report_activity (support anonymous for verified residents)
+            is_post_anon = str(data.get('is_anonymous') or data.get('post_anonymous') or '').strip() in ('1', 'true', 'True', 'yes', 'on')
+            create_act_type = 'report_created_anon' if is_post_anon else 'report_created'
             cursor.execute("""
                 INSERT INTO report_activity (account_id, report_id, activity_type, content)
-                VALUES (%s, %s, 'report_created', %s)
-            """, (account_id, report_id, title))
+                VALUES (%s, %s, %s, %s)
+            """, (account_id, report_id, create_act_type, title))
 
             # 4. Store all media paths in reports_media
             if saved_paths:
@@ -2271,16 +2324,20 @@ def file_concern():
     # GET
     session_user_id = session.get('user_id')
 
-    # 1. Reports owned by the logged-in user (via report_activity 'report_created')
+    # 1. Reports owned by the logged-in user (via report_activity 'report_created' or 'report_created_anon')
     cursor.execute("""
         SELECT r.report_id, r.title, r.description, r.status, r.created_at, r.last_activity,
                r.public_key, r.upvote_count, r.location_id,
-               a.first_name, a.last_name, '' AS profile_photo,
+               ra.activity_type,
+               CASE WHEN ra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE a.first_name END AS first_name,
+               CASE WHEN ra.activity_type = 'report_created_anon' THEN 'Resident' ELSE a.last_name END AS last_name,
+               CASE WHEN ra.activity_type = 'report_created_anon' THEN 1 ELSE 0 END AS is_anonymous,
+               '' AS profile_photo,
                'owner' AS user_relation,
-               '' AS image_url, '' AS category, '' AS location
+               '' AS image_url, COALESCE(r.category, 'General') AS category, '' AS location
         FROM reports r
         JOIN report_activity ra ON r.report_id = ra.report_id
-            AND ra.activity_type = 'report_created'
+            AND ra.activity_type IN ('report_created', 'report_created_anon')
         JOIN accounts a ON ra.account_id = a.account_id
         WHERE ra.account_id = %s
     """, (session_user_id,))
@@ -2290,14 +2347,19 @@ def file_concern():
     cursor.execute("""
         SELECT r.report_id, r.title, r.description, r.status, r.created_at, r.last_activity,
                r.public_key, r.upvote_count, r.location_id,
-               a.first_name, a.last_name, '' AS profile_photo,
+               cra.activity_type,
+               CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE a.first_name END AS first_name,
+               CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Resident' ELSE a.last_name END AS last_name,
+               CASE WHEN cra.activity_type = 'report_created_anon' THEN 1 ELSE 0 END AS is_anonymous,
+               '' AS profile_photo,
                'upvoted' AS user_relation,
-               '' AS image_url, '' AS category, '' AS location
+               '' AS image_url, COALESCE(r.category, 'General') AS category, '' AS location
         FROM reports r
         JOIN report_activity ra ON r.report_id = ra.report_id
-            AND ra.activity_type = 'upvote'
-        JOIN accounts a ON ra.account_id = a.account_id
-        WHERE ra.account_id = %s
+            AND ra.activity_type = 'upvote' AND ra.account_id = %s
+        LEFT JOIN report_activity cra ON r.report_id = cra.report_id
+            AND cra.activity_type IN ('report_created', 'report_created_anon')
+        LEFT JOIN accounts a ON cra.account_id = a.account_id
     """, (session_user_id,))
     upvoted_concerns = cursor.fetchall()
 
@@ -2369,13 +2431,16 @@ def file_concern():
                 f.report_id,
                 f.account_id,
                 f.content AS feedback,
+                f.activity_type,
+                CASE WHEN f.activity_type = 'feedback_anon' THEN 1 ELSE 0 END AS is_anonymous,
                 COALESCE(r.last_activity, r.created_at) AS uploaded_at,
                 '' AS profile_photo,
-                CONCAT(a.first_name, ' ', a.last_name) AS fullname
+                CASE WHEN f.activity_type = 'feedback_anon' THEN 'Anonymous Resident'
+                     ELSE CONCAT(a.first_name, ' ', a.last_name) END AS fullname
             FROM report_activity f
             LEFT JOIN reports r ON r.report_id = f.report_id
             LEFT JOIN accounts a ON a.account_id = f.account_id
-            WHERE f.activity_type IN ('feedbacks', 'feedback') AND f.report_id IN ({placeholders})
+            WHERE f.activity_type IN ('feedbacks', 'feedback', 'feedback_anon') AND f.report_id IN ({placeholders})
             ORDER BY f.activity_id DESC
         """
         cursor.execute(feedback_query, tuple(report_ids))
@@ -2430,10 +2495,11 @@ def file_concern():
             user_upvoted.add(row['report_id'])
 
     cursor.execute(
-        "SELECT first_name, last_name, '' AS profile_photo, 'Verified' AS account_status FROM accounts WHERE account_id = %s",
+        "SELECT first_name, last_name, '' AS profile_photo FROM accounts WHERE account_id = %s",
         (account_id,)
     )
-    user_data = cursor.fetchone()
+    user_data = cursor.fetchone() or {}
+    user_data['account_status'] = get_user_account_status(account_id)
     con.close()
 
     return render_template(
@@ -2550,24 +2616,27 @@ def api_report_by_key(public_key):
             r.public_key,
             r.title,
             r.description,
-            'General' AS category,
+            COALESCE(r.category, 'General') AS category,
             r.status,
             (SELECT rm.path FROM reports_media rm WHERE rm.report_id = r.report_id LIMIT 1) AS image_url,
             r.created_at,
             r.upvote_count,
-            COALESCE(a.first_name, 'Resident') AS first_name,
-            COALESCE(a.last_name, '') AS last_name,
+            cra.activity_type,
+            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE COALESCE(a.first_name, 'Resident') END AS first_name,
+            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Resident' ELSE COALESCE(a.last_name, '') END AS last_name,
+            CASE WHEN cra.activity_type = 'report_created_anon' THEN 1 ELSE 0 END AS is_anonymous,
             '' AS profile_photo,
             CONCAT(l.x, ', ', l.y) AS locname,
             l.x,
             l.y
         FROM reports r
         LEFT JOIN (
-            SELECT report_id, MIN(account_id) AS account_id
+            SELECT report_id, MIN(account_id) AS account_id, MIN(activity_type) AS activity_type
             FROM report_activity
+            WHERE activity_type IN ('report_created', 'report_created_anon')
             GROUP BY report_id
-        ) ra ON ra.report_id = r.report_id
-        LEFT JOIN accounts a ON ra.account_id = a.account_id
+        ) cra ON cra.report_id = r.report_id
+        LEFT JOIN accounts a ON cra.account_id = a.account_id
         LEFT JOIN location l ON r.location_id = l.location_id
         WHERE r.public_key = %s
     """, (public_key,))
@@ -2584,9 +2653,10 @@ def api_report_by_key(public_key):
             report[k] = v.strftime('%B %d, %Y - %I:%M %p')
 
     report['upvote_count'] = int(report.get('upvote_count') or 0)
+    report['is_anonymous'] = bool(report.get('is_anonymous'))
 
     cursor.execute(
-        "SELECT COUNT(*) as count FROM report_activity WHERE activity_type IN ('feedbacks', 'feedback') AND report_id = %s",
+        "SELECT COUNT(*) as count FROM report_activity WHERE activity_type IN ('feedbacks', 'feedback', 'feedback_anon') AND report_id = %s",
         (report['report_id'],)
     )
     report['comment_count'] = cursor.fetchone()['count']
@@ -2594,15 +2664,18 @@ def api_report_by_key(public_key):
     cursor.execute("""
         SELECT
             f.content AS feedback,
+            f.activity_type,
+            CASE WHEN f.activity_type = 'feedback_anon' THEN 1 ELSE 0 END AS is_anonymous,
             COALESCE(r.last_activity, r.created_at) AS uploaded_at,
-            CONCAT(a.first_name, ' ', a.last_name) AS fullname,
+            CASE WHEN f.activity_type = 'feedback_anon' THEN 'Anonymous Resident'
+                 ELSE CONCAT(a.first_name, ' ', a.last_name) END AS fullname,
             '' AS profile_photo
         FROM report_activity f
         LEFT JOIN reports r ON r.report_id = f.report_id
         LEFT JOIN accounts a ON a.account_id = f.account_id
-        WHERE f.activity_type IN ('feedbacks', 'feedback') AND f.report_id = %s
+        WHERE f.activity_type IN ('feedbacks', 'feedback', 'feedback_anon') AND f.report_id = %s
         ORDER BY f.activity_id DESC
-        LIMIT 10
+        LIMIT 15
     """, (report['report_id'],))
     comments = cursor.fetchall()
     for c in comments:
@@ -2623,9 +2696,15 @@ def api_upvote():
     if 'user_id' not in session:
         return {'success': False, 'message': 'Not logged in'}, 401
 
-    data = request.get_json()
-    report_id = data.get('report_id')
     user_id = session.get('user_id')
+    user_status = get_user_account_status(user_id)
+    if user_status != 'Verified':
+        return {'success': False, 'message': 'Only fully verified residents can upvote concerns.'}, 403
+
+    data = request.get_json() or {}
+    report_id = data.get('report_id')
+    if not report_id:
+        return {'success': False, 'message': 'Missing report ID'}, 400
 
     con = connect_db()
     cursor = con.cursor(dictionary=True)
@@ -2937,13 +3016,13 @@ def cd():
 @app.route('/id_verification', methods=['GET', 'POST'])
 def id_verification():
     if request.method == 'GET':
-        user_id = session.get('pending_user_id')
+        user_id = session.get('pending_user_id') or session.get('user_id')
         if not user_id:
             return redirect(url_for('login'))
         return render_template('id_verification.html', user_id=user_id)
 
     else:  # POST
-        user_id = request.form.get('user_id')
+        user_id = request.form.get('user_id') or session.get('pending_user_id') or session.get('user_id')
         if not user_id:
             return redirect(url_for('login'))
 
@@ -2972,6 +3051,13 @@ def id_verification():
 
         con = connect_db()
         cursor = con.cursor(buffered=True)
+        cursor.execute("""
+            UPDATE accounts
+            SET id_path = %s, selfie_path = %s, category = 'Verified'
+            WHERE account_id = %s
+        """, (id_proof_path, selfie_path, user_id))
+        con.commit()
+
         cursor.execute("SELECT first_name FROM accounts WHERE account_id = %s", (user_id,))
         row = cursor.fetchone()
         user_name = row[0] if row else "Resident"
@@ -2982,7 +3068,8 @@ def id_verification():
         session['user_role'] = 'resident'
         session.pop('pending_user_id', None)
 
-        return redirect(url_for('dashboard'))
+        flash("Your identity documents have been submitted and verified successfully!", "success")
+        return redirect(url_for('file_concern'))
 
 
 @app.route('/logout')
@@ -3150,13 +3237,16 @@ def lgu_verifications():
     user_rows = cursor.fetchall()
     user_data = user_rows[0] if user_rows else None
 
-    # Updated for new ERD: accounts.contact_id = c.contact_id
+    # Fetch accounts that have uploaded verification documents
     cursor.execute("""
         SELECT a.account_id, a.first_name, a.last_name, '' AS profile_photo,
-               '' AS id_proof_path, c.email, c.phone_number
+               a.id_path AS id_proof_path, a.selfie_path,
+               c.email, c.phone_number, '' AS secondary_phone,
+               COALESCE(a.category, 'Valid Government ID') AS id_type
         FROM accounts a
         LEFT JOIN contacts c ON a.contact_id = c.contact_id
-        WHERE 1=0
+        WHERE a.id_path IS NOT NULL AND a.id_path != ''
+        ORDER BY a.account_id DESC
     """)
     pending_users = cursor.fetchall()
     con.close()
@@ -3168,6 +3258,21 @@ def lgu_verifications():
 def verify_user():
     if 'user_id' not in session or session.get('user_role') != 'lgu':
         return redirect(url_for('login'))
+
+    target_id = request.form.get('account_id')
+    action = (request.form.get('action') or '').strip().lower()
+
+    if target_id and action:
+        con = connect_db()
+        cursor = con.cursor()
+        if action == 'accept':
+            cursor.execute("UPDATE accounts SET category = 'Verified' WHERE account_id = %s", (target_id,))
+            flash("User has been verified successfully.", "success")
+        elif action == 'reject':
+            cursor.execute("UPDATE accounts SET category = 'Rejected' WHERE account_id = %s", (target_id,))
+            flash("User verification rejected.", "info")
+        con.commit()
+        con.close()
 
     return redirect(url_for('lgu_verifications'))
 
