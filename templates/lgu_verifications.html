@@ -312,10 +312,43 @@
 
     <div class="container" style="display: block;">
         
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div style="margin-bottom: 20px;">
+                    {% for category, message in messages %}
+                        <div style="padding: 14px 18px; border-radius: 12px; margin-bottom: 10px; font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 10px; {% if category == 'success' %}background: rgba(34,197,94,0.12); border: 1.5px solid rgba(34,197,94,0.3); color: #16a34a;{% else %}background: rgba(59,130,246,0.12); border: 1.5px solid rgba(59,130,246,0.3); color: #2563eb;{% endif %}">
+                            <i class="fas {% if category == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %}" style="font-size: 16px;"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
         <div class="list-card">
             <div class="list-header">
                 <div class="list-header-row">
-                    <h2 class="section-title" style="margin:0;"><i class="fas fa-users"></i> Pending Approvals</h2>
+                    <div>
+                        <h2 class="section-title" style="margin:0 0 10px;"><i class="fas fa-users-cog"></i> Resident Verification Applications</h2>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;" id="verification-status-tabs">
+                            {% set pending_count = namespace(n=0) %}
+                            {% set verified_count = namespace(n=0) %}
+                            {% set rejected_count = namespace(n=0) %}
+                            {% for u in pending_users %}
+                                {% if (u.status|lower) == 'verified' %}
+                                    {% set verified_count.n = verified_count.n + 1 %}
+                                {% elif (u.status|lower) == 'rejected' %}
+                                    {% set rejected_count.n = rejected_count.n + 1 %}
+                                {% else %}
+                                    {% set pending_count.n = pending_count.n + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                            <button type="button" class="tab-pill active" onclick="setStatusTab('all', this)" style="padding:6px 14px; border-radius:50px; border:1.5px solid var(--border-color); background:var(--primary-red); color:white; font-size:12px; font-weight:700; cursor:pointer;">All ({{ pending_users|length }})</button>
+                            <button type="button" class="tab-pill" onclick="setStatusTab('pending', this)" style="padding:6px 14px; border-radius:50px; border:1.5px solid var(--border-color); background:var(--search-bg); color:var(--text-muted); font-size:12px; font-weight:700; cursor:pointer;"><i class="fas fa-clock" style="color:#d97706;"></i> Pending ({{ pending_count.n }})</button>
+                            <button type="button" class="tab-pill" onclick="setStatusTab('verified', this)" style="padding:6px 14px; border-radius:50px; border:1.5px solid var(--border-color); background:var(--search-bg); color:var(--text-muted); font-size:12px; font-weight:700; cursor:pointer;"><i class="fas fa-check-circle" style="color:#16a34a;"></i> Verified ({{ verified_count.n }})</button>
+                            <button type="button" class="tab-pill" onclick="setStatusTab('rejected', this)" style="padding:6px 14px; border-radius:50px; border:1.5px solid var(--border-color); background:var(--search-bg); color:var(--text-muted); font-size:12px; font-weight:700; cursor:pointer;"><i class="fas fa-times-circle" style="color:#ef4444;"></i> Rejected ({{ rejected_count.n }})</button>
+                        </div>
+                    </div>
                     <div class="pending-search">
                         <i class="fas fa-search"></i>
                         <input type="text" id="pending-search-input" placeholder="Search name, email, phone, or ID..." oninput="filterPendingUsers()">
@@ -334,12 +367,14 @@
                                     <th>Contact Details</th>
                                     <th>Government ID</th>
                                     <th>Selfie Holding ID</th>
+                                    <th>Status</th>
                                     <th style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="pending-table-body">
                             {% for u in pending_users %}
-                                <tr data-search="{{ ((u.first_name or '') ~ ' ' ~ (u.last_name or '') ~ ' ' ~ (u.email or '') ~ ' ' ~ (u.phone_number or '') ~ ' ' ~ (u.secondary_phone or '') ~ ' ' ~ (u.id_type or ''))|lower }}">
+                                {% set stat_clean = (u.status or 'Pending')|lower %}
+                                <tr data-status="{{ stat_clean }}" data-search="{{ ((u.first_name or '') ~ ' ' ~ (u.last_name or '') ~ ' ' ~ (u.email or '') ~ ' ' ~ (u.phone_number or '') ~ ' ' ~ (u.secondary_phone or '') ~ ' ' ~ stat_clean ~ ' ' ~ (u.id_type or ''))|lower }}">
                                     <td style="color: var(--text-muted); font-weight: 700; text-align: center;">{{ loop.index }}</td>
                                     <td>
                                         <div class="pt-applicant">
@@ -354,7 +389,10 @@
                                             </div>
                                             <div>
                                                 <div class="pt-name">{{ u.first_name }} {{ u.last_name }}</div>
-                                                <div class="pt-sub"><i class="fas fa-hourglass-half"></i> Pending review</div>
+                                                <div class="pt-sub" style="font-size:11.5px; margin-top:2px;">
+                                                    <i class="fas fa-id-badge" style="color:var(--text-muted); font-size:11px;"></i> Account #{{ u.account_id }}
+                                                    {% if u.dob %} &bull; DOB: {{ u.dob }}{% endif %}
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
@@ -372,7 +410,7 @@
                                             {% set id_clean = id_str.replace('static/', '', 1) if id_str.startswith('static/') else id_str %}
                                             <a href="/{{ u.id_proof_path }}" target="_blank" class="pt-doc-link" title="Click to view full image">
                                                 <img src="{{ url_for('static', filename=id_clean) }}" alt="Government ID" class="pt-doc-thumb">
-                                                <span>View</span>
+                                                <span>View Full</span>
                                             </a>
                                         {% else %}
                                             <div class="pt-doc-missing"><i class="fas fa-exclamation-circle" style="color:#f59e0b;"></i> No ID provided</div>
@@ -384,24 +422,55 @@
                                             {% set selfie_clean = selfie_str.replace('static/', '', 1) if selfie_str.startswith('static/') else selfie_str %}
                                             <a href="/{{ u.selfie_path }}" target="_blank" class="pt-doc-link" title="Click to view full image">
                                                 <img src="{{ url_for('static', filename=selfie_clean) }}" alt="Selfie Holding ID" class="pt-doc-thumb" style="border-color: #bfdbfe;">
-                                                <span>View</span>
+                                                <span>View Full</span>
                                             </a>
                                         {% else %}
                                             <div class="pt-doc-missing"><i class="fas fa-exclamation-circle" style="color:#f59e0b;"></i> No Selfie provided</div>
                                         {% endif %}
                                     </td>
                                     <td>
+                                        {% if stat_clean == 'verified' %}
+                                            <span style="display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:50px; font-size:11.5px; font-weight:800; background:rgba(34,197,94,0.12); color:#16a34a; border:1px solid rgba(34,197,94,0.25);">
+                                                <i class="fas fa-check-circle"></i> Verified
+                                            </span>
+                                        {% elif stat_clean == 'rejected' %}
+                                            <span style="display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:50px; font-size:11.5px; font-weight:800; background:rgba(239,68,68,0.12); color:#ef4444; border:1px solid rgba(239,68,68,0.25);">
+                                                <i class="fas fa-times-circle"></i> Rejected
+                                            </span>
+                                        {% else %}
+                                            <span style="display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:50px; font-size:11.5px; font-weight:800; background:rgba(245,158,11,0.12); color:#d97706; border:1px solid rgba(245,158,11,0.25);">
+                                                <i class="fas fa-hourglass-half"></i> Pending Review
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
                                         <div class="pt-actions">
-                                            <form action="{{ url_for('verify_user') }}" method="POST">
-                                                <input type="hidden" name="account_id" value="{{ u.account_id }}">
-                                                <input type="hidden" name="action" value="accept">
-                                                <button type="submit" class="btn-accept"><i class="fas fa-check"></i> Accept</button>
-                                            </form>
-                                            <form action="{{ url_for('verify_user') }}" method="POST">
-                                                <input type="hidden" name="account_id" value="{{ u.account_id }}">
-                                                <input type="hidden" name="action" value="reject">
-                                                <button type="submit" class="btn-reject" onclick="return confirm('Are you sure you want to reject this registration?')"><i class="fas fa-times"></i> Reject</button>
-                                            </form>
+                                            {% if stat_clean == 'verified' %}
+                                                <form action="{{ url_for('verify_user') }}" method="POST">
+                                                    <input type="hidden" name="account_id" value="{{ u.account_id }}">
+                                                    <input type="hidden" name="action" value="revoke">
+                                                    <button type="submit" class="btn-reject" style="background:var(--search-bg); color:var(--text-muted); border:1px solid var(--border-color);" onclick="return confirm('Revoke verification for this resident?')">
+                                                        <i class="fas fa-undo"></i> Revoke
+                                                    </button>
+                                                </form>
+                                            {% elif stat_clean == 'rejected' %}
+                                                <form action="{{ url_for('verify_user') }}" method="POST">
+                                                    <input type="hidden" name="account_id" value="{{ u.account_id }}">
+                                                    <input type="hidden" name="action" value="accept">
+                                                    <button type="submit" class="btn-accept"><i class="fas fa-check"></i> Re-approve</button>
+                                                </form>
+                                            {% else %}
+                                                <form action="{{ url_for('verify_user') }}" method="POST">
+                                                    <input type="hidden" name="account_id" value="{{ u.account_id }}">
+                                                    <input type="hidden" name="action" value="accept">
+                                                    <button type="submit" class="btn-accept" title="Approve resident registration"><i class="fas fa-check"></i> Accept</button>
+                                                </form>
+                                                <form action="{{ url_for('verify_user') }}" method="POST">
+                                                    <input type="hidden" name="account_id" value="{{ u.account_id }}">
+                                                    <input type="hidden" name="action" value="reject">
+                                                    <button type="submit" class="btn-reject" onclick="return confirm('Are you sure you want to reject this registration?')"><i class="fas fa-times"></i> Reject</button>
+                                                </form>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>
@@ -409,19 +478,19 @@
                             </tbody>
                         </table>
                         <div id="pending-no-results" class="pt-no-results" style="display:none;">
-                            <i class="fas fa-search"></i> No pending users match your search.
+                            <i class="fas fa-search"></i> No verification applications match your search or filter.
                         </div>
                     </div>
                 {% else %}
                     <div style="padding: 60px; text-align: center; color: var(--text-muted);">
                         <i class="fas fa-shield-alt" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px;"></i>
                         <h3 style="font-weight: 800; font-size: 18px; margin: 0 0 8px; color: var(--text-main);">All Caught Up</h3>
-                        <p style="font-size: 14px; margin: 0;">There are no pending user verifications right now.</p>
+                        <p style="font-size: 14px; margin: 0;">There are no user verification applications to review right now.</p>
                     </div>
                 {% endif %}
             </div>
         </div>
-        </div>
+    </div>
 
     </div>
 </main>
@@ -442,20 +511,44 @@
         if (themeLabel) themeLabel.textContent = 'Light Mode';
     }
 
+    let currentStatusTab = 'all';
+
+    function setStatusTab(tab, btn) {
+        currentStatusTab = tab;
+        document.querySelectorAll('.tab-pill').forEach(b => {
+            b.style.background = 'var(--search-bg)';
+            b.style.color = 'var(--text-muted)';
+            b.classList.remove('active');
+        });
+        if (btn) {
+            btn.style.background = 'var(--primary-red)';
+            btn.style.color = 'white';
+            btn.classList.add('active');
+        }
+        filterPendingUsers();
+    }
+
     function filterPendingUsers() {
         const input = document.getElementById('pending-search-input');
-        if (!input) return;
-        const query = input.value.trim().toLowerCase();
+        const query = input ? input.value.trim().toLowerCase() : '';
         const rows = document.querySelectorAll('#pending-table-body tr');
         let visible = 0;
         rows.forEach(function (row) {
+            const status = (row.getAttribute('data-status') || '').toLowerCase();
             const haystack = (row.getAttribute('data-search') || row.textContent || '').toLowerCase();
-            const isMatch = haystack.indexOf(query) !== -1;
-            row.style.display = isMatch ? '' : 'none';
-            if (isMatch) visible++;
+            
+            let statusMatch = (currentStatusTab === 'all') || (status === currentStatusTab);
+            let searchMatch = !query || haystack.indexOf(query) !== -1;
+
+            if (statusMatch && searchMatch) {
+                row.style.display = '';
+                visible++;
+            } else {
+                row.style.display = 'none';
+            }
         });
         const noResults = document.getElementById('pending-no-results');
-        if (noResults) noResults.style.display = (query && visible === 0) ? 'block' : 'none';
+        if (noResults) noResults.style.display = (visible === 0) ? 'block' : 'none';
     }
 </script>
 </body>

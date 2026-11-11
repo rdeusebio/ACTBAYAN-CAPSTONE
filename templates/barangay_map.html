@@ -368,7 +368,77 @@
             flex-direction: column;
             height: calc(100vh - 130px);
             overflow: hidden;
+            transition: width 0.3s cubic-bezier(0.16,1,0.3,1), opacity 0.25s ease, margin-left 0.3s ease;
+            position: relative;
+            z-index: 10;
         }
+
+        .map-sidebar.collapsed {
+            width: 0 !important;
+            min-width: 0 !important;
+            max-width: 0 !important;
+            margin-left: 0 !important;
+            padding: 0 !important;
+            border-right: none !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            visibility: hidden;
+        }
+
+        .sidebar-toggle-btn {
+            background: var(--search-bg);
+            border: 1.5px solid var(--border-color);
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: var(--icon-hover);
+            color: var(--primary-red);
+            border-color: var(--primary-red);
+            transform: scale(1.05);
+        }
+
+        .map-reopen-sidebar-btn {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 1001;
+            background: var(--glass-bg, rgba(255,255,255,0.95));
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1.5px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .map-reopen-sidebar-btn:hover {
+            background: var(--bg-nav-card);
+            border-color: var(--primary-red);
+            color: var(--primary-red);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(139,0,0,0.18);
+        }
+
         .mobile-drawer-handle { display: none; }
 
         .map-sidebar-header {
@@ -487,7 +557,7 @@
             transform: translateX(-50%);
             z-index: 1000;
             display: flex;
-            gap: 8px;
+            gap: 6px;
             background: var(--glass-bg, rgba(255,255,255,0.92));
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
@@ -495,6 +565,13 @@
             border-radius: 50px;
             border: 1.5px solid var(--border-color);
             box-shadow: 0 4px 20px rgba(0,0,0,0.14);
+            max-width: calc(100% - 150px);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .map-floating-filter-bar::-webkit-scrollbar {
+            display: none;
         }
 
         .floating-filter-btn {
@@ -1082,6 +1159,14 @@
                     <div class="drawer-title"><span>📍 Explore Locations & Layers</span> <i class="fas fa-chevron-up" id="drawer-arrow"></i></div>
                 </div>
                 <div class="map-sidebar-header">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                        <span style="font-size:12px; font-weight:800; color:var(--text-main); text-transform:uppercase; letter-spacing:0.6px; display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-map-marked-alt" style="color:var(--primary-red);"></i> Locations & Concerns
+                        </span>
+                        <button class="sidebar-toggle-btn" id="btn-hide-map-sidebar" onclick="toggleMapSidebar()" title="Hide Sidebar">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                    </div>
                     <div class="map-sidebar-search">
                         <i class="fas fa-search"></i>
                         <input type="text" id="poi-search" placeholder="Search locations..." oninput="filterPoi()">
@@ -1106,11 +1191,17 @@
             </div>
 
             <div class="map-wrap">
-                <div class="map-floating-filter-bar">
-                    <button class="floating-filter-btn active" data-filter="active" onclick="setMapFilter('active', this)"><i class="fas fa-fire"></i> Active Concerns</button>
-                    <button class="floating-filter-btn" data-filter="pending" onclick="setMapFilter('pending', this)"><i class="fas fa-hourglass-half"></i> Pending</button>
-                    <button class="floating-filter-btn" data-filter="in_progress" onclick="setMapFilter('in_progress', this)"><i class="fas fa-tools"></i> In Progress</button>
-                    <button class="floating-filter-btn pill-resolved" data-filter="resolved" onclick="setMapFilter('resolved', this)"><i class="fas fa-check-circle"></i> Resolved</button>
+                <button id="btn-show-map-sidebar" class="map-reopen-sidebar-btn" onclick="toggleMapSidebar()" title="Show Sidebar">
+                    <i class="fas fa-bars"></i>
+                    <span>Show Reports</span>
+                </button>
+                <div class="map-floating-filter-bar" id="category-filter-bar">
+                    <button class="floating-filter-btn active" data-cat="all" onclick="setMapCategoryFilter('all', this)" title="All report types"><i class="fas fa-layer-group"></i> All Reports</button>
+                    <button class="floating-filter-btn" data-cat="road" onclick="setMapCategoryFilter('road', this)" title="Roads, potholes, bridges"><i class="fas fa-road"></i> Roads</button>
+                    <button class="floating-filter-btn" data-cat="flooding" onclick="setMapCategoryFilter('flooding', this)" title="Drainage & flood hazards"><i class="fas fa-water"></i> Flooding</button>
+                    <button class="floating-filter-btn" data-cat="sanitation" onclick="setMapCategoryFilter('sanitation', this)" title="Waste, trash, cleanliness"><i class="fas fa-trash-alt"></i> Sanitation</button>
+                    <button class="floating-filter-btn" data-cat="lighting" onclick="setMapCategoryFilter('lighting', this)" title="Streetlights & electricity"><i class="fas fa-lightbulb"></i> Lighting</button>
+                    <button class="floating-filter-btn" data-cat="other" onclick="setMapCategoryFilter('other', this)" title="Other community concerns"><i class="fas fa-clipboard-list"></i> Other</button>
                 </div>
                 <div id="map"></div>
                 <div class="map-controls">
@@ -1312,29 +1403,65 @@
 
         // Store markers for reports
         const reportMarkers = {};
-        let currentMapFilter = 'active'; // Default: 'active' (Resolved pins excluded by default)
+        let currentMapStatusFilter = 'active'; // 'active' (Resolved pins excluded by default), 'pending', 'in_progress', 'resolved'
+        let currentMapCategoryFilter = 'all';  // 'all', 'road', 'flooding', 'sanitation', 'lighting', 'other'
 
-        function shouldShowReport(status, filter) {
-            const s = (status || '').toLowerCase().trim();
-            if (filter === 'active') {
-                return s !== 'resolved' && s !== 'completed';
+        function shouldShowReport(r) {
+            if (!r) return false;
+            const status = (r.status || 'Pending').toLowerCase().trim();
+            const cat = (r.category || 'General').toLowerCase().trim();
+
+            // 1. Status Filter Check
+            let matchesStatus = true;
+            if (currentMapStatusFilter === 'active') {
+                matchesStatus = (status !== 'resolved' && status !== 'completed');
+            } else if (currentMapStatusFilter === 'resolved') {
+                matchesStatus = (status === 'resolved' || status === 'completed');
+            } else if (currentMapStatusFilter === 'pending') {
+                matchesStatus = (status === 'pending');
+            } else if (currentMapStatusFilter === 'in_progress') {
+                matchesStatus = (status.includes('prog') || status.includes('review') || status.includes('process'));
             }
-            if (filter === 'resolved') {
-                return s === 'resolved' || s === 'completed';
+
+            if (!matchesStatus) return false;
+
+            // 2. Category / Report Type Filter Check
+            if (currentMapCategoryFilter !== 'all') {
+                const c = currentMapCategoryFilter;
+                if (c === 'road') {
+                    if (!cat.includes('road') && !cat.includes('street') && !cat.includes('pothole') && !cat.includes('bridge') && !cat.includes('traffic')) return false;
+                } else if (c === 'flooding') {
+                    if (!cat.includes('flood') && !cat.includes('drain') && !cat.includes('water') && !cat.includes('creek') && !cat.includes('river')) return false;
+                } else if (c === 'sanitation') {
+                    if (!cat.includes('sanitat') && !cat.includes('garbage') && !cat.includes('waste') && !cat.includes('trash') && !cat.includes('clean') && !cat.includes('dump')) return false;
+                } else if (c === 'lighting') {
+                    if (!cat.includes('light') && !cat.includes('lamp') && !cat.includes('electric') && !cat.includes('post') && !cat.includes('wire')) return false;
+                } else if (c === 'other') {
+                    const isStandard = cat.includes('road') || cat.includes('street') || cat.includes('flood') || cat.includes('drain') || cat.includes('sanitat') || cat.includes('garbage') || cat.includes('light');
+                    if (isStandard) return false;
+                }
             }
-            if (filter === 'pending') {
-                return s === 'pending';
-            }
-            if (filter === 'in_progress') {
-                return s.includes('prog') || s.includes('review') || s.includes('process');
-            }
+
             return true;
         }
 
-        function setMapFilter(filter, clickedBtn) {
-            currentMapFilter = filter;
+        function refreshReportMarkers() {
+            reportPins.forEach((r, idx) => {
+                const marker = reportMarkers[idx];
+                if (!marker) return;
+                if (shouldShowReport(r)) {
+                    if (!map.hasLayer(marker)) map.addLayer(marker);
+                } else {
+                    if (map.hasLayer(marker)) map.removeLayer(marker);
+                }
+            });
+            filterPoi();
+        }
 
-            document.querySelectorAll('.map-filter-pill, .floating-filter-btn').forEach(btn => {
+        function setMapFilter(filter, clickedBtn) {
+            currentMapStatusFilter = filter;
+
+            document.querySelectorAll('.map-filter-pill').forEach(btn => {
                 if (btn.dataset.filter === filter) {
                     btn.classList.add('active');
                 } else {
@@ -1342,18 +1469,37 @@
                 }
             });
 
-            reportPins.forEach((r, idx) => {
-                const marker = reportMarkers[idx];
-                if (!marker) return;
-                const status = r.status || 'Pending';
-                if (shouldShowReport(status, currentMapFilter)) {
-                    if (!map.hasLayer(marker)) map.addLayer(marker);
+            refreshReportMarkers();
+        }
+
+        function setMapCategoryFilter(cat, clickedBtn) {
+            currentMapCategoryFilter = cat;
+
+            document.querySelectorAll('.floating-filter-btn').forEach(btn => {
+                if (btn.dataset.cat === cat) {
+                    btn.classList.add('active');
                 } else {
-                    if (map.hasLayer(marker)) map.removeLayer(marker);
+                    btn.classList.remove('active');
                 }
             });
 
-            filterPoi();
+            refreshReportMarkers();
+        }
+
+        function toggleMapSidebar() {
+            const sb = document.getElementById('mobile-map-sidebar');
+            const reopenBtn = document.getElementById('btn-show-map-sidebar');
+            if (!sb) return;
+
+            const isCollapsed = sb.classList.toggle('collapsed');
+            if (reopenBtn) {
+                reopenBtn.style.display = isCollapsed ? 'inline-flex' : 'none';
+            }
+
+            localStorage.setItem('actbayan_map_sb_collapsed', isCollapsed ? '1' : '0');
+
+            setTimeout(() => { if (map) map.invalidateSize(); }, 160);
+            setTimeout(() => { if (map) map.invalidateSize(); }, 360);
         }
 
         // ===== REPORT PINS (from DB via `rloc`) =====
@@ -1388,8 +1534,8 @@
                 riseOnHover: true
             });
 
-            // Exclude resolved pins from the map by default
-            if (shouldShowReport(status, currentMapFilter)) {
+            // Exclude resolved pins from the map by default; respect category & status filters
+            if (shouldShowReport(r)) {
                 pinMarker.addTo(map);
             }
 
@@ -1625,11 +1771,10 @@
         }
 
         function filterPoi() {
-            const q = document.getElementById('poi-search').value.toLowerCase();
+            const q = (document.getElementById('poi-search')?.value || '').toLowerCase().trim();
             const filteredPois = q ? pois.filter(p => p.name.toLowerCase().includes(q) || p.sub.toLowerCase().includes(q)) : pois;
             const filteredReports = reportPins.filter(r => {
-                const status = r.status || 'Pending';
-                if (!shouldShowReport(status, currentMapFilter)) return false;
+                if (!shouldShowReport(r)) return false;
                 if (!q) return true;
                 const title = (r.title ?? r.TITLE ?? '').toLowerCase();
                 const loc = (r.locname ?? r.LOCNAME ?? '').toLowerCase();
@@ -1811,7 +1956,16 @@
             if (themeLabel) themeLabel.textContent = 'Light Mode';
         }
 
-        // Initialize POI list using currentMapFilter (Resolved hidden by default)
+        // Restore map sidebar collapsed state if previously hidden
+        if (localStorage.getItem('actbayan_map_sb_collapsed') === '1' && window.innerWidth > 768) {
+            const sb = document.getElementById('mobile-map-sidebar');
+            const reopenBtn = document.getElementById('btn-show-map-sidebar');
+            if (sb) sb.classList.add('collapsed');
+            if (reopenBtn) reopenBtn.style.display = 'inline-flex';
+            setTimeout(() => { if (map) map.invalidateSize(); }, 200);
+        }
+
+        // Initialize POI list using currentMapStatusFilter (Resolved hidden by default)
         filterPoi();
         const sidebarSearch = document.getElementById('poi-search-sidebar');
         if (sidebarSearch) {

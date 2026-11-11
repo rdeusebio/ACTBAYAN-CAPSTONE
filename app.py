@@ -31,6 +31,22 @@ def connect_db():
     )
 
 
+# Ensure accounts awaiting LGU verification are properly marked 'Pending'
+try:
+    _init_db = connect_db()
+    _init_cur = _init_db.cursor()
+    # Reset account 10 to Pending if it has uploaded ID and was auto-verified
+    _init_cur.execute("""
+        UPDATE accounts
+        SET category = 'Pending'
+        WHERE account_id = 10 AND id_path IS NOT NULL AND (category = 'Verified' OR category IS NULL OR category = '')
+    """)
+    _init_db.commit()
+    _init_db.close()
+except Exception:
+    pass
+
+
 def hash_password_bcrypt(password: str) -> str:
     if password is None:
         password = ""
@@ -395,9 +411,10 @@ def api_analytics_summary_regenerate():
 def get_user_account_status(account_id):
     """
     Returns the account verification status:
-      - 'Verified'   : LGU/Admin staff, or resident with verified category / uploaded valid ID
-      - 'Pending'    : Uploaded ID awaiting LGU review
-      - 'Unvalidated': Registered resident with no ID uploaded or rejected
+      - 'Verified'   : LGU/Admin staff, or resident with confirmed 'Verified' category from LGU
+      - 'Pending'    : Uploaded ID awaiting LGU review and approval
+      - 'Rejected'   : Rejected by LGU
+      - 'Unvalidated': Registered resident with no ID uploaded
       - 'Guest'      : Not logged in
     """
     if not account_id:
@@ -420,9 +437,10 @@ def get_user_account_status(account_id):
         elif cat == 'Pending':
             return 'Pending'
         elif cat == 'Rejected':
-            return 'Unvalidated'
+            return 'Rejected'
         elif row.get('id_path'):
-            return 'Verified'
+            # Uploaded ID documents but not yet confirmed by LGU
+            return 'Pending'
         return 'Unvalidated'
     except Exception as e:
         print("get_user_account_status error:", e)
@@ -3060,7 +3078,7 @@ def id_verification():
         cursor = con.cursor(buffered=True)
         cursor.execute("""
             UPDATE accounts
-            SET id_path = %s, selfie_path = %s, category = 'Verified'
+            SET id_path = %s, selfie_path = %s, category = 'Pending'
             WHERE account_id = %s
         """, (id_proof_path, selfie_path, user_id))
         con.commit()
@@ -3075,7 +3093,7 @@ def id_verification():
         session['user_role'] = 'resident'
         session.pop('pending_user_id', None)
 
-        flash("Your identity documents have been submitted and verified successfully!", "success")
+        flash("Your identity documents have been submitted and are pending review by LGU officials. Once confirmed, your account will be activated.", "info")
         return redirect(url_for('file_concern'))
 
 
@@ -3244,16 +3262,22 @@ def lgu_verifications():
     user_rows = cursor.fetchall()
     user_data = user_rows[0] if user_rows else None
 
-    # Fetch accounts that have uploaded verification documents
+    # Fetch accounts that have submitted verification documents or status
     cursor.execute("""
-        SELECT a.account_id, a.first_name, a.last_name, '' AS profile_photo,
+        SELECT a.account_id, a.first_name, a.last_name, a.middle_initial, a.dob, '' AS profile_photo,
                a.id_path AS id_proof_path, a.selfie_path,
                c.email, c.phone_number, '' AS secondary_phone,
-               COALESCE(a.category, 'Valid Government ID') AS id_type
+               COALESCE(NULLIF(a.category, ''), 'Pending') AS status,
+               'Valid Government ID' AS id_type
         FROM accounts a
         LEFT JOIN contacts c ON a.contact_id = c.contact_id
-        WHERE a.id_path IS NOT NULL AND a.id_path != ''
-        ORDER BY a.account_id DESC
+        WHERE (a.id_path IS NOT NULL AND a.id_path != '')
+           OR (a.category IN ('Pending', 'Verified', 'Rejected') AND a.account_id NOT IN (1, 2))
+        ORDER BY
+            CASE WHEN COALESCE(a.category, 'Pending') = 'Pending' THEN 0
+                 WHEN a.category = 'Rejected' THEN 1
+                 ELSE 2 END,
+            a.account_id DESC
     """)
     pending_users = cursor.fetchall()
     con.close()
@@ -3271,14 +3295,23 @@ def verify_user():
 
     if target_id and action:
         con = connect_db()
-        cursor = con.cursor()
+        cursor = con.cursor(buffered=True)
+        cursor.execute("SELECT first_name, last_name FROM accounts WHERE account_id = %s", (target_id,))
+        user_row = cursor.fetchone()
+        full_name = f"{user_row[0]} {user_row[1]}" if user_row else f"Resident #{target_id}"
+
         if action == 'accept':
             cursor.execute("UPDATE accounts SET category = 'Verified' WHERE account_id = %s", (target_id,))
-            flash("User has been verified successfully.", "success")
+            con.commit()
+            flash(f"Resident application for {full_name} has been verified and confirmed successfully.", "success")
         elif action == 'reject':
             cursor.execute("UPDATE accounts SET category = 'Rejected' WHERE account_id = %s", (target_id,))
-            flash("User verification rejected.", "info")
-        con.commit()
+            con.commit()
+            flash(f"Resident verification for {full_name} has been rejected.", "info")
+        elif action == 'revoke':
+            cursor.execute("UPDATE accounts SET category = 'Pending' WHERE account_id = %s", (target_id,))
+            con.commit()
+            flash(f"Verification status for {full_name} has been reset to Pending review.", "info")
         con.close()
 
     return redirect(url_for('lgu_verifications'))
