@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GIS Reviewer — Modules 1–4 + QGIS Demo &amp; Campus Practical</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF2E9;
+    --paper:#FCFDFA;
+    --paper-2:#F1F4EB;
+    --ink:#1E2A1D;
+    --ink-soft:#48533F;
+    --ink-faint:#7C8672;
+    --line:#CDD5C1;
+    --line-strong:#AEB9A0;
+
+    --m1:#2C4870; --m1-tint:#E4E9F1; --m1-tint2:#D2DCEC;
+    --m2:#54713C; --m2-tint:#E6EEDD; --m2-tint2:#D4E3C6;
+    --m3:#A6631C; --m3-tint:#F3E7D3; --m3-tint2:#E9D3AC;
+    --m4:#1C7A73; --m4-tint:#DCEEEB; --m4-tint2:#BEE0DA;
+    --neu:#5B5F4F; --neu-tint:#E9E9DE; --neu-tint2:#DBDCCB;
+
+    --radius:12px;
+    --radius-sm:8px;
+    --shadow:0 1px 2px rgba(30,42,29,0.07), 0 6px 18px rgba(30,42,29,0.06);
+    --font-display:'Space Grotesk', sans-serif;
+    --font-body:'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono:'IBM Plex Mono', 'Courier New', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.6;
+    font-size:16px;
+  }
+  h1,h2,h3,h4{font-family:var(--font-display); line-height:1.25; color:var(--ink);}
+  a{color:inherit;}
+  .shell{max-width:920px; margin:0 auto; padding:0 0 3rem;}
+
+  /* ---------- header / hero ---------- */
+  .top{padding:2.1rem 1.25rem 1.4rem;}
+  .eyebrow{
+    font-family:var(--font-mono); font-size:0.78rem; color:var(--ink-faint);
+    letter-spacing:0.02em; margin:0 0 0.5rem;
+  }
+  .top h1{font-size:clamp(1.6rem, 4vw, 2.15rem); margin:0 0 0.55rem; font-weight:700;}
+  .top .lede{color:var(--ink-soft); max-width:62ch; margin:0 0 1.4rem; font-size:1rem;}
+
+  .hero{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    padding:1rem 1.1rem 0.7rem; box-shadow:var(--shadow); overflow:hidden;
+  }
+  .hero svg{display:block; width:100%; height:auto;}
+  .hero-caption{
+    display:flex; flex-wrap:wrap; gap:0.4rem 1.2rem; margin-top:0.55rem;
+    font-family:var(--font-mono); font-size:0.72rem; color:var(--ink-faint);
+  }
+  .hero-caption span{display:inline-flex; align-items:center; gap:0.4rem;}
+  .hero-caption i{width:9px; height:9px; border-radius:2px; display:inline-block;}
+
+  /* ---------- how-to note ---------- */
+  .howto{
+    margin:1.1rem 1.25rem 0; background:var(--paper-2); border:1px solid var(--line);
+    border-radius:var(--radius); padding:0.95rem 1.1rem; color:var(--ink-soft); font-size:0.94rem;
+  }
+  .howto strong{color:var(--ink);}
+
+  /* ---------- tabs ---------- */
+  .tabbar{
+    position:sticky; top:0; z-index:20; display:flex; gap:0.5rem;
+    overflow-x:auto; padding:1.1rem 1.25rem; margin-top:0.9rem;
+    background:linear-gradient(var(--bg) 78%, rgba(238,242,233,0));
+    scrollbar-width:none;
+  }
+  .tabbar::-webkit-scrollbar{display:none;}
+  .tab{
+    --tab-c: var(--neu);
+    flex:0 0 auto; font-family:var(--font-display); font-weight:600; font-size:0.86rem;
+    color:var(--ink-soft); background:var(--paper); border:1px solid var(--line);
+    border-radius:999px; padding:0.5rem 0.95rem; cursor:pointer; white-space:nowrap;
+    transition:background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .tab:hover{border-color:var(--line-strong);}
+  .tab.active{background:var(--tab-c); border-color:var(--tab-c); color:#fff;}
+  .tab:focus-visible, summary:focus-visible, button:focus-visible, input:focus-visible{
+    outline:2px solid var(--m3); outline-offset:2px;
+  }
+
+  /* ---------- content / panels ---------- */
+  .content{padding:0 1.25rem;}
+  .panel[data-panel="m1"]{--accent:var(--m1); --tint:var(--m1-tint); --tint2:var(--m1-tint2);}
+  .panel[data-panel="m2"]{--accent:var(--m2); --tint:var(--m2-tint); --tint2:var(--m2-tint2);}
+  .panel[data-panel="m3"]{--accent:var(--m3); --tint:var(--m3-tint); --tint2:var(--m3-tint2);}
+  .panel[data-panel="m4"]{--accent:var(--m4); --tint:var(--m4-tint); --tint2:var(--m4-tint2);}
+  .panel[data-panel="glossary"], .panel[data-panel="practice"]{--accent:var(--neu); --tint:var(--neu-tint); --tint2:var(--neu-tint2);}
+
+  .panel-head{padding:0.4rem 0 1rem;}
+  .panel-head .kicker{font-family:var(--font-mono); font-size:0.78rem; color:var(--accent); margin:0 0 0.3rem;}
+  .panel-head h2{font-size:clamp(1.35rem, 3.4vw, 1.75rem); margin:0 0 0.5rem;}
+  .panel-head p{color:var(--ink-soft); max-width:64ch; margin:0;}
+
+  details.lesson{
+    background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--accent);
+    border-radius:var(--radius); margin-bottom:0.9rem; box-shadow:var(--shadow);
+  }
+  details.lesson > summary{
+    list-style:none; cursor:pointer; padding:0.9rem 1.1rem; display:flex;
+    align-items:center; justify-content:space-between; gap:0.75rem;
+    font-family:var(--font-display); font-weight:600; font-size:1.02rem; color:var(--ink);
+  }
+  details.lesson > summary::-webkit-details-marker{display:none;}
+  details.lesson > summary::after{
+    content:'+'; font-family:var(--font-mono); color:var(--accent); font-size:1.2rem; flex:0 0 auto;
+  }
+  details.lesson[open] > summary::after{content:'\2212';}
+  details.lesson > summary .lnum{
+    font-family:var(--font-mono); font-size:0.78rem; color:var(--accent); font-weight:600; margin-right:0.5rem;
+  }
+  .lesson-body{padding:0 1.15rem 1.2rem; color:var(--ink-soft);}
+  .lesson-body p{margin:0 0 0.85rem;}
+  .lesson-body p:last-child{margin-bottom:0;}
+  .lesson-body ul, .lesson-body ol{margin:0 0 0.85rem; padding-left:1.2rem;}
+  .lesson-body li{margin-bottom:0.3rem;}
+  .lesson-body strong{color:var(--ink);}
+
+  .idbox{background:var(--tint); border-radius:var(--radius-sm); padding:0.95rem 1.05rem; margin:0.9rem 0;}
+  .idbox h4{margin:0 0 0.6rem; font-family:var(--font-display); font-size:0.82rem; color:var(--accent); font-weight:700;}
+  dl.idlist{margin:0; display:grid; grid-template-columns:minmax(130px,190px) 1fr; gap:0.4rem 1rem;}
+  dl.idlist dt{font-family:var(--font-mono); font-weight:600; color:var(--ink); font-size:0.88rem;}
+  dl.idlist dd{margin:0; color:var(--ink-soft); font-size:0.92rem;}
+
+  .itbox{border:1px dashed var(--accent); border-radius:var(--radius-sm); padding:0.9rem 1.05rem; margin:0.9rem 0; background:var(--paper);}
+  .itbox h4{margin:0 0 0.55rem; font-family:var(--font-display); font-size:0.82rem; color:var(--accent); font-weight:700;}
+
+  .recap{
+    background:var(--tint2); border-radius:var(--radius); padding:1rem 1.15rem; margin:1.2rem 0 0.3rem;
+    color:var(--ink-soft); font-size:0.93rem;
+  }
+  .recap h4{margin:0 0 0.5rem; color:var(--ink); font-family:var(--font-display); font-size:0.86rem;}
+
+  .twrap{overflow-x:auto; margin:0.9rem 0; border-radius:var(--radius-sm);}
+  table{border-collapse:collapse; width:100%; font-size:0.88rem; min-width:340px;}
+  caption{caption-side:top; text-align:left; font-family:var(--font-mono); font-size:0.74rem; color:var(--ink-faint); margin-bottom:0.4rem;}
+  thead th{background:var(--tint2); color:var(--ink); text-align:left; padding:0.55rem 0.7rem; font-family:var(--font-display); font-weight:600; border-bottom:2px solid var(--accent); white-space:nowrap;}
+  tbody td{padding:0.5rem 0.7rem; border-bottom:1px solid var(--line); color:var(--ink-soft);}
+  tbody tr:nth-child(even){background:var(--paper-2);}
+
+  .divider{height:1px; background:var(--line); position:relative; margin:2rem 0;}
+  .divider::before, .divider::after{content:''; position:absolute; top:-3px; width:7px; height:7px; border-radius:50%; background:var(--line-strong);}
+  .divider::before{left:0;} .divider::after{right:0;}
+
+  /* ---------- glossary ---------- */
+  .gsearch{
+    width:100%; padding:0.7rem 0.9rem; border:1px solid var(--line); border-radius:var(--radius-sm);
+    font-family:var(--font-body); font-size:0.95rem; background:var(--paper); color:var(--ink);
+    margin-bottom:1.1rem;
+  }
+  .gsearch::placeholder{color:var(--ink-faint);}
+  .glist{display:flex; flex-direction:column; gap:0.55rem;}
+  .gitem{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-sm);
+    padding:0.75rem 0.95rem; display:grid; grid-template-columns:minmax(150px,220px) 1fr; gap:0.3rem 1rem;
+  }
+  .gitem b{font-family:var(--font-mono); color:var(--m3); font-size:0.9rem;}
+  .gitem span{color:var(--ink-soft); font-size:0.92rem;}
+  .gempty{display:none; color:var(--ink-faint); font-style:italic; padding:1rem 0;}
+
+  /* ---------- practice ---------- */
+  .practice-sec{margin-bottom:1.6rem;}
+  .practice-sec h3{font-size:1.05rem; margin:0 0 0.3rem;}
+  .practice-sec .sub{color:var(--ink-soft); font-size:0.92rem; margin:0 0 0.9rem;}
+  details.drill{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-sm);
+    margin-bottom:0.55rem; padding:0; border-left:3px solid var(--m3);
+  }
+  details.drill > summary{
+    cursor:pointer; list-style:none; padding:0.7rem 0.95rem; font-size:0.94rem; color:var(--ink);
+    display:flex; gap:0.6rem;
+  }
+  details.drill > summary::-webkit-details-marker{display:none;}
+  details.drill > summary::before{content:'?'; font-family:var(--font-mono); color:var(--m3); font-weight:700; flex:0 0 auto;}
+  details.drill .ans{padding:0 0.95rem 0.85rem 2.15rem; color:var(--m2); font-size:0.92rem; font-weight:600;}
+
+  details.prompt{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-sm);
+    margin-bottom:0.55rem; border-left:3px solid var(--m2);
+  }
+  details.prompt > summary{cursor:pointer; list-style:none; padding:0.75rem 0.95rem; font-size:0.94rem; color:var(--ink); font-weight:600;}
+  details.prompt > summary::-webkit-details-marker{display:none;}
+  details.prompt .hint{padding:0 0.95rem 0.9rem; color:var(--ink-soft); font-size:0.9rem;}
+  details.prompt .hint ul{margin:0.4rem 0 0; padding-left:1.15rem;}
+  details.prompt .hint li{margin-bottom:0.25rem;}
+
+  footer.foot{
+    padding:1.6rem 1.25rem 0.5rem; color:var(--ink-faint); font-size:0.8rem; font-family:var(--font-mono);
+    text-align:center;
+  }
+
+  [hidden]{display:none !important;}
+
+  @media (max-width:640px){
+    .top{padding:1.5rem 1rem 1.1rem;}
+    .content{padding:0 1rem;}
+    .tabbar{padding:0.9rem 1rem;}
+    dl.idlist, .gitem{grid-template-columns:1fr;}
+    .howto{margin:1rem 1rem 0;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .tab{transition:none;}
+  }
+
+  /* ---------- enhancements: hints, cover mode, quiz ---------- */
+  .dcard{margin-bottom:0.55rem;}
+  .dcard details.drill{margin-bottom:0;}
+  .hrow{display:flex; flex-wrap:wrap; align-items:center; gap:0.4rem 0.5rem; padding:0.35rem 0.2rem 0 0.95rem;}
+  .hrow button, .qghost, .gtools button{
+    font-family:var(--font-body); font-size:0.78rem; font-weight:600; color:var(--ink-soft);
+    background:var(--paper-2); border:1px solid var(--line); border-radius:999px; padding:0.25rem 0.7rem; cursor:pointer;
+  }
+  .hrow button:hover, .qghost:hover, .gtools button:hover{border-color:var(--line-strong);}
+  .hrow button[aria-pressed="true"], .gtools button[aria-pressed="true"]{background:var(--m3); border-color:var(--m3); color:#fff;}
+  .hmask{font-family:var(--font-mono); font-weight:600; color:var(--m3); letter-spacing:0.12em; white-space:pre-wrap; word-break:break-word; font-size:0.92rem;}
+  .hmask.big{font-size:1.15rem; min-height:1.7rem; margin:0.4rem 0 0.9rem;}
+  .gtools{display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem 0.8rem; margin:-0.4rem 0 1rem; color:var(--ink-faint); font-size:0.85rem;}
+  .gitem b.cov{cursor:pointer; letter-spacing:0.1em; white-space:pre-wrap;}
+  .ptools{display:flex; gap:0.5rem; margin:0 0 1rem;}
+  .ptools button{font-family:var(--font-body); font-size:0.8rem; font-weight:600; background:var(--paper); border:1px solid var(--line); border-radius:999px; padding:0.3rem 0.8rem; cursor:pointer; color:var(--ink-soft);}
+  .qbox{background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--m3); border-radius:var(--radius); padding:1.1rem 1.2rem; box-shadow:var(--shadow); margin-bottom:1rem;}
+  .qbox label{display:inline-flex; flex-direction:column; gap:0.25rem; font-size:0.85rem; color:var(--ink-soft); margin:0 1rem 0.8rem 0;}
+  .qbox select, .qbox input[type=text]{font-family:var(--font-body); font-size:1rem; padding:0.55rem 0.7rem; border:1px solid var(--line-strong); border-radius:var(--radius-sm); background:var(--paper); color:var(--ink);}
+  .qbtn{font-family:var(--font-display); font-weight:600; font-size:0.95rem; color:#fff; background:var(--m3); border:0; border-radius:var(--radius-sm); padding:0.6rem 1.1rem; cursor:pointer;}
+  .qstat{display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.8rem; color:var(--ink-faint); margin-bottom:0.6rem;}
+  .qtext{font-size:1.05rem; color:var(--ink); margin:0 0 0.4rem;}
+  .qrow{display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.6rem;}
+  .qrow input{flex:1 1 220px; min-width:0;}
+  .qfb{min-height:1.4rem; margin:0.3rem 0 0.7rem; font-weight:600;}
+  .qfb.ok{color:var(--m2);} .qfb.no{color:#A33A2A;}
+  .qend-score{font-family:var(--font-display); font-size:1.8rem; font-weight:700; margin:0 0 0.4rem;}
+
+  /* ---------- QGIS + campus tabs ---------- */
+  :root{--qg:#6A4C93; --qg-tint:#EBE5F2; --qg-tint2:#DCD2EA;}
+  .panel[data-panel="qgis"], .panel[data-panel="campus"]{--accent:var(--qg); --tint:var(--qg-tint); --tint2:var(--qg-tint2);}
+  .note{background:var(--paper-2); border:1px dashed var(--line-strong); border-radius:var(--radius-sm); padding:0.75rem 0.95rem; margin:0 0 1rem; color:var(--ink-soft); font-size:0.9rem;}
+  code{font-family:var(--font-mono); font-size:0.86em; background:var(--paper-2); border:1px solid var(--line); border-radius:4px; padding:0 0.3em; color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="top">
+    <p class="eyebrow">IM06 · Geographic Information Systems</p>
+    <h1>GIS Reviewer — Modules 3 &amp; 4, QGIS Demo, Campus Practical</h1>
+    <p class="lede">Everything from the four modules, reorganized so you can do two things: <strong>identify</strong> a term the moment you see its definition, and <strong>describe</strong> a concept in your own words with the right example attached to it.</p>
+
+    <div class="hero" aria-hidden="true">
+      <svg viewBox="0 0 800 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vector primitives (point, line, polygon) beside a raster grid">
+        <!-- point -->
+        <circle cx="70" cy="65" r="7" fill="#A6631C"/>
+        <text x="70" y="100" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#7C8672">point</text>
+
+        <!-- line -->
+        <polyline points="150,90 185,45 220,70 255,35" fill="none" stroke="#A6631C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="150" cy="90" r="3.5" fill="#A6631C"/><circle cx="185" cy="45" r="3.5" fill="#A6631C"/><circle cx="220" cy="70" r="3.5" fill="#A6631C"/><circle cx="255" cy="35" r="3.5" fill="#A6631C"/>
+        <text x="202" y="112" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#7C8672">line</text>
+
+        <!-- polygon -->
+        <polygon points="330,35 380,45 390,80 355,102 310,85" fill="#F3E7D3" stroke="#A6631C" stroke-width="3" stroke-linejoin="round"/>
+        <text x="350" y="122" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#7C8672">polygon</text>
+
+        <!-- divider -->
+        <line x1="440" y1="20" x2="440" y2="112" stroke="#CDD5C1" stroke-width="1.5" stroke-dasharray="3 4"/>
+
+        <!-- raster grid -->
+        <g transform="translate(480,28)">
+          <g stroke="#1C7A73" stroke-width="1.5" fill="none">
+            <rect x="0" y="0" width="180" height="66" />
+            <line x1="45" y1="0" x2="45" y2="66"/><line x1="90" y1="0" x2="90" y2="66"/><line x1="135" y1="0" x2="135" y2="66"/>
+            <line x1="0" y1="22" x2="180" y2="22"/><line x1="0" y1="44" x2="180" y2="44"/>
+          </g>
+          <g fill="#BEE0DA">
+            <rect x="0.75" y="0.75" width="43.5" height="20.5"/>
+            <rect x="90.75" y="22.75" width="43.5" height="20.5"/>
+            <rect x="135.75" y="44.75" width="43.5" height="20.5"/>
+          </g>
+        </g>
+        <text x="570" y="122" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#7C8672">raster cells</text>
+
+        <text x="790" y="20" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#AEB9A0">15.4905°N, 120.9682°E</text>
+      </svg>
+      <div class="hero-caption">
+        <span><i style="background:#A6631C"></i>Vector — coordinates &amp; vertices</span>
+        <span><i style="background:#1C7A73"></i>Raster — rows, columns, cell values</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="howto">
+    <strong>Final exam coverage:</strong> Modules 3 &amp; 4 (vector and raster), the <em>QGIS demo</em>, and the <em>practical exercise in campus</em> — see the purple tabs. Modules 1 &amp; 2 are kept as background.<br><br>
+    <strong>How to use this:</strong> for identification, drill the <em>Glossary</em> tab until the term comes to you before you finish reading the definition. For description, don't memorize the paragraphs word for word — read them, close the tab, and try to re-explain the idea out loud using the example that comes with it. The <em>Practice</em> tab has both kinds of drills ready to go — every drill now has <strong>First letter / Last letter</strong> hint buttons. The <em>Quiz</em> tab lets you type your answers, with progressive hints.
+  </div>
+
+  <nav class="tabbar" role="tablist" aria-label="Reviewer sections">
+    <button class="tab active" style="--tab-c:var(--m1)" role="tab" aria-selected="true" data-tab="m1">Module 1 · Foundations</button>
+    <button class="tab" style="--tab-c:var(--m2)" role="tab" aria-selected="false" data-tab="m2">Module 2 · Spatial Thinking</button>
+    <button class="tab" style="--tab-c:var(--m3)" role="tab" aria-selected="false" data-tab="m3">Module 3 · Vector Data</button>
+    <button class="tab" style="--tab-c:var(--m4)" role="tab" aria-selected="false" data-tab="m4">Module 4 · Raster Data</button>
+    <button class="tab" style="--tab-c:var(--qg)" role="tab" aria-selected="false" data-tab="qgis">QGIS Demo</button>
+    <button class="tab" style="--tab-c:var(--qg)" role="tab" aria-selected="false" data-tab="campus">Campus Practical</button>
+    <button class="tab" style="--tab-c:var(--neu)" role="tab" aria-selected="false" data-tab="glossary">Glossary</button>
+    <button class="tab" style="--tab-c:var(--neu)" role="tab" aria-selected="false" data-tab="practice">Practice</button>
+    <button class="tab" style="--tab-c:var(--m3)" role="tab" aria-selected="false" data-tab="quiz">Quiz · Type it</button>
+  </nav>
+
+  <main class="content">
+
+    <section class="panel" data-panel="m1" id="panel-m1" role="tabpanel">
+      <div class="panel-head">
+        <p class="kicker">Module 1</p>
+        <h2>Foundations of GIS</h2>
+        <p>What a GIS actually is, why location changes the kinds of questions you can ask, and how GIS connects to the rest of Information Technology.</p>
+      </div>
+
+      <details class="lesson" open>
+        <summary><span><span class="lnum">1.1</span>What is a Geographic Information System?</span></summary>
+        <div class="lesson-body">
+          <p>A <strong>Geographic Information System (GIS)</strong> is a computer-based system for collecting, storing, managing, analyzing, and displaying geographically referenced information. Chang's definition is the one to remember: GIS integrates geographic data with computer technology to support spatial analysis and decision-making.</p>
+          <p>Every piece of geographic information is made of two elements. <strong>Location information</strong> answers "Where is it?" — the position of a feature on Earth's surface. <strong>Attribute information</strong> answers "What is it?" — the descriptive details about that feature. A hospital, for example, has location information (its coordinates, 14.5995° N, 120.9842° E) and attribute information (its name, City Hospital, and its capacity, 300 beds) — you need both to fully describe it in a GIS.</p>
+          <div class="idbox">
+            <h4>Key terms to identify</h4>
+            <dl class="idlist">
+              <div><dt>Geographic Information System (GIS)</dt><dd>A computer-based system that collects, stores, manages, analyzes, and displays geographically referenced information (Chang).</dd></div>
+              <div><dt>Location information</dt><dd>Answers "Where is it?" — the position of a feature on Earth's surface.</dd></div>
+              <div><dt>Attribute information</dt><dd>Answers "What is it?" — descriptive details about a feature.</dd></div>
+            </dl>
+          </div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">1.2</span>Why Location Matters</span></summary>
+        <div class="lesson-body">
+          <p>Location changes what decisions are possible. In <strong>disaster management</strong>, location data identifies which communities are vulnerable to flooding by combining hazard maps, population data, and elevation data. In <strong>business planning</strong>, companies use GIS to pick the best location for a new branch by examining customer locations, competitor locations, and transportation networks. In <strong>transportation</strong>, GIS finds the best route between locations by analyzing road networks and traffic information.</p>
+          <p>All of this rests on <strong>spatial thinking</strong> — understanding the relationships between locations. Module 2 unpacks this in full, but the four building blocks introduced here are distance, direction, pattern, and relationships.</p>
+          <div class="idbox">
+            <h4>Key terms to identify</h4>
+            <dl class="idlist">
+              <div><dt>Distance</dt><dd>How far one place is from another.</dd></div>
+              <div><dt>Direction</dt><dd>Where one feature is located relative to another.</dd></div>
+              <div><dt>Pattern</dt><dd>Whether features are clustered together or evenly distributed.</dd></div>
+              <div><dt>Relationships</dt><dd>How different locations are connected to one another.</dd></div>
+            </dl>
+          </div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">1.3</span>GIS as an Information System</span></summary>
+        <div class="lesson-body">
+          <p>A GIS follows the same logic as any information system: it collects, stores, processes, analyzes, and presents information to support decisions. What makes it a <em>geographic</em> information system is that it's built from five components (Figure 1): <strong>hardware, software, data, people,</strong> and <strong>methods and procedures</strong>.</p>
+          <p>Of the five, <strong>data is considered the most important</strong>, because it's the foundation everything else operates on. GIS data splits into <strong>spatial data</strong> (the location of features — roads, buildings, rivers) and <strong>attribute data</strong> (descriptive information about those features — names, classifications, measurements). In the components diagram, software sits at the center, wired directly to hardware, data, people (above), and procedures (below) — it's the hub that ties the other four together.</p>
+          <div class="idbox">
+            <h4>The five components of GIS</h4>
+            <dl class="idlist">
+              <div><dt>Hardware</dt><dd>Physical equipment used to run GIS — computers, servers, GPS devices, mobile devices.</dd></div>
+              <div><dt>Software</dt><dd>Applications that process and analyze geographic data — desktop GIS, web GIS apps, database management systems.</dd></div>
+              <div><dt>Data</dt><dd>The most important component — the foundation for all GIS operations. Split into spatial data and attribute data.</dd></div>
+              <div><dt>People</dt><dd>Those who use, manage, and maintain GIS — GIS analysts, database administrators, decision-makers.</dd></div>
+              <div><dt>Methods and procedures</dt><dd>The rules, standards, and processes for running GIS effectively — data collection procedures, analysis workflows, updating processes.</dd></div>
+            </dl>
+          </div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">1.4</span>GIS Compared with Traditional Information Systems</span></summary>
+        <div class="lesson-body">
+          <p>A traditional information system stores and manages general information using tables and records — it's built to answer <strong>"What?"</strong> A GIS combines that same attribute data with location information, so it can answer both <strong>"What?"</strong> and <strong>"Where?"</strong> That second capability is what unlocks spatial analysis.</p>
+          <p>The classic contrast: ask a traditional database "List all hospitals," and it returns a table of names and records. Ask a GIS "Where are hospitals located within 5 kilometers of flood-prone areas?" and it returns a map plus analysis results — letting you actually see hospital locations against flood hazards, not just read about them.</p>
+          <div class="twrap">
+            <table>
+              <caption>Table 1 — Traditional Information System vs. GIS</caption>
+              <thead><tr><th>Traditional Information System</th><th>Geographic Information System (GIS)</th></tr></thead>
+              <tbody>
+                <tr><td>Manages general information</td><td>Manages geographic information</td></tr>
+                <tr><td>Uses tables and records</td><td>Uses maps and spatial data</td></tr>
+                <tr><td>Answers "What?"</td><td>Answers both "What?" and "Where?"</td></tr>
+                <tr><td>Has limited spatial analysis capabilities</td><td>Supports advanced spatial analysis</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">1.5</span>Applications of GIS</span></summary>
+        <div class="lesson-body">
+          <p>GIS shows up anywhere decisions depend on location:</p>
+          <div class="idbox">
+            <h4>Field → what GIS is used for</h4>
+            <dl class="idlist">
+              <div><dt>Urban planning</dt><dd>Land-use planning, infrastructure development, population analysis.</dd></div>
+              <div><dt>Environmental management</dt><dd>Forest monitoring, pollution analysis, climate studies.</dd></div>
+              <div><dt>Disaster management</dt><dd>Hazard mapping, evacuation planning, emergency response.</dd></div>
+              <div><dt>Business &amp; marketing</dt><dd>Customer location analysis, market strategy, site selection for new businesses.</dd></div>
+              <div><dt>Transportation</dt><dd>Route planning, traffic analysis, logistics management.</dd></div>
+              <div><dt>Public health</dt><dd>Disease mapping and healthcare planning, allocating medical resources.</dd></div>
+            </dl>
+          </div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">1.6</span>GIS and Information Technology</span></summary>
+        <div class="lesson-body">
+          <p>GIS isn't a separate island from IT — it leans directly on IT fields you already study:</p>
+          <div class="itbox">
+            <h4>IT connection</h4>
+            <dl class="idlist">
+              <div><dt>Database technology</dt><dd>Stores spatial data, attribute data, and metadata in an organized way.</dd></div>
+              <div><dt>Web technologies (Web GIS)</dt><dd>Lets users access interactive maps through browsers and mobile apps, from anywhere with internet.</dd></div>
+              <div><dt>Cloud computing (Cloud GIS)</dt><dd>Provides online storage, shared services, and large-scale processing without relying only on local machines.</dd></div>
+              <div><dt>Data analytics</dt><dd>Examines geographic patterns, trends, and relationships for meaningful insight.</dd></div>
+              <div><dt>Artificial intelligence</dt><dd>Supports image classification, predictive analysis, and workflow automation.</dd></div>
+            </dl>
+          </div>
+        </div>
+      </details>
+
+      <div class="recap">
+        <h4>Module 1 in one paragraph</h4>
+        <p>GIS combines location information ("where") with attribute information ("what") — that combination is what a traditional information system can't do. It runs on five components (hardware, software, data, people, methods/procedures), with data as the foundation. It's used across urban planning, environmental management, disaster response, business, transportation, and public health, and it's built on IT foundations: databases, the web, the cloud, analytics, and AI.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="m2" id="panel-m2" role="tabpanel" hidden>
+      <div class="panel-head">
+        <p class="kicker">Module 2</p>
+        <h2>Spatial Thinking &amp; Geographic Data</h2>
+        <p>The mental toolkit behind every GIS question, how GIS organizes information into spatial and attribute data, and the workflow for solving a geographic problem.</p>
+      </div>
+
+      <details class="lesson" open>
+        <summary><span><span class="lnum">2.1</span>Understanding Spatial Thinking</span></summary>
+        <div class="lesson-body">
+          <p><strong>Spatial thinking</strong> is the ability to understand the location, arrangement, relationships, and patterns of objects and events in space. It's something people already do daily without noticing — choosing the shortest route to school, finding the nearest restaurant, comparing store locations, identifying flood-affected areas. GIS just formalizes this by using computers to store, analyze, and visualize spatial information.</p>
+          <p>Here's why it matters for GIS specifically: a traditional database can tell you Hospital A has 200 beds and Hospital B has 150 — purely descriptive. A GIS can also answer <em>spatial</em> questions: which hospital is closer to a community, which is fastest to reach, which areas have limited healthcare access, and how many people live within a given distance of each hospital.</p>
+          <div class="idbox">
+            <h4>The four components of spatial thinking</h4>
+            <dl class="idlist">
+              <div><dt>Location</dt><dd><strong>Absolute location</strong> — a precise position, usually latitude/longitude or GPS coordinates (e.g. 15.4905° N, 120.9682° E). <strong>Relative location</strong> — a place described relative to other features (e.g. a school beside a highway, a house 500m from a river).</dd></div>
+              <div><dt>Distance</dt><dd>How far apart locations are — straight-line distance, travel distance along roads, or travel time (e.g. households within a 10-minute travel distance of a health center).</dd></div>
+              <div><dt>Direction</dt><dd>The position of one feature relative to another (N, S, E, W) — used in navigation, emergency response, and transportation planning.</dd></div>
+              <div><dt>Pattern</dt><dd>How features are arranged across an area — <strong>clustered</strong> (concentrated, e.g. malls in urban centers), <strong>dispersed</strong> (spread out, e.g. farms across rural areas), or <strong>random</strong> (no predictable arrangement, e.g. some natural phenomena).</dd></div>
+            </dl>
+          </div>
+          <div class="itbox">
+            <h4>IT connection</h4>
+            <p style="margin:0">Spatial thinking is what powers ride-sharing apps (matching riders and drivers using location, distance, traffic, routes), e-commerce delivery systems (customer and warehouse locations, delivery routes, arrival times), and smart city systems (sensors, databases, communication networks, and GIS platforms managing urban services together).</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">2.2</span>Geographic Information and Spatial Data</span></summary>
+        <div class="lesson-body">
+          <p><strong>Geographic information</strong> is any information tied to a specific location — school locations, road networks, population distribution, rainfall measurements, land-use areas. Because every geographic feature has both a position and characteristics, GIS splits that information into two categories: <strong>spatial data</strong>, which answers "Where is it?" (stored as points, lines, polygons, or raster cells), and <strong>attribute data</strong>, which answers "What is it?" (names, classifications, measurements).</p>
+          <div class="twrap">
+            <table>
+              <caption>Table 2 — Attribute data for a geographic feature</caption>
+              <thead><tr><th>Attribute</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Name</td><td>Central Elementary School</td></tr>
+                <tr><td>Type</td><td>Public</td></tr>
+                <tr><td>Students</td><td>850</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>The school's location identifies <em>where</em> it is; its attribute data describes the school itself. GIS represents real-world features using three geometry types:</p>
+          <div class="idbox">
+            <h4>Geographic feature types</h4>
+            <dl class="idlist">
+              <div><dt>Point features</dt><dd>A single, specific location — buildings, schools, hospitals, cellphone towers.</dd></div>
+              <div><dt>Line features</dt><dd>Length but relatively little width — roads, rivers, pipelines.</dd></div>
+              <div><dt>Polygon features</dt><dd>Areas or regions with defined boundaries — provinces, cities, lakes, land parcels.</dd></div>
+            </dl>
+          </div>
+          <p>GIS also analyzes how features relate to each other — this is called a <strong>spatial relationship</strong>:</p>
+          <div class="idbox">
+            <h4>Spatial relationships</h4>
+            <dl class="idlist">
+              <div><dt>Proximity</dt><dd>How close features are to one another (e.g. restaurants within 1 km of a university).</dd></div>
+              <div><dt>Connectivity</dt><dd>How features are linked together, such as roads forming a transportation network.</dd></div>
+              <div><dt>Containment</dt><dd>Whether one feature is located inside another (e.g. a city or municipality inside a province).</dd></div>
+              <div><dt>Adjacency</dt><dd>Features that share common boundaries, such as neighboring municipalities.</dd></div>
+            </dl>
+          </div>
+          <p>Two more concepts decide how well any of this represents the real world:</p>
+          <div class="idbox">
+            <h4>Scale &amp; resolution</h4>
+            <dl class="idlist">
+              <div><dt>Scale</dt><dd>The relationship between distance on a map and the real-world distance it represents. A city map shows streets and individual neighborhoods; a national map shows provinces and regions, not individual buildings.</dd></div>
+              <div><dt>Resolution</dt><dd>The level of detail in geographic data. High-resolution satellite imagery shows individual buildings and roads; lower-resolution imagery shows only broad land areas or patterns.</dd></div>
+              <div><dt>Why it matters</dt><dd>Using data too general or too detailed for the task leads to wrong conclusions — a city planner needs high-resolution, large-scale data; a national planner studying population trends can use smaller-scale, lower-resolution data.</dd></div>
+            </dl>
+          </div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">2.3</span>Spatial Thinking in GIS Problem Solving</span></summary>
+        <div class="lesson-body">
+          <p>GIS analysis always starts with a question that needs both locations and the relationships between them. "Where should a new hospital be built?" needs population locations, existing hospitals, road accessibility, and available land. "Which communities are vulnerable to flooding?" needs elevation, rainfall, rivers, and settlement locations. "Where's the best location for a new branch?" needs customer locations, competitor locations, transportation access, and demographics.</p>
+          <div class="idbox">
+            <h4>The spatial thinking workflow (in order)</h4>
+            <ol style="margin:0; padding-left:1.2rem; color:var(--ink-soft)">
+              <li><strong>Identify the problem</strong> — clearly define the question that needs answering.</li>
+              <li><strong>Identify the required data</strong> — e.g. population information, hospital locations, transportation networks.</li>
+              <li><strong>Analyze spatial relationships</strong> — examine distance, overlap, accessibility.</li>
+              <li><strong>Interpret and present results</strong> — maps, reports, and practical recommendations.</li>
+            </ol>
+          </div>
+          <p>Spatial thinking also maps onto specific IT fields:</p>
+          <div class="twrap">
+            <table>
+              <caption>Table 3 — IT field and spatial application</caption>
+              <thead><tr><th>IT Field</th><th>Spatial Application</th></tr></thead>
+              <tbody>
+                <tr><td>Database systems</td><td>Spatial databases</td></tr>
+                <tr><td>Mobile development</td><td>GPS-enabled application</td></tr>
+                <tr><td>Web development</td><td>Interactive maps</td></tr>
+                <tr><td>Data analytics</td><td>Location-based analysis</td></tr>
+                <tr><td>Artificial intelligence</td><td>Geo AI</td></tr>
+                <tr><td>Internet of Things (IoT)</td><td>Sensor location monitoring</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <div class="recap">
+        <h4>Module 2 in one paragraph</h4>
+        <p>Spatial thinking runs on location (absolute vs. relative), distance, direction, and pattern (clustered, dispersed, random). GIS organizes information into spatial data ("where") and attribute data ("what"), models the real world as points, lines, and polygons, and analyzes proximity, connectivity, containment, and adjacency between them — all calibrated by the right scale and resolution. Solving a GIS problem follows a fixed workflow: identify the problem, identify the data, analyze relationships, then interpret and present.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="m3" id="panel-m3" role="tabpanel" hidden>
+      <div class="panel-head">
+        <p class="kicker">Module 3</p>
+        <h2>The Vector Data Model</h2>
+        <p>How GIS stores discrete features as coordinates — points, lines, and polygons — plus attribute tables, spatial queries, topology, and how vector data gets created and edited.</p>
+      </div>
+
+      <details class="lesson" open>
+        <summary><span><span class="lnum">3.1</span>Understanding the Vector Data Model</span></summary>
+        <div class="lesson-body">
+          <p>A <strong>data model</strong> is a method used to represent and organize information within a computer system. In GIS, it defines how geographic features are represented, stored, and managed digitally. GIS uses two data models — <strong>vector</strong> and <strong>raster</strong> (raster is Module 4). The vector model represents features using coordinates: a series of geographic positions called <strong>vertices</strong>, where each vertex is a point with a specific coordinate location. A road, for instance, isn't stored as a picture — it's stored as coordinates like (120.950, 15.480), (120.955, 15.485), (120.960, 15.490), which GIS connects into a line.</p>
+          <div class="idbox">
+            <h4>Why use vector data</h4>
+            <dl class="idlist">
+              <div><dt>High positional accuracy</dt><dd>Exact geographic locations via precise coordinates (e.g. a land parcel boundary).</dd></div>
+              <div><dt>Efficient data storage</dt><dd>Stores only the coordinates needed to define a feature — far less space than image-based data.</dd></div>
+              <div><dt>Network analysis</dt><dd>The preferred format for roads, transportation, and utility networks, where connectivity and routing matter.</dd></div>
+              <div><dt>Easy attribute management</dt><dd>Every feature links to descriptive info — a school's name, enrollment, and type, for example.</dd></div>
+            </dl>
+          </div>
+          <p>Every vector feature has two components: <strong>geometry</strong> (its location and shape — point, line, or polygon) and <strong>attributes</strong> (descriptive information). Together they let GIS answer both "Where is it?" and "What is it?"</p>
+          <div class="twrap">
+            <table>
+              <caption>Table 4 — Attributes of a hospital feature</caption>
+              <thead><tr><th>Attribute</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Name</td><td>Provincial Hospital</td></tr>
+                <tr><td>Type</td><td>Government</td></tr>
+                <tr><td>Beds</td><td>250</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>If you have a database background, vector data will feel familiar — a geographic feature is essentially a database record, extended with a geometry component:</p>
+          <div class="twrap">
+            <table>
+              <caption>Table 5 — Database concepts and their GIS equivalents</caption>
+              <thead><tr><th>Database Concept</th><th>GIS Equivalent</th></tr></thead>
+              <tbody>
+                <tr><td>Record</td><td>Geographic feature</td></tr>
+                <tr><td>Field</td><td>Attribute</td></tr>
+                <tr><td>Primary key</td><td>Feature ID</td></tr>
+                <tr><td>Table</td><td>Feature layer</td></tr>
+                <tr><td>Geometry field</td><td>Location</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="twrap">
+            <table>
+              <caption>Table 6 — A simple GIS feature layer for schools</caption>
+              <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Geometry</th></tr></thead>
+              <tbody><tr><td>1</td><td>Central School</td><td>Public</td><td>Point</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">3.2</span>Types of Vector Data</span></summary>
+        <div class="lesson-body">
+          <p>Vector data models the real world using three geometry types, each suited to a different kind of object.</p>
+          <div class="idbox">
+            <h4>The three vector geometry types</h4>
+            <dl class="idlist">
+              <div><dt>Point feature</dt><dd>A single, specific location, defined by an X-coordinate (longitude/easting) and Y-coordinate (latitude/northing). Used when exact location matters more than size or shape — schools, hospitals, stores, cellphone towers, GPS locations.</dd></div>
+              <div><dt>Line feature</dt><dd>Length but relatively little width, built by connecting a starting point, intermediate vertices, and a final point — roads, rivers, pipelines, transmission lines.</dd></div>
+              <div><dt>Polygon feature</dt><dd>An enclosed area with both a boundary and an interior — provinces, municipalities, lakes, land parcels.</dd></div>
+            </dl>
+          </div>
+          <div class="twrap">
+            <table>
+              <caption>Table 7 — Point feature: hospitals</caption>
+              <thead><tr><th>Hospital</th><th>Beds</th><th>Type</th></tr></thead>
+              <tbody><tr><td>Hospital A</td><td>100</td><td>Public</td></tr><tr><td>Hospital B</td><td>200</td><td>Private</td></tr></tbody>
+            </table>
+          </div>
+          <div class="twrap">
+            <table>
+              <caption>Table 8 — Line feature: roads</caption>
+              <thead><tr><th>Road</th><th>Length</th><th>Type</th></tr></thead>
+              <tbody><tr><td>Highway</td><td>15 km</td><td>National</td></tr><tr><td>Road A</td><td>5 km</td><td>Local</td></tr></tbody>
+            </table>
+          </div>
+          <div class="twrap">
+            <table>
+              <caption>Table 9 — Polygon feature: municipalities</caption>
+              <thead><tr><th>Municipality</th><th>Population</th></tr></thead>
+              <tbody><tr><td>City A</td><td>100,000</td></tr><tr><td>City B</td><td>75,000</td></tr></tbody>
+            </table>
+          </div>
+          <div class="twrap">
+            <table>
+              <caption>Table 10 — Comparing the three vector types</caption>
+              <thead><tr><th>Feature Type</th><th>Represents</th><th>Examples</th></tr></thead>
+              <tbody>
+                <tr><td>Point</td><td>A specific location</td><td>Schools, hospitals</td></tr>
+                <tr><td>Line</td><td>Length or linear features</td><td>Roads, rivers</td></tr>
+                <tr><td>Polygon</td><td>An enclosed area</td><td>Cities, lakes</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">3.3</span>Attribute Tables and Feature Relationships</span></summary>
+        <div class="lesson-body">
+          <p>An <strong>attribute table</strong> stores descriptive information about the features in a vector layer. Each row is a feature; each column is an attribute.</p>
+          <div class="twrap">
+            <table>
+              <caption>Table 11 — A road layer attribute table</caption>
+              <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Length</th></tr></thead>
+              <tbody><tr><td>1</td><td>Main road</td><td>Highway</td><td>10 km</td></tr><tr><td>2</td><td>Street A</td><td>Local</td><td>2 km</td></tr></tbody>
+            </table>
+          </div>
+          <p>Every feature gets a <strong>Feature ID</strong> — a unique identifier that links its geometry to its attribute information.</p>
+          <div class="twrap">
+            <table>
+              <caption>Table 12 — Feature identification</caption>
+              <thead><tr><th>Feature ID</th><th>Name</th></tr></thead>
+              <tbody><tr><td>001</td><td>Hospital A</td></tr><tr><td>002</td><td>Hospital B</td></tr></tbody>
+            </table>
+          </div>
+          <p>GIS supports two kinds of queries. An <strong>attribute query</strong> searches descriptive information — e.g. <code style="font-family:var(--font-mono); background:var(--tint); padding:0.1rem 0.35rem; border-radius:4px;">SELECT hospitals WHERE beds &gt; 100;</code> A <strong>spatial query</strong> goes further and considers location and relationships too:</p>
+          <div class="idbox">
+            <h4>Spatial query types</h4>
+            <dl class="idlist">
+              <div><dt>Within</dt><dd>Finds features located inside a boundary — e.g. all schools inside a municipality.</dd></div>
+              <div><dt>Intersect</dt><dd>Finds features that cross another feature — e.g. roads that cross flood-prone areas.</dd></div>
+              <div><dt>Near</dt><dd>Finds features within a specified distance of another — e.g. facilities near a highway.</dd></div>
+            </dl>
+          </div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">3.4</span>Topology in Vector Data</span></summary>
+        <div class="lesson-body">
+          <p><strong>Topology</strong> is the set of spatial relationships that define how geographic features connect to one another, and GIS enforces it so those relationships stay correct through storage, editing, and analysis.</p>
+          <div class="idbox">
+            <h4>Key topological relationships</h4>
+            <dl class="idlist">
+              <div><dt>Adjacency</dt><dd>Features that share common boundaries.</dd></div>
+              <div><dt>Connectivity</dt><dd>How linear features like roads or pipelines are linked together.</dd></div>
+              <div><dt>Containment</dt><dd>Whether one feature is located within another.</dd></div>
+            </dl>
+          </div>
+          <p>Without topological rules, spatial data can end up with gaps between neighboring land parcels, overlapping administrative boundaries, or disconnected road segments — all of which produce incorrect measurements, bad routing, or misleading analysis. So two rules get enforced constantly: <strong>polygon features</strong> (like administrative boundaries) must share borders without overlapping, so every location belongs to exactly one unit; <strong>line features</strong> (like roads) must connect properly at intersections and endpoints, or network analysis will wrongly conclude that travel between two points is impossible.</p>
+          <div class="itbox">
+            <h4>IT connection</h4>
+            <p style="margin:0">Topology is the GIS version of database validation rules. Just as relational databases enforce constraints to prevent duplicate or invalid records, GIS uses topology to keep spatial relationships valid and geographic structures consistent.</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">3.5</span>Vector Data Creation and Editing</span></summary>
+        <div class="lesson-body">
+          <div class="idbox">
+            <h4>How vector data gets created</h4>
+            <dl class="idlist">
+              <div><dt>Digitizing</dt><dd>Converting paper maps, aerial photos, or satellite images into digital vector features — e.g. tracing roads visible in satellite imagery.</dd></div>
+              <div><dt>GPS data collection</dt><dd>Field workers gather coordinates with GPS receivers, smartphones, or surveying equipment — commonly used to map roads, buildings, and utilities directly from the field.</dd></div>
+              <div><dt>Existing data sources</dt><dd>Government datasets, open-data initiatives like OpenStreetMap, and other geographic databases.</dd></div>
+            </dl>
+          </div>
+          <p>Once created, vector data usually needs editing to stay accurate: creating new features, moving existing ones to their correct locations, deleting obsolete or incorrect features, modifying attribute information, and correcting geometric errors.</p>
+        </div>
+      </details>
+
+      <div class="recap">
+        <h4>Module 3 in one paragraph</h4>
+        <p>Vector data represents discrete features as coordinates (vertices) organized into points, lines, and polygons, each pairing geometry with attributes — much like a database record pairs a primary key with fields. Attribute queries search the descriptive data; spatial queries (Within, Intersect, Near) search location and relationships. Topology (adjacency, connectivity, containment) keeps those relationships valid, and vector data itself comes from digitizing, GPS collection, or existing datasets.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="m4" id="panel-m4" role="tabpanel" hidden>
+      <div class="panel-head">
+        <p class="kicker">Module 4</p>
+        <h2>The Raster Data Model</h2>
+        <p>How GIS represents continuous surfaces as a grid of cells, what resolution trades off, where raster data comes from, how it compares with vector, and the core raster analysis techniques.</p>
+      </div>
+
+      <details class="lesson" open>
+        <summary><span><span class="lnum">4.1</span>Understanding the Raster Data Model</span></summary>
+        <div class="lesson-body">
+          <p><strong>Raster data</strong> represents geographic information as a grid of cells arranged in rows and columns. It's similar to a digital image made of pixels — but unlike an ordinary pixel, which only holds color, a raster cell holds geographic information with real-world meaning: elevation, temperature, rainfall, or land cover.</p>
+          <p>A raster dataset has four basic components: <strong>rows, columns, cells (pixels),</strong> and <strong>cell values</strong>.</p>
+          <div class="twrap">
+            <table>
+              <caption>Table 13 — A raster grid</caption>
+              <thead><tr><th></th><th>Column 1</th><th>Column 2</th><th>Column 3</th><th>Column 4</th></tr></thead>
+              <tbody>
+                <tr><td>Row 1</td><td>10</td><td>12</td><td>17</td><td>22</td></tr>
+                <tr><td>Row 2</td><td>11</td><td>15</td><td>19</td><td>23</td></tr>
+                <tr><td>Row 3</td><td>14</td><td>16</td><td>20</td><td>25</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Every raster cell has a location and a value, and because neighboring cells are spatially related, GIS can compare adjacent values to spot patterns and trends across an area.</p>
+          <div class="twrap">
+            <table>
+              <caption>Table 14 — Rainfall raster example</caption>
+              <thead><tr><th>Cell Location</th><th>Rainfall Value</th></tr></thead>
+              <tbody><tr><td>Cell A1</td><td>120 mm</td></tr><tr><td>Cell A2</td><td>150 mm</td></tr></tbody>
+            </table>
+          </div>
+          <div class="idbox">
+            <h4>Continuous vs. discrete phenomena</h4>
+            <dl class="idlist">
+              <div><dt>Continuous data</dt><dd>Changes gradually across space with no clear boundaries — elevation, temperature, rainfall, pollution concentration. Each cell holds a unique numerical measurement.</dd></div>
+              <div><dt>Discrete data</dt><dd>Distinct categories or classes — land use, vegetation type, soil classification. Each cell holds a code for a category (e.g. 1 = Forest, 2 = Agriculture, 3 = Urban Area — Table 15).</dd></div>
+            </dl>
+          </div>
+          <p>Common raster datasets: <strong>satellite imagery</strong> (cells record reflected energy detected by sensors — environmental monitoring, precision agriculture, disaster assessment), <strong>Digital Elevation Models / DEMs</strong> (each cell stores terrain elevation — slope analysis, watershed delineation, flood modeling), and <strong>temperature maps</strong> (each cell holds a temperature reading — climate analysis, weather forecasting).</p>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">4.2</span>Raster Resolution and Cell Size</span></summary>
+        <div class="lesson-body">
+          <p><strong>Resolution</strong> is the level of detail in raster data, and it's set by cell size. Smaller cells capture more detail (higher resolution); larger cells cover more ground per cell but show less detail (lower resolution).</p>
+          <div class="twrap">
+            <table>
+              <caption>Table 16 — High-resolution vs. low-resolution raster</caption>
+              <thead><tr><th>Feature</th><th>High Resolution</th><th>Low Resolution</th></tr></thead>
+              <tbody>
+                <tr><td>Typical Cell Size</td><td>1m × 1m</td><td>100m × 100m</td></tr>
+                <tr><td>Level of Detail</td><td>Very high</td><td>Lower</td></tr>
+                <tr><td>Small Feature Representation</td><td>Excellent</td><td>Limited</td></tr>
+                <tr><td>File Size</td><td>Large</td><td>Small</td></tr>
+                <tr><td>Processing Speed</td><td>Slower</td><td>Faster</td></tr>
+                <tr><td>Typical Applications</td><td>Urban mapping, engineering, detailed land surveys</td><td>Regional analysis, climate studies, large-area mapping</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>In satellite imagery this trade-off is visible directly: high-resolution images reveal individual buildings, roads, vehicles, and small farm fields — valuable for urban planning, infrastructure management, disaster response, precision agriculture. Low-resolution images only show large-scale features like forests, cities, coastlines, and regional land-cover patterns — but that's often enough for environmental monitoring and climate studies focused on broad trends.</p>
+          <div class="idbox">
+            <h4>Resolution &amp; IT concepts (Table 17)</h4>
+            <dl class="idlist">
+              <div><dt>Pixel</dt><dd>→ Cell</dd></div>
+              <div><dt>Image size</dt><dd>→ Raster extent</dd></div>
+              <div><dt>Image quality</dt><dd>→ Spatial resolution</dd></div>
+              <div><dt>File size</dt><dd>→ Raster storage requirement</dd></div>
+            </dl>
+          </div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">4.3</span>Raster Data Sources</span></summary>
+        <div class="lesson-body">
+          <div class="idbox">
+            <h4>Where raster data comes from</h4>
+            <dl class="idlist">
+              <div><dt>Satellite imagery</dt><dd>Earth-observing satellites (Landsat, Sentinel, commercial platforms) — wide coverage, regularly updated. Used for land cover mapping, agricultural monitoring, environmental assessment, disaster response.</dd></div>
+              <div><dt>Aerial photography</dt><dd>Images from aircraft or drones/UAVs, usually higher resolution than satellite imagery. Used for urban mapping, construction monitoring, land surveys, infrastructure inspection, cadastral mapping.</dd></div>
+              <div><dt>Digital Elevation Models (DEM)</dt><dd>Each cell stores a numerical elevation value. Used for slope calculation, watershed delineation, flood modeling, terrain visualization.</dd></div>
+              <div><dt>Scanned maps</dt><dd>Paper maps digitized by scanning; need georeferencing to align with real-world coordinates. Used for preserving historical maps and comparing historical vs. current landscapes.</dd></div>
+              <div><dt>Sensor data</dt><dd>Weather stations, environmental sensors, IoT devices measuring temperature, humidity, air quality, soil moisture. Supports real-time monitoring for meteorology, agriculture, public health, disaster risk reduction.</dd></div>
+            </dl>
+          </div>
+          <div class="twrap">
+            <table>
+              <caption>Table 18 — Elevation values in a DEM</caption>
+              <thead><tr><th>Location</th><th>Elevation</th></tr></thead>
+              <tbody><tr><td>Cell 1</td><td>500m</td></tr><tr><td>Cell 2</td><td>400m</td></tr><tr><td>Cell 3</td><td>300m</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">4.4</span>Raster vs. Vector Data Models</span></summary>
+        <div class="lesson-body">
+          <p>Vector and raster aren't competitors — they're chosen based on the kind of data being represented: vector for discrete features with clear boundaries, raster for continuous phenomena.</p>
+          <div class="twrap">
+            <table>
+              <caption>Table 20 — Vector vs. raster comparison</caption>
+              <thead><tr><th>Feature</th><th>Vector</th><th>Raster</th></tr></thead>
+              <tbody>
+                <tr><td>Representation</td><td>Points, lines, polygons</td><td>Grid cells</td></tr>
+                <tr><td>Best for</td><td>Discrete features</td><td>Continuous phenomena</td></tr>
+                <tr><td>Data structure</td><td>Coordinates</td><td>Rows and columns</td></tr>
+                <tr><td>Examples</td><td>Roads, buildings</td><td>Satellite images, elevation</td></tr>
+                <tr><td>Accuracy</td><td>Precise boundaries</td><td>Depends on resolution</td></tr>
+                <tr><td>File size</td><td>Often smaller</td><td>Often larger</td></tr>
+                <tr><td>Analysis</td><td>Network and feature analysis</td><td>Surface and image analysis</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Flood mapping is the go-to example of using both models together:</p>
+          <div class="twrap">
+            <table>
+              <caption>Table 21 — A flood mapping example</caption>
+              <thead><tr><th>Vector Data</th><th>Raster Data</th></tr></thead>
+              <tbody>
+                <tr><td>Houses</td><td>Elevation</td></tr>
+                <tr><td>Roads</td><td>Rainfall</td></tr>
+                <tr><td>Administrative boundaries</td><td>Flood depth</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">4.5</span>Raster Analysis Concepts</span></summary>
+        <div class="lesson-body">
+          <div class="idbox">
+            <h4>Core raster analysis techniques</h4>
+            <dl class="idlist">
+              <div><dt>Reclassification</dt><dd>Converts raster values into new categories based on set criteria — e.g. elevation grouped as 0–100m = Low, 101–500m = Medium, above 500m = High (Table 22). Used for suitability analysis, hazard assessment, thematic mapping.</dd></div>
+              <div><dt>Map algebra</dt><dd>Performs mathematical/logical operations across one or more raster layers, cell by cell — e.g. combining rainfall, elevation, and soil layers to flag flood-susceptible areas.</dd></div>
+              <div><dt>Surface analysis</dt><dd>Examines a continuous surface, usually a DEM, through <strong>slope</strong> (how steep the terrain is), <strong>aspect</strong> (the compass direction a slope faces), and <strong>elevation</strong> (height above sea level).</dd></div>
+              <div><dt>Raster overlay</dt><dd>Combines multiple layers to score suitability — e.g. soil type + rainfall + slope to identify the best agricultural land.</dd></div>
+            </dl>
+          </div>
+          <p>Raster processing also plugs directly into three IT fields:</p>
+          <div class="twrap">
+            <table>
+              <caption>Table 23 — IT field and raster processing</caption>
+              <thead><tr><th>IT Field</th><th>Relationship to Raster Data</th><th>Example Applications</th></tr></thead>
+              <tbody>
+                <tr><td>Computer vision</td><td>Applies image-processing techniques to raster imagery</td><td>Object detection, image classification, change detection</td></tr>
+                <tr><td>Artificial intelligence (AI)</td><td>Uses machine learning to interpret raster datasets</td><td>Building identification, disaster damage assessment, vegetation monitoring</td></tr>
+                <tr><td>Big data processing</td><td>Manages and analyzes large raster datasets efficiently</td><td>Cloud computing, distributed storage, parallel processing</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <div class="recap">
+        <h4>Module 4 in one paragraph</h4>
+        <p>Raster data stores geographic information as a grid of cells, each with a location and a value — good for continuous phenomena (elevation, rainfall, temperature) where vector's sharp boundaries don't fit. Resolution is set by cell size and trades detail against file size and processing speed. Raster comes from satellites, aerial/drone photography, DEMs, scanned maps, and sensors, and is analyzed through reclassification, map algebra, surface analysis, and raster overlay — techniques that connect straight into computer vision, AI, and big data processing.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="qgis" id="panel-qgis" role="tabpanel" hidden>
+      <div class="panel-head">
+        <p class="kicker">QGIS Demo</p>
+        <h2>Doing GIS in QGIS</h2>
+        <p>QGIS is a free, open-source desktop GIS. Everything from Modules 3 and 4 (vector, raster, digitizing, spatial queries, map algebra) is something you can click through in it.</p>
+      </div>
+      <p class="note"><strong>Check against your own notes:</strong> this follows the standard beginner QGIS workflow. If your instructor demonstrated specific files or tools, add them here — the menu names below are from recent QGIS 3.x versions.</p>
+
+      <details class="lesson" open>
+        <summary><span><span class="lnum">Q.1</span>The QGIS interface</span></summary>
+        <div class="lesson-body">
+          <div class="idbox">
+            <h4>Parts of the window</h4>
+            <dl class="idlist">
+              <div><dt>Map canvas</dt><dd>The big central area where your layers are drawn.</dd></div>
+              <div><dt>Layers panel</dt><dd>Lists the layers in the project. Order matters: top layers draw over lower ones. Checkbox = show/hide.</dd></div>
+              <div><dt>Browser panel</dt><dd>File explorer for finding data, GeoPackages, and XYZ Tiles (basemaps like OpenStreetMap); drag items onto the canvas.</dd></div>
+              <div><dt>Processing Toolbox</dt><dd>Searchable list of analysis tools (Buffer, Clip, Slope, etc.).</dd></div>
+              <div><dt>Toolbars</dt><dd>Map Navigation (pan, zoom), Attributes (identify, select, measure), Digitizing (edit tools).</dd></div>
+              <div><dt>Status bar</dt><dd>Bottom strip: live cursor coordinates, scale, and the project CRS (e.g. EPSG:4326).</dd></div>
+            </dl>
+          </div>
+          <p>A QGIS project is saved as <strong>.qgz</strong>. It stores <em>links</em> to your data and the map styling — not the data itself.</p>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">Q.2</span>Adding data and setting the CRS</span></summary>
+        <div class="lesson-body">
+          <ul>
+            <li><strong>Vector:</strong> Layer → Add Layer → Add Vector Layer (shapefile, GeoPackage, GeoJSON).</li>
+            <li><strong>Raster:</strong> Layer → Add Layer → Add Raster Layer (GeoTIFF, DEM, imagery).</li>
+            <li><strong>Table with coordinates (CSV):</strong> Add Delimited Text Layer → set <strong>X field = longitude</strong>, <strong>Y field = latitude</strong>, geometry CRS = EPSG:4326.</li>
+            <li><strong>Basemap:</strong> Browser panel → XYZ Tiles → OpenStreetMap (double-click).</li>
+          </ul>
+          <div class="idbox">
+            <h4>CRS you should recognize</h4>
+            <dl class="idlist">
+              <div><dt>EPSG:4326 (WGS 84)</dt><dd>Latitude/longitude in <strong>degrees</strong>. What GPS and phones use.</dd></div>
+              <div><dt>EPSG:3857</dt><dd>Web Mercator — the web basemap projection (OpenStreetMap, Google).</dd></div>
+              <div><dt>EPSG:32651 (UTM 51N)</dt><dd>Projected CRS in <strong>meters</strong>; covers about 120°E–126°E, so it fits central Luzon.</dd></div>
+            </dl>
+          </div>
+          <p><strong>Rule of thumb:</strong> measure, buffer, and compute area/length in a <em>meter-based projected CRS</em>, not in degrees. Changing the project CRS only changes the display; to actually reproject a layer, right-click → Export → Save Features As → choose the new CRS.</p>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">Q.3</span>Data formats</span></summary>
+        <div class="lesson-body">
+          <div class="twrap"><table>
+            <caption>Formats you will meet in QGIS</caption>
+            <thead><tr><th>Format</th><th>Type</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Shapefile (.shp)</td><td>Vector</td><td>Multi-file set: <code>.shp</code> geometry, <code>.shx</code> index, <code>.dbf</code> attributes, <code>.prj</code> CRS. Keep all files together.</td></tr>
+              <tr><td>GeoPackage (.gpkg)</td><td>Vector + raster</td><td>Everything in a single file; modern replacement for shapefiles.</td></tr>
+              <tr><td>GeoJSON (.geojson)</td><td>Vector</td><td>Text-based; common in web GIS.</td></tr>
+              <tr><td>CSV (.csv)</td><td>Table</td><td>Becomes points when it has X/Y columns.</td></tr>
+              <tr><td>GeoTIFF (.tif)</td><td>Raster</td><td>Imagery, DEMs, land-cover grids.</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">Q.4</span>Symbology, labels, and the attribute table</span></summary>
+        <div class="lesson-body">
+          <p>Open <strong>Layer Properties → Symbology</strong> to style a layer:</p>
+          <div class="idbox">
+            <h4>Renderer types</h4>
+            <dl class="idlist">
+              <div><dt>Single Symbol</dt><dd>Every feature looks the same.</dd></div>
+              <div><dt>Categorized</dt><dd>One symbol per unique value (e.g. building type) — suits discrete data.</dd></div>
+              <div><dt>Graduated</dt><dd>Numeric values grouped into classes (e.g. area ranges) — suits continuous data.</dd></div>
+              <div><dt>Rule-based</dt><dd>Symbols chosen by custom expressions/filters.</dd></div>
+            </dl>
+          </div>
+          <ul>
+            <li><strong>Labels:</strong> Layer Properties → Labels → Single Labels → pick the field (e.g. <code>name</code>).</li>
+            <li><strong>Attribute table:</strong> <code>F6</code> or right-click → Open Attribute Table. Each row is a feature; columns are attributes linked by Feature ID.</li>
+            <li><strong>Select by Expression</strong> picks features with a condition, e.g. <code>"type" = 'Building'</code>.</li>
+            <li><strong>Field Calculator</strong> creates or updates a field: <code>$area</code>, <code>$length</code>, <code>$x</code>, <code>$y</code>.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">Q.5</span>Creating and digitizing vector features</span></summary>
+        <div class="lesson-body">
+          <ol>
+            <li>Layer → Create Layer → <strong>New Shapefile Layer</strong> (or New GeoPackage Layer).</li>
+            <li>Choose the <strong>geometry type</strong> (Point, Line, or Polygon), set the <strong>CRS</strong>, and add attribute fields (e.g. <code>name</code> text, <code>type</code> text).</li>
+            <li>Select the layer and click <strong>Toggle Editing</strong> (pencil icon).</li>
+            <li>Click <strong>Add Point / Line / Polygon Feature</strong>. Left-click to place each <em>vertex</em>; <strong>right-click</strong> to finish a line or polygon.</li>
+            <li>Fill in the attribute form that pops up.</li>
+            <li><strong>Save Layer Edits</strong>, then Toggle Editing off.</li>
+          </ol>
+          <p>Turn on snapping (Project → Snapping Options) so vertices connect cleanly — this is how you keep <strong>topology</strong> correct, such as buildings that don't overlap and roads that actually meet.</p>
+          <p>Digitizing in a real project usually means tracing over a satellite basemap — exactly the "digitizing" source from Module 3.</p>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">Q.6</span>Vector analysis tools</span></summary>
+        <div class="lesson-body">
+          <div class="twrap"><table>
+            <caption>Find these under Vector → Geoprocessing Tools, or in the Processing Toolbox</caption>
+            <thead><tr><th>Tool</th><th>What it does</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td>Buffer</td><td>Makes a zone of a set distance around features</td><td>50 m around the main gate</td></tr>
+              <tr><td>Clip</td><td>Cuts one layer using another as a cookie-cutter</td><td>Roads inside the campus boundary</td></tr>
+              <tr><td>Intersect</td><td>Keeps the overlapping part of two layers, with attributes from both</td><td>Roads crossing a flood-prone area</td></tr>
+              <tr><td>Dissolve</td><td>Merges features that share an attribute value</td><td>Combine parcels by barangay</td></tr>
+              <tr><td>Select by Location</td><td>Selects features by spatial relationship (within, intersects, touches)</td><td>Schools within a municipality</td></tr>
+              <tr><td>Measure Line / Area</td><td>Interactive measurement on the canvas</td><td>Distance between two buildings</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">Q.7</span>Raster work in QGIS</span></summary>
+        <div class="lesson-body">
+          <ul>
+            <li>Load a <strong>DEM</strong> as a raster layer; style it with <strong>Singlebanded pseudocolor</strong> to see low-to-high elevation.</li>
+            <li><strong>Slope</strong>, <strong>Aspect</strong>, and <strong>Hillshade</strong>: Raster → Analysis (or Processing Toolbox). Slope = steepness; aspect = facing direction.</li>
+            <li><strong>Reclassify by Table</strong> turns continuous values into categories (Low / Medium / High) — the Module 4 reclassification technique.</li>
+            <li><strong>Raster Calculator</strong> runs map algebra across layers, e.g. <code>"dem@1" &gt; 100</code> to flag cells above 100 m.</li>
+            <li><strong>Clip Raster by Mask Layer</strong> cuts a raster to a polygon boundary such as the campus.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">Q.8</span>Layout and export</span></summary>
+        <div class="lesson-body">
+          <p>Project → <strong>New Print Layout</strong>, then Add Item → Map. A finished map layout has:</p>
+          <p><strong>Title · Map · Legend · Scale bar · North arrow</strong> — plus date, author, and data source if required. Export with Layout → Export as PDF/Image. Save the project (<code>.qgz</code>) as well, and keep the data files in the same folder so links don't break.</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="panel" data-panel="campus" id="panel-campus" role="tabpanel" hidden>
+      <div class="panel-head">
+        <p class="kicker">Practical exercise</p>
+        <h2>Mapping the Campus</h2>
+        <p>Using real places around you to apply vector concepts (points, lines, polygons, attributes) and, where a DEM is available, raster ones.</p>
+      </div>
+      <p class="note"><strong>Check against your handout:</strong> I don't have your instructor's exact activity sheet, so this is the usual campus-mapping flow. Follow your handout's specific features, layer names, and required map elements first.</p>
+
+      <details class="lesson" open>
+        <summary><span><span class="lnum">C.1</span>The workflow, start to finish</span></summary>
+        <div class="lesson-body">
+          <div class="twrap"><table>
+            <caption>Campus mapping workflow</caption>
+            <thead><tr><th>#</th><th>Step</th><th>QGIS tool</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Plan layers: what is a point, a line, a polygon?</td><td>On paper first</td></tr>
+              <tr><td>2</td><td>Collect locations (GPS on a phone) and attributes (name, type, condition)</td><td>Notebook or spreadsheet</td></tr>
+              <tr><td>3</td><td>Save as CSV, import as points</td><td>Add Delimited Text Layer</td></tr>
+              <tr><td>4</td><td>Add a basemap</td><td>Browser → XYZ Tiles</td></tr>
+              <tr><td>5</td><td>Create layers and digitize lines and polygons</td><td>New Shapefile / GeoPackage Layer, Toggle Editing</td></tr>
+              <tr><td>6</td><td>Fill/compute attributes</td><td>Attribute Table, Field Calculator</td></tr>
+              <tr><td>7</td><td>Analyze (buffer, select, measure)</td><td>Processing Toolbox</td></tr>
+              <tr><td>8</td><td>Style and label</td><td>Layer Properties</td></tr>
+              <tr><td>9</td><td>Make the map and export</td><td>Print Layout</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">C.2</span>Which geometry for which campus feature?</span></summary>
+        <div class="lesson-body">
+          <div class="idbox">
+            <h4>Campus examples</h4>
+            <dl class="idlist">
+              <div><dt>Point</dt><dd>Gates, guard house, flagpole, bus stop, fire extinguishers, CCTV, trees, waste bins, comfort rooms.</dd></div>
+              <div><dt>Line</dt><dd>Roads, walkways, perimeter fence, drainage canals, power lines.</dd></div>
+              <div><dt>Polygon</dt><dd>Buildings, parking areas, oval/court, gardens, the campus boundary.</dd></div>
+            </dl>
+          </div>
+          <p>Geometry depends on <strong>scale</strong>: on a campus-level map a building is a polygon; on a map of the whole city it could be a point.</p>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">C.3</span>Collecting coordinates and the CSV</span></summary>
+        <div class="lesson-body">
+          <div class="twrap"><table>
+            <caption>Example CSV layout (use your own readings)</caption>
+            <thead><tr><th>name</th><th>type</th><th>latitude</th><th>longitude</th></tr></thead>
+            <tbody>
+              <tr><td>Main Gate</td><td>Gate</td><td>(lat)</td><td>(long)</td></tr>
+              <tr><td>Library</td><td>Building</td><td>(lat)</td><td>(long)</td></tr>
+            </tbody>
+          </table></div>
+          <ul>
+            <li>Use <strong>decimal degrees</strong> (not degrees-minutes-seconds), CRS <strong>EPSG:4326</strong>.</li>
+            <li>Phones show <strong>latitude first</strong>, but QGIS wants <strong>X = longitude</strong>, <strong>Y = latitude</strong>. Swapping them is the classic mistake.</li>
+            <li>Read the GPS in open sky and let it settle; phone GPS is typically good to a few meters, not centimeters.</li>
+            <li>Keep spelling and categories consistent (<em>Building</em>, not sometimes <em>bldg</em>) so Categorized symbology works.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">C.4</span>Typical analysis questions</span></summary>
+        <div class="lesson-body">
+          <div class="twrap"><table>
+            <caption>Question → method</caption>
+            <thead><tr><th>Question</th><th>How in QGIS</th></tr></thead>
+            <tbody>
+              <tr><td>Which buildings are within 50 m of the main gate?</td><td>Buffer the gate by 50 m (meter CRS), then Select by Location → intersects</td></tr>
+              <tr><td>How long is the main walkway?</td><td>Field Calculator <code>$length</code>, or Measure Line</td></tr>
+              <tr><td>What is the area of the oval?</td><td>Field Calculator <code>$area</code> (in a projected CRS)</td></tr>
+              <tr><td>Show buildings by use (classroom, office, etc.)</td><td>Categorized symbology on the <code>type</code> field</td></tr>
+              <tr><td>Which parts of campus are highest or steepest?</td><td>DEM → Slope, Reclassify (needs a DEM)</td></tr>
+              <tr><td>How many points fall inside a building?</td><td>Select by Location → within, or Count Points in Polygon</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </details>
+
+      <details class="lesson">
+        <summary><span><span class="lnum">C.5</span>Final map checklist and common mistakes</span></summary>
+        <div class="lesson-body">
+          <div class="idbox">
+            <h4>Map must have</h4>
+            <dl class="idlist">
+              <div><dt>Title</dt><dd>Says what and where.</dd></div>
+              <div><dt>Legend</dt><dd>Matches your symbols; rename layers to readable names.</dd></div>
+              <div><dt>Scale bar + north arrow</dt><dd>Required map elements.</dd></div>
+              <div><dt>Labels</dt><dd>Important features named, not cluttered.</dd></div>
+            </dl>
+          </div>
+          <div class="itbox">
+            <h4>Mistakes that cost points</h4>
+            <ul>
+              <li>Forgot <strong>Save Layer Edits</strong> or never toggled editing off.</li>
+              <li>Used a <strong>temporary scratch layer</strong> — it vanishes when QGIS closes. Save to a file.</li>
+              <li>Measured or buffered in <strong>degrees</strong> (EPSG:4326) instead of meters.</li>
+              <li>Latitude and longitude swapped, so points land in the wrong place.</li>
+              <li>Moved the data files, so the project can't find them.</li>
+              <li>Layer not showing? Check the checkbox, layer order, and right-click → <strong>Zoom to Layer</strong>.</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <section class="panel" data-panel="glossary" id="panel-glossary" role="tabpanel" hidden>
+      <div class="panel-head">
+        <p class="kicker">Reference</p>
+        <h2>Master Glossary</h2>
+        <p>Every key term from all four modules, in one alphabetical list. Type in the box to filter — this is the fastest way to drill identification.</p>
+      </div>
+      <input type="text" id="gsearch" class="gsearch" placeholder="Type a term or a word from its definition…">
+      <div class="gtools"><button type="button" id="gcover" aria-pressed="false">Cover terms</button><span>Covered: tap a term to step through blanks → first letter → first + last → full.</span></div>
+      <div class="glist">
+        <div class="gitem"><b>Absolute location</b><span>A precise geographic position, usually given as latitude/longitude or GPS coordinates.</span></div>
+        <div class="gitem"><b>Adjacency</b><span>Features that share common boundaries.</span></div>
+        <div class="gitem"><b>Aerial photography</b><span>Raster images captured from aircraft or drones/UAVs, usually higher resolution than satellite imagery.</span></div>
+        <div class="gitem"><b>Aspect</b><span>The compass direction a slope faces (a surface analysis operation).</span></div>
+        <div class="gitem"><b>Attribute data</b><span>Descriptive information about a feature; answers "What is it?"</span></div>
+        <div class="gitem"><b>Attribute information</b><span>Descriptive details about a feature, such as its name or classification.</span></div>
+        <div class="gitem"><b>Attribute query</b><span>A search based on the descriptive information in an attribute table (e.g. an SQL-style WHERE condition).</span></div>
+        <div class="gitem"><b>Attribute table</b><span>A table storing descriptive information about the features in a vector layer; each row is a feature, each column an attribute.</span></div>
+        <div class="gitem"><b>Attribute table</b><span>The table behind a layer: each row is a feature, each column an attribute. Opened with F6 in QGIS.</span></div>
+        <div class="gitem"><b>Big data processing</b><span>Cloud computing, distributed storage, and parallel processing used to manage large raster datasets.</span></div>
+        <div class="gitem"><b>Buffer</b><span>A zone drawn at a set distance around a feature, e.g. 50 m around the main gate.</span></div>
+        <div class="gitem"><b>Categorized symbology</b><span>A QGIS renderer that gives each unique attribute value its own symbol, e.g. building type.</span></div>
+        <div class="gitem"><b>Cell</b><span>A single grid unit in a raster dataset, holding a location and a value. The GIS equivalent of a pixel.</span></div>
+        <div class="gitem"><b>Cell value</b><span>The number or category code stored in a raster cell.</span></div>
+        <div class="gitem"><b>Clip</b><span>A geoprocessing tool that cuts one layer to the shape of another, e.g. roads inside the campus boundary.</span></div>
+        <div class="gitem"><b>Cloud GIS</b><span>GIS delivered through cloud computing — online storage, shared services, large-scale processing.</span></div>
+        <div class="gitem"><b>Clustered pattern</b><span>Features concentrated in one location, e.g. malls in urban centers.</span></div>
+        <div class="gitem"><b>Computer vision</b><span>A computer-science field applied to raster imagery for object detection, image classification, and change detection.</span></div>
+        <div class="gitem"><b>Connectivity</b><span>How linear features, like roads or pipelines, are linked together into a network.</span></div>
+        <div class="gitem"><b>Containment</b><span>Whether one feature is located inside another, e.g. a city inside a province.</span></div>
+        <div class="gitem"><b>Continuous data</b><span>A phenomenon that changes gradually across space with no clear boundaries — elevation, temperature, rainfall.</span></div>
+        <div class="gitem"><b>CRS (Coordinate Reference System)</b><span>The system that defines how coordinates relate to real places on Earth, e.g. EPSG:4326 or EPSG:32651.</span></div>
+        <div class="gitem"><b>Data model</b><span>A method used to represent and organize information within a computer system.</span></div>
+        <div class="gitem"><b>Delimited text layer</b><span>A CSV or text table with X/Y columns imported into QGIS as a point layer.</span></div>
+        <div class="gitem"><b>Digital Elevation Model (DEM)</b><span>A raster dataset where each cell stores a terrain elevation value.</span></div>
+        <div class="gitem"><b>Digitizing</b><span>Converting paper maps, aerial photos, or satellite images into digital vector features.</span></div>
+        <div class="gitem"><b>Direction</b><span>The position of one feature relative to another (north, south, east, west).</span></div>
+        <div class="gitem"><b>Discrete data</b><span>Data belonging to distinct categories or classes — land use, vegetation type, soil classification.</span></div>
+        <div class="gitem"><b>Dispersed pattern</b><span>Features spread out across an area, e.g. farms across rural land.</span></div>
+        <div class="gitem"><b>Distance</b><span>How far apart locations are — straight-line, travel distance, or travel time.</span></div>
+        <div class="gitem"><b>EPSG:4326</b><span>The code for WGS 84, the latitude/longitude CRS (in degrees) used by GPS.</span></div>
+        <div class="gitem"><b>Feature ID</b><span>A unique identifier linking a feature's geometry to its attribute data.</span></div>
+        <div class="gitem"><b>Feature layer</b><span>The GIS equivalent of a database table — a collection of related features.</span></div>
+        <div class="gitem"><b>Field Calculator</b><span>A QGIS tool that creates or updates attribute fields using expressions like $area and $length.</span></div>
+        <div class="gitem"><b>Geographic feature</b><span>A real-world object represented in GIS; the GIS equivalent of a database record.</span></div>
+        <div class="gitem"><b>Geographic information</b><span>Any information tied to a specific location; combines location and description.</span></div>
+        <div class="gitem"><b>Geographic Information System (GIS)</b><span>A computer-based system that collects, stores, manages, analyzes, and displays geographically referenced information (Chang).</span></div>
+        <div class="gitem"><b>Geometry</b><span>The part of a vector feature that defines its location and shape — point, line, or polygon.</span></div>
+        <div class="gitem"><b>GeoPackage</b><span>A single-file format (.gpkg) that can hold vector and raster data.</span></div>
+        <div class="gitem"><b>Graduated symbology</b><span>A QGIS renderer that groups numeric values into classes, each with its own color.</span></div>
+        <div class="gitem"><b>High-resolution raster</b><span>A raster with small cells (e.g. 1m × 1m) that captures fine detail.</span></div>
+        <div class="gitem"><b>Intersect</b><span>A spatial query that finds features that cross another feature, e.g. roads crossing a flood zone.</span></div>
+        <div class="gitem"><b>Line feature</b><span>A vector feature with length but relatively little width — roads, rivers, pipelines.</span></div>
+        <div class="gitem"><b>Location</b><span>Where something exists; can be absolute or relative.</span></div>
+        <div class="gitem"><b>Location information</b><span>The position of a feature on Earth's surface; answers "Where is it?"</span></div>
+        <div class="gitem"><b>Low-resolution raster</b><span>A raster with large cells (e.g. 100m × 100m) that shows broad patterns rather than fine detail.</span></div>
+        <div class="gitem"><b>Map algebra</b><span>Mathematical or logical operations performed across one or more raster layers.</span></div>
+        <div class="gitem"><b>Near</b><span>A spatial query that finds features within a specified distance of another feature.</span></div>
+        <div class="gitem"><b>Pattern</b><span>How geographic features are arranged: clustered, dispersed, or random.</span></div>
+        <div class="gitem"><b>Point feature</b><span>A vector feature with a single, specific location — schools, hospitals, cellphone towers.</span></div>
+        <div class="gitem"><b>Polygon feature</b><span>A vector feature that encloses an area with a defined boundary — provinces, lakes, land parcels.</span></div>
+        <div class="gitem"><b>Print layout</b><span>The QGIS window for composing a finished map with title, legend, scale bar, and north arrow.</span></div>
+        <div class="gitem"><b>Processing Toolbox</b><span>The QGIS panel that lists analysis tools such as Buffer, Clip, and Slope.</span></div>
+        <div class="gitem"><b>Proximity</b><span>How close features are to one another.</span></div>
+        <div class="gitem"><b>QGIS</b><span>A free, open-source desktop GIS application for viewing, editing, and analyzing spatial data.</span></div>
+        <div class="gitem"><b>QGIS project (.qgz)</b><span>A file that stores the map's layer links and styling, not the data itself.</span></div>
+        <div class="gitem"><b>Random pattern</b><span>Features with no clear or predictable arrangement.</span></div>
+        <div class="gitem"><b>Raster Calculator</b><span>A QGIS tool that performs map algebra on raster layers.</span></div>
+        <div class="gitem"><b>Raster data</b><span>A data model that represents geographic information as a grid of cells arranged in rows and columns.</span></div>
+        <div class="gitem"><b>Raster overlay</b><span>Combining multiple raster layers to support spatial decision-making, such as site suitability.</span></div>
+        <div class="gitem"><b>Reclassification</b><span>Converting raster values into new, more meaningful categories.</span></div>
+        <div class="gitem"><b>Relative location</b><span>A place described in relation to other features, e.g. a school beside a highway.</span></div>
+        <div class="gitem"><b>Reproject</b><span>To convert a layer from one CRS to another, done through Export → Save Features As.</span></div>
+        <div class="gitem"><b>Resolution</b><span>The level of detail represented in geographic data; in raster data it's set by cell size.</span></div>
+        <div class="gitem"><b>Scale</b><span>The relationship between distance on a map and the corresponding real-world distance.</span></div>
+        <div class="gitem"><b>Select by Location</b><span>A tool that selects features by their spatial relationship to another layer (within, intersects, touches).</span></div>
+        <div class="gitem"><b>Shapefile</b><span>A vector format made of several files: .shp (geometry), .shx (index), .dbf (attributes), .prj (CRS).</span></div>
+        <div class="gitem"><b>Slope</b><span>How steep terrain is (a surface analysis operation).</span></div>
+        <div class="gitem"><b>Spatial data</b><span>Data describing the geographic position and shape of features; answers "Where is it?"</span></div>
+        <div class="gitem"><b>Spatial query</b><span>A search that considers location and relationships between features, not just attributes (e.g. Within, Intersect, Near).</span></div>
+        <div class="gitem"><b>Spatial relationship</b><span>How geographic features relate to one another — proximity, connectivity, containment, or adjacency.</span></div>
+        <div class="gitem"><b>Spatial thinking</b><span>The ability to understand the location, arrangement, relationships, and patterns of objects and events in space.</span></div>
+        <div class="gitem"><b>Surface analysis</b><span>Examining the characteristics of a continuous surface (usually a DEM) through slope, aspect, and elevation.</span></div>
+        <div class="gitem"><b>Toggle Editing</b><span>The pencil button that puts a layer in edit mode so features can be added or changed.</span></div>
+        <div class="gitem"><b>Topology</b><span>The set of spatial relationships that define how geographic features connect to one another.</span></div>
+        <div class="gitem"><b>UTM (EPSG:32651)</b><span>A projected CRS in meters; zone 51N covers about 120°E–126°E.</span></div>
+        <div class="gitem"><b>Vector data</b><span>A data model that represents geographic features using coordinates (vertices).</span></div>
+        <div class="gitem"><b>Vertex / vertices</b><span>A geographic position with a specific coordinate that defines the shape of a vector feature.</span></div>
+        <div class="gitem"><b>Web GIS</b><span>GIS accessed through web browsers or mobile applications, enabling shared, interactive maps.</span></div>
+        <div class="gitem"><b>Within</b><span>A spatial query that finds features located inside a boundary, e.g. schools inside a municipality.</span></div>
+        <div class="gitem"><b>XYZ Tiles</b><span>Online basemap tiles, such as OpenStreetMap, added through the Browser panel.</span></div>
+      </div>
+      <p id="gempty" class="gempty">No terms match that search.</p>
+    </section>
+
+    <section class="panel" data-panel="practice" id="panel-practice" role="tabpanel" hidden>
+      <div class="panel-head">
+        <p class="kicker">Practice</p>
+        <h2>Drills</h2>
+        <p>Tap a question to check yourself. Do a full pass on the identification drill first, then use the description prompts to practice explaining things out loud, in your own words.</p>
+      </div>
+
+      <div class="practice-sec">
+        <h3>Identification drill</h3>
+        <div class="ptools"><button type="button" id="pall">Reveal all</button><button type="button" id="pnone">Close all</button></div>
+        <p class="sub">Read the statement, say the term before you open it.</p>
+
+        <details class="drill"><summary>This computer-based system collects, stores, manages, analyzes, and displays geographically referenced information.</summary><div class="ans">Geographic Information System (GIS)</div></details>
+        <details class="drill"><summary>This type of location is expressed using latitude and longitude, or GPS coordinates.</summary><div class="ans">Absolute location</div></details>
+        <details class="drill"><summary>This type of location describes a place relative to other features, like "a school beside a highway."</summary><div class="ans">Relative location</div></details>
+        <details class="drill"><summary>This GIS component is considered the most important, because it's the foundation of all GIS operations.</summary><div class="ans">Data</div></details>
+        <details class="drill"><summary>This kind of data answers the question "Where is it?"</summary><div class="ans">Spatial data</div></details>
+        <details class="drill"><summary>This kind of data answers the question "What is it?"</summary><div class="ans">Attribute data</div></details>
+        <details class="drill"><summary>This spatial relationship describes features sharing a common boundary, like neighboring municipalities.</summary><div class="ans">Adjacency</div></details>
+        <details class="drill"><summary>This spatial relationship determines whether one feature exists inside another, like a municipality inside a province.</summary><div class="ans">Containment</div></details>
+        <details class="drill"><summary>This spatial relationship measures how close features are to one another.</summary><div class="ans">Proximity</div></details>
+        <details class="drill"><summary>This spatial relationship describes how roads or pipelines are linked into a network.</summary><div class="ans">Connectivity</div></details>
+        <details class="drill"><summary>This spatial-thinking component sorts features as clustered, dispersed, or random.</summary><div class="ans">Pattern</div></details>
+        <details class="drill"><summary>This vector geometry type represents schools, hospitals, and cellphone towers.</summary><div class="ans">Point feature</div></details>
+        <details class="drill"><summary>This vector geometry type represents roads, rivers, and pipelines.</summary><div class="ans">Line feature</div></details>
+        <details class="drill"><summary>This vector geometry type represents provinces, lakes, and land parcels.</summary><div class="ans">Polygon feature</div></details>
+        <details class="drill"><summary>In the vector data model, this is a coordinate position that helps define a feature's shape.</summary><div class="ans">Vertex</div></details>
+        <details class="drill"><summary>This unique identifier links a feature's geometry to its attribute data.</summary><div class="ans">Feature ID</div></details>
+        <details class="drill"><summary>This set of spatial relationships keeps features correctly connected during editing and analysis.</summary><div class="ans">Topology</div></details>
+        <details class="drill"><summary>This vector-creation method involves tracing roads or buildings visible in satellite imagery or paper maps.</summary><div class="ans">Digitizing</div></details>
+        <details class="drill"><summary>This spatial query finds features located inside a boundary, like schools inside a municipality.</summary><div class="ans">Within</div></details>
+        <details class="drill"><summary>This spatial query finds features that cross another feature, like roads crossing a flood-prone area.</summary><div class="ans">Intersect</div></details>
+        <details class="drill"><summary>This raster component is a single grid unit holding a location and a value.</summary><div class="ans">Cell</div></details>
+        <details class="drill"><summary>This type of raster data changes gradually across space with no clear boundaries, like elevation or rainfall.</summary><div class="ans">Continuous data</div></details>
+        <details class="drill"><summary>This type of raster data represents distinct categories, like land use or soil type.</summary><div class="ans">Discrete data</div></details>
+        <details class="drill"><summary>This raster dataset stores a numeric elevation value in every cell.</summary><div class="ans">Digital Elevation Model (DEM)</div></details>
+        <details class="drill"><summary>A raster with cells as small as 1m × 1m has this kind of resolution.</summary><div class="ans">High resolution</div></details>
+        <details class="drill"><summary>This raster technique groups raw values into meaningful categories, like Low / Medium / High elevation.</summary><div class="ans">Reclassification</div></details>
+        <details class="drill"><summary>This raster technique performs mathematical or logical operations across multiple raster layers.</summary><div class="ans">Map algebra</div></details>
+        <details class="drill"><summary>This surface analysis operation measures how steep terrain is.</summary><div class="ans">Slope</div></details>
+        <details class="drill"><summary>This surface analysis operation identifies the compass direction a slope faces.</summary><div class="ans">Aspect</div></details>
+        <details class="drill"><summary>This raster technique combines layers like soil, rainfall, and slope to score land suitability.</summary><div class="ans">Raster overlay</div></details>
+        <details class="drill"><summary>This free, open-source desktop GIS is used in the class demo.</summary><div class="ans">QGIS</div></details>
+        <details class="drill"><summary>This QGIS panel lists your layers and controls which draw on top.</summary><div class="ans">Layers panel</div></details>
+        <details class="drill"><summary>This QGIS file type stores layer links and styling, not the data.</summary><div class="ans">QGIS project (.qgz)</div></details>
+        <details class="drill"><summary>This shapefile component stores the attribute table.</summary><div class="ans">.dbf</div></details>
+        <details class="drill"><summary>This shapefile component stores the CRS.</summary><div class="ans">.prj</div></details>
+        <details class="drill"><summary>This single-file format can hold both vector and raster data.</summary><div class="ans">GeoPackage</div></details>
+        <details class="drill"><summary>When importing a CSV in QGIS, the X field should be this column.</summary><div class="ans">Longitude</div></details>
+        <details class="drill"><summary>This is the EPSG code for latitude/longitude in degrees (WGS 84).</summary><div class="ans">EPSG:4326</div></details>
+        <details class="drill"><summary>Measuring distance or buffering should be done in this kind of CRS, not degrees.</summary><div class="ans">Projected CRS (meters)</div></details>
+        <details class="drill"><summary>This button must be on before you can add or change features on a layer.</summary><div class="ans">Toggle Editing</div></details>
+        <details class="drill"><summary>You must do this after digitizing, or your edits are lost.</summary><div class="ans">Save Layer Edits</div></details>
+        <details class="drill"><summary>In QGIS, you do this to finish a line or polygon while digitizing.</summary><div class="ans">Right-click</div></details>
+        <details class="drill"><summary>This QGIS renderer assigns a different symbol to each unique value, like building type.</summary><div class="ans">Categorized</div></details>
+        <details class="drill"><summary>This QGIS tool makes a 50 m zone around the main gate.</summary><div class="ans">Buffer</div></details>
+        <details class="drill"><summary>This tool selects features by spatial relationship, like buildings within a buffer.</summary><div class="ans">Select by Location</div></details>
+        <details class="drill"><summary>This QGIS tool calculates fields using expressions such as $area or $length.</summary><div class="ans">Field Calculator</div></details>
+        <details class="drill"><summary>This QGIS tool performs map algebra on rasters.</summary><div class="ans">Raster Calculator</div></details>
+        <details class="drill"><summary>This layer type disappears when QGIS closes unless you save it to a file.</summary><div class="ans">Temporary scratch layer</div></details>
+        <details class="drill"><summary>On a campus map, walkways and roads are digitized as this geometry type.</summary><div class="ans">Line feature</div></details>
+        <details class="drill"><summary>On a campus map, buildings and the oval are digitized as this geometry type.</summary><div class="ans">Polygon feature</div></details>
+      </div>
+
+      <div class="practice-sec">
+        <h3>Description practice</h3>
+        <p class="sub">Explain each one out loud before opening the hint. The hint is a checklist, not a script — put it in your own words.</p>
+
+        <details class="prompt">
+          <summary>Why can a GIS answer more questions than a traditional database? Use the hospital example.</summary>
+          <div class="hint"><ul>
+            <li>Traditional IS: tables and records, answers "What?" only</li>
+            <li>GIS: attribute data + location, answers "What?" and "Where?"</li>
+            <li>Example: "List all hospitals" (table) vs. "hospitals within 5km of flood-prone areas" (map + analysis)</li>
+          </ul></div>
+        </details>
+
+        <details class="prompt">
+          <summary>Describe the five components of a GIS and how they work together.</summary>
+          <div class="hint"><ul>
+            <li>Hardware, software, data, people, methods &amp; procedures</li>
+            <li>Data is the foundation — most important component</li>
+            <li>Software is the hub connecting hardware, data, people, procedures</li>
+          </ul></div>
+        </details>
+
+        <details class="prompt">
+          <summary>Explain the difference between spatial data and attribute data, with an example.</summary>
+          <div class="hint"><ul>
+            <li>Spatial = "where" (points/lines/polygons/raster cells)</li>
+            <li>Attribute = "what" (names, classifications, measurements)</li>
+            <li>Example: Central Elementary School — location vs. Type: Public, Students: 850</li>
+          </ul></div>
+        </details>
+
+        <details class="prompt">
+          <summary>Discuss the four components of spatial thinking, with one example each.</summary>
+          <div class="hint"><ul>
+            <li>Location (absolute vs. relative)</li>
+            <li>Distance (straight-line, travel distance, travel time)</li>
+            <li>Direction (N/S/E/W — navigation, emergency response)</li>
+            <li>Pattern (clustered, dispersed, random)</li>
+          </ul></div>
+        </details>
+
+        <details class="prompt">
+          <summary>Explain proximity, connectivity, containment, and adjacency, with an example each.</summary>
+          <div class="hint"><ul>
+            <li>Proximity — restaurants within 1km of a university</li>
+            <li>Connectivity — roads forming a network</li>
+            <li>Containment — a municipality inside a province</li>
+            <li>Adjacency — neighboring municipalities sharing a border</li>
+          </ul></div>
+        </details>
+
+        <details class="prompt">
+          <summary>Describe the vector data model and explain why it suits roads or land parcels.</summary>
+          <div class="hint"><ul>
+            <li>Coordinates / vertices define geometry</li>
+            <li>High positional accuracy, efficient storage</li>
+            <li>Good for network analysis (routing, connectivity)</li>
+            <li>Easy attribute management (geometry + attributes)</li>
+          </ul></div>
+        </details>
+
+        <details class="prompt">
+          <summary>Explain the difference between an attribute query and a spatial query.</summary>
+          <div class="hint"><ul>
+            <li>Attribute query — descriptive data only (SELECT hospitals WHERE beds &gt; 100)</li>
+            <li>Spatial query — considers location/relationships too</li>
+            <li>Name the three types: Within, Intersect, Near, with an example each</li>
+          </ul></div>
+        </details>
+
+        <details class="prompt">
+          <summary>What is topology, and why does GIS need it? Give an example of what breaks without it.</summary>
+          <div class="hint"><ul>
+            <li>Definition: relationships that keep features correctly connected</li>
+            <li>Adjacency, connectivity, containment</li>
+            <li>Without it: gaps between parcels, overlapping boundaries, disconnected roads → bad routing/analysis</li>
+          </ul></div>
+        </details>
+
+        <details class="prompt">
+          <summary>Describe the raster data model and how it differs from vector.</summary>
+          <div class="hint"><ul>
+            <li>Grid of cells (rows/columns), each cell = location + value</li>
+            <li>Vector = discrete features with boundaries; raster = continuous surfaces</li>
+            <li>Compare data structure, accuracy, typical file size, and analysis type</li>
+          </ul></div>
+        </details>
+
+        <details class="prompt">
+          <summary>Explain the trade-off between high-resolution and low-resolution raster data.</summary>
+          <div class="hint"><ul>
+            <li>Cell size drives resolution — smaller cells = more detail</li>
+            <li>High-res: excellent detail, large file size, slower processing, urban/engineering use</li>
+            <li>Low-res: less detail, small file size, faster processing, regional/climate use</li>
+          </ul></div>
+        </details>
+
+        <details class="prompt">
+          <summary>Walk through the four-step spatial thinking workflow using a healthcare-access example.</summary>
+          <div class="hint"><ul>
+            <li>1. Identify the problem — e.g. areas lacking healthcare facilities</li>
+            <li>2. Identify required data — population, hospital locations, transport networks</li>
+            <li>3. Analyze spatial relationships — distance, overlap, accessibility</li>
+            <li>4. Interpret and present — maps, reports, recommendations</li>
+          </ul></div>
+        </details>
+
+        <details class="prompt">
+          <summary>Using the flood mapping example, explain how vector and raster data work together.</summary>
+          <div class="hint"><ul>
+            <li>Vector: houses, roads, administrative boundaries</li>
+            <li>Raster: elevation, rainfall, flood depth</li>
+            <li>Combined, they support a more complete flood assessment for planning and disaster management</li>
+          </ul></div>
+        </details>
+
+        <details class="prompt">
+          <summary>Walk through digitizing a new polygon layer of campus buildings in QGIS.</summary>
+          <div class="hint"><ul>
+            <li>New Shapefile/GeoPackage Layer → Polygon geometry, set CRS, add fields</li>
+            <li>Toggle Editing → Add Polygon Feature</li>
+            <li>Left-click vertices, right-click to finish, fill attributes</li>
+            <li>Save Layer Edits, toggle editing off</li>
+          </ul></div>
+        </details>
+        <details class="prompt">
+          <summary>Why must you buffer or measure in a projected CRS and not EPSG:4326?</summary>
+          <div class="hint"><ul>
+            <li>EPSG:4326 units are degrees, not meters</li>
+            <li>A '50' buffer would mean 50 degrees</li>
+            <li>Reproject to a meter-based CRS such as UTM 51N (EPSG:32651) first</li>
+            <li>Changing project CRS only changes display; use Save Features As to reproject the data</li>
+          </ul></div>
+        </details>
+        <details class="prompt">
+          <summary>How do you turn GPS readings from the campus into a point layer?</summary>
+          <div class="hint"><ul>
+            <li>Record name, type, latitude, longitude in a spreadsheet and save as CSV</li>
+            <li>Add Delimited Text Layer: X = longitude, Y = latitude, CRS EPSG:4326</li>
+            <li>Swapping lat/long is the classic error</li>
+            <li>Export it to a shapefile or GeoPackage so it is saved permanently</li>
+          </ul></div>
+        </details>
+        <details class="prompt">
+          <summary>List what a finished campus map must contain, and which tools you used to get there.</summary>
+          <div class="hint"><ul>
+            <li>Title, legend, scale bar, north arrow, labels</li>
+            <li>Layers: points (gates), lines (walkways), polygons (buildings)</li>
+            <li>Analysis such as buffer / select by location / field calculator</li>
+            <li>Print Layout → export to PDF or image</li>
+          </ul></div>
+        </details>
+      </div>
+    </section>
+
+  
+    <section class="panel" data-panel="quiz" id="panel-quiz" role="tabpanel" hidden>
+      <div class="panel-head">
+        <p class="kicker">Quiz</p>
+        <h2>Type the answer</h2>
+        <p>Recall beats re-reading. Read the clue, type the term, and use the hint button only when stuck: it reveals blanks, then the first letter, then the last, then every other letter. A hint-free correct answer earns 1 point; with a hint, half.</p>
+      </div>
+      <div class="qbox" id="qsetup">
+        <label>Questions from
+          <select id="qsrc"><option value="both">Drills + glossary</option><option value="drill">Identification drill</option><option value="gloss">Glossary definitions</option></select></label>
+        <label>How many
+          <select id="qn"><option value="10">10</option><option value="20">20</option><option value="40">40</option><option value="999">All</option></select></label><br>
+        <button type="button" class="qbtn" id="qstart">Start quiz</button>
+      </div>
+      <div class="qbox" id="qplay" hidden>
+        <div class="qstat"><span id="qprog"></span><span id="qscore"></span></div>
+        <p class="qtext" id="qtext"></p>
+        <div class="hmask big" id="qmask" aria-live="polite"></div>
+        <div class="qrow"><input type="text" id="qin" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type the term…" aria-label="Your answer"><button type="button" class="qbtn" id="qcheck">Check</button></div>
+        <div class="qrow"><button type="button" class="qghost" id="qhint">Hint</button><button type="button" class="qghost" id="qskip">Show answer</button></div>
+        <p class="qfb" id="qfb" aria-live="polite"></p>
+        <button type="button" class="qbtn" id="qnext" hidden>Next</button>
+      </div>
+      <div class="qbox" id="qend" hidden>
+        <p class="qend-score" id="qfinal"></p>
+        <p id="qmsg" style="color:var(--ink-soft)"></p>
+        <div class="qrow"><button type="button" class="qbtn" id="qretry">Retry missed</button><button type="button" class="qghost" id="qagain">New quiz</button></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">IM06 — Geographic Information Systems · Modules 1–4 + QGIS demo &amp; campus practical reviewer</footer>
+</div>
+
+<script>
+(function(){
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.panel'));
+  tabs.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      tabs.forEach(function(b){ b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+      panels.forEach(function(p){ p.hidden = true; });
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected','true');
+      var target = document.getElementById('panel-' + btn.dataset.tab);
+      if(target){ target.hidden = false; }
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  });
+
+  var search = document.getElementById('gsearch');
+  if(search){
+    search.addEventListener('input', function(){
+      var q = search.value.trim().toLowerCase();
+      var items = document.querySelectorAll('.gitem');
+      var visibleCount = 0;
+      items.forEach(function(item){
+        var match = item.textContent.toLowerCase().indexOf(q) > -1;
+        item.style.display = match ? '' : 'none';
+        if(match) visibleCount++;
+      });
+      var empty = document.getElementById('gempty');
+      if(empty){ empty.style.display = visibleCount === 0 ? 'block' : 'none'; }
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  function mask(t,f,l,h){
+    return t.split(' ').map(function(w){
+      var idx=[],o=w.split('');
+      for(var i=0;i<w.length;i++){ if(/[A-Za-z0-9]/.test(w[i])) idx.push(i); }
+      idx.forEach(function(p,k){
+        var show=(f&&k===0)||(l&&k===idx.length-1)||(h&&k%2===0);
+        if(!show) o[p]='_';
+      });
+      return o.join('');
+    }).join('   ');
+  }
+  window.__mask=mask;
+
+  /* drills: first / last letter hints */
+  Array.prototype.forEach.call(document.querySelectorAll('details.drill'),function(d){
+    var ans=d.querySelector('.ans').textContent.trim();
+    var wrap=document.createElement('div'); wrap.className='dcard';
+    d.parentNode.insertBefore(wrap,d); wrap.appendChild(d);
+    var row=document.createElement('div'); row.className='hrow';
+    row.innerHTML='<button type="button" data-k="b" aria-pressed="false">Blanks</button><button type="button" data-k="f" aria-pressed="false">First letter</button><button type="button" data-k="l" aria-pressed="false">Last letter</button><span class="hmask"></span>';
+    wrap.appendChild(row);
+    var st={b:0,f:0,l:0}, m=row.querySelector('.hmask');
+    row.addEventListener('click',function(e){
+      var k=e.target.getAttribute('data-k'); if(!k) return;
+      st[k]=st[k]?0:1;
+      if(k!=='b' && st[k]) st.b=1;
+      Array.prototype.forEach.call(row.querySelectorAll('button'),function(b){ b.setAttribute('aria-pressed',st[b.getAttribute('data-k')]?'true':'false'); });
+      m.textContent=(st.b||st.f||st.l)?mask(ans,st.f,st.l,0):'';
+    });
+  });
+  var pa=document.getElementById('pall'), pn=document.getElementById('pnone');
+  function setAll(v){ Array.prototype.forEach.call(document.querySelectorAll('details.drill'),function(d){ d.open=v; }); }
+  if(pa) pa.addEventListener('click',function(){ setAll(true); });
+  if(pn) pn.addEventListener('click',function(){ setAll(false); });
+
+  /* glossary: cover terms */
+  var gc=document.getElementById('gcover'), covered=false;
+  var gb=Array.prototype.slice.call(document.querySelectorAll('.gitem b'));
+  gb.forEach(function(b){ b.setAttribute('data-t',b.textContent); b.setAttribute('data-l','0'); });
+  function paint(b){
+    var t=b.getAttribute('data-t'), n=+b.getAttribute('data-l');
+    b.textContent = n===3 ? t : mask(t, n>=1, n>=2, 0);
+  }
+  if(gc) gc.addEventListener('click',function(){
+    covered=!covered; gc.setAttribute('aria-pressed',covered?'true':'false');
+    gb.forEach(function(b){
+      b.setAttribute('data-l','0');
+      if(covered){ b.classList.add('cov'); b.tabIndex=0; paint(b); }
+      else { b.classList.remove('cov'); b.removeAttribute('tabindex'); b.textContent=b.getAttribute('data-t'); }
+    });
+  });
+  var gl=document.querySelector('.glist');
+  function step(e){
+    var b=e.target.closest ? e.target.closest('b.cov') : null; if(!b||!covered) return;
+    if(e.type==='keydown' && e.key!=='Enter' && e.key!==' ') return;
+    e.preventDefault();
+    b.setAttribute('data-l',String((+b.getAttribute('data-l')+1)%4)); paint(b);
+  }
+  if(gl){ gl.addEventListener('click',step); gl.addEventListener('keydown',step); }
+
+  /* quiz */
+  var $=function(id){ return document.getElementById(id); };
+  var all=[],list=[],i=0,score=0,hint=0,tries=0,done=false,missed=[],cur=null;
+  function esc(x){ return x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+  function norm(x){ return x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
+  function lev(a,b){
+    var d=[],x,y; for(x=0;x<=a.length;x++){ d[x]=[x]; } for(y=1;y<=b.length;y++){ d[0][y]=y; }
+    for(x=1;x<=a.length;x++){ for(y=1;y<=b.length;y++){
+      d[x][y]=Math.min(d[x-1][y]+1,d[x][y-1]+1,d[x-1][y-1]+(a[x-1]===b[y-1]?0:1)); } }
+    return d[a.length][b.length];
+  }
+  function cands(a){
+    var c=[a], p=a.match(/^(.*?)\s*\((.*)\)\s*$/);
+    if(p){ c.push(p[1]); c.push(p[2]); }
+    a.split(/\s*\/\s*/).forEach(function(z){ c.push(z); });
+    return c.map(norm).filter(Boolean);
+  }
+  function ok(inp,a){
+    var u=norm(inp); if(!u) return false;
+    return cands(a).some(function(c){
+      var tol=c.length>=10?2:(c.length>=5?1:0);
+      return u===c || lev(u,c)<=tol;
+    });
+  }
+  function pool(src){
+    var p=[];
+    if(src!=='gloss'){ Array.prototype.forEach.call(document.querySelectorAll('details.drill'),function(d){
+      p.push({q:d.querySelector('summary').textContent.trim(),a:d.querySelector('.ans').textContent.trim()}); }); }
+    if(src!=='drill'){ gb.forEach(function(b){
+      var t=b.getAttribute('data-t'), base=t.replace(/\s*\(.*\)/,'').trim(); if(!base) return;
+      var def=b.parentNode.querySelector('span').textContent.trim().replace(new RegExp(esc(base),'ig'),'_____');
+      p.push({q:'Which term matches this definition? '+def,a:t}); }); }
+    return p;
+  }
+  function shuffle(a){ for(var k=a.length-1;k>0;k--){ var j=Math.floor(Math.random()*(k+1)),t=a[k]; a[k]=a[j]; a[j]=t; } return a; }
+  function show(el,v){ $(el).hidden=!v; }
+  function stat(){ $('qprog').textContent='Question '+(i+1)+' of '+list.length; $('qscore').textContent='Score '+score; }
+  function ask(){
+    cur=list[i]; hint=0; tries=0; done=false;
+    $('qtext').textContent=cur.q; $('qmask').textContent=''; $('qfb').textContent=''; $('qfb').className='qfb';
+    $('qin').value=''; $('qin').disabled=false; $('qhint').textContent='Hint'; $('qhint').disabled=false;
+    $('qcheck').disabled=false; $('qskip').disabled=false; show('qnext',false); stat(); $('qin').focus();
+  }
+  function start(set){
+    list=set; i=0; score=0; missed=[];
+    show('qsetup',false); show('qend',false); show('qplay',true); ask();
+  }
+  function finish(){
+    show('qplay',false); show('qend',true);
+    $('qfinal').textContent=score+' / '+list.length;
+    $('qmsg').textContent=missed.length?('You missed or needed help on '+missed.length+'. Retry them while they are fresh.'):'Clean run — no misses.';
+    $('qretry').hidden=!missed.length;
+  }
+  function lock(){ done=true; $('qin').disabled=true; $('qcheck').disabled=true; $('qhint').disabled=true; $('qskip').disabled=true; show('qnext',true); $('qnext').textContent=(i+1<list.length)?'Next':'See results'; $('qnext').focus(); }
+  function check(){
+    if(done) return;
+    var v=$('qin').value; if(!v.trim()) return;
+    if(ok(v,cur.a)){
+      var pts=(hint||tries)?0.5:1; score+=pts;
+      if(pts<1 && missed.indexOf(cur)<0) missed.push(cur);
+      $('qfb').className='qfb ok'; $('qfb').textContent='Correct: '+cur.a+(pts<1?' (half point)':' (+1)'); stat(); lock();
+    } else {
+      tries++; if(missed.indexOf(cur)<0) missed.push(cur);
+      $('qfb').className='qfb no'; $('qfb').textContent='Not quite. Try again, or tap Hint.'; $('qin').select();
+    }
+  }
+  function next(){ if(i+1<list.length){ i++; ask(); } else { finish(); } }
+  $('qstart').addEventListener('click',function(){
+    all=pool($('qsrc').value); var n=parseInt($('qn').value,10);
+    start(shuffle(all.slice()).slice(0,n));
+  });
+  $('qcheck').addEventListener('click',check);
+  $('qnext').addEventListener('click',next);
+  $('qin').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); if(done){ next(); } else { check(); } } });
+  $('qhint').addEventListener('click',function(){
+    if(done) return; hint=Math.min(hint+1,4);
+    $('qmask').textContent=mask(cur.a, hint>=2, hint>=3, hint>=4);
+    $('qhint').textContent='Hint ('+hint+'/4)'; $('qin').focus();
+  });
+  $('qskip').addEventListener('click',function(){
+    if(done) return; if(missed.indexOf(cur)<0) missed.push(cur);
+    $('qmask').textContent=''; $('qfb').className='qfb no'; $('qfb').textContent='Answer: '+cur.a; lock();
+  });
+  $('qretry').addEventListener('click',function(){ start(shuffle(missed.slice())); });
+  $('qagain').addEventListener('click',function(){ show('qend',false); show('qsetup',true); });
+})();
+</script>
+</body>
+</html>

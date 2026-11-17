@@ -8,6 +8,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='resident_theme.css') }}">
+
+    <style>
+        html body.resident-theme .auth-wrapper .left-panel {
+            background-color: #0d5c2b !important;
+            background-image: linear-gradient(90deg, #0d5c2b 0%, #0d5c2b 38%, rgba(13, 92, 43, 0.65) 62%, rgba(13, 92, 43, 0.3) 100%),
+            url("{{ url_for('static', filename='img/pop.png') }}") !important;
+            background-size: 100% 100%, auto 100% !important;
+            background-position: 0 0, right bottom !important;
+            background-repeat: no-repeat, no-repeat !important;
+        }
+    </style>
 </head>
 
 <body class="resident-theme">
@@ -27,9 +38,11 @@
             <button class="mini-modal-close" onclick="closeForgot()"><i class="fas fa-times"></i></button>
             <h3 style="color: #d32f2f;"><i class="fas fa-lock"></i> Password Reset</h3>
             <p style="margin-bottom: 20px;">For security reasons, automatic password resets are disabled.</p>
-            <div style="background: #fff3f3; padding: 15px; border-radius: 8px; border: 1px solid #ffdcdc; margin-bottom: 20px;">
+            <div
+                style="background: #fff3f3; padding: 15px; border-radius: 8px; border: 1px solid #ffdcdc; margin-bottom: 20px;">
                 <p style="margin: 0; color: #b30000; font-size: 14px; font-weight: 500;">
-                    Please contact your Barangay Administrator or visit the Barangay Hall to request a password reset for your account.
+                    Please contact your Barangay Administrator or visit the Barangay Hall to request a password reset
+                    for your account.
                 </p>
             </div>
             <button class="submit-btn" onclick="closeForgot()" style="margin-top:6px; background: #555;">
@@ -42,7 +55,13 @@
 
         <div class="left-panel">
             <div class="left-deco-dot"></div>
-            <a href="/" class="left-logo" style="display: inline-flex !important; align-items: center !important; gap: 10px !important; text-decoration: none !important;"><img src="{{ url_for('static', filename='img/logobes.png') }}" onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }" class="logobes" style="width: 40px; height: 40px; object-fit: contain; border-radius: 50%; flex-shrink: 0;" alt="Logo"><span>ActBayan<span>.</span></span></a>
+            <a href="/" class="left-logo"
+                style="display: inline-flex !important; align-items: center !important; gap: 10px !important; text-decoration: none !important;"><img
+                    src="{{ url_for('static', filename='img/logobes.png') }}"
+                    onerror="if(!this.getAttribute('data-tried')) { this.setAttribute('data-tried', 'true'); this.src='{{ url_for('static', filename='logobes.png') }}'; } else if(!this.getAttribute('data-tried-2')) { this.setAttribute('data-tried-2', 'true'); this.src='{{ url_for('static', filename='img/logo.png') }}'; } else { this.src='{{ url_for('static', filename='logo.png') }}'; }"
+                    class="logobes"
+                    style="width: 40px; height: 40px; object-fit: contain; border-radius: 50%; flex-shrink: 0;"
+                    alt="Logo"><span>ActBayan<span>.</span></span></a>
 
             <div class="left-hero">
                 <div class="left-badge">
@@ -70,7 +89,8 @@
                     <form method="POST" action="/login">
                         <div style="text-align: left; margin-bottom: 10px;">
                             <a href="/">
-                                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="ActBayan Logo" style="height: 50px; width: auto; border: none; outline: none;">
+                                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="ActBayan Logo"
+                                    style="height: 50px; width: auto; border: none; outline: none;">
                             </a>
                         </div>
                         <div class="form-title">Welcome Back 👋</div>

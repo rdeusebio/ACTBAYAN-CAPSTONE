@@ -17,9 +17,23 @@ import re
 import base64
 from otp import send_otp_sms
 from profanity import check_profanity
+import hashlib
 
 app = Flask(__name__)
 app.secret_key = 'actbayan_secret_key_2026'
+
+
+def get_anon_resident_name(account_id, report_id):
+    """
+    Generates a thread-scoped anonymous name: 'Anonymous Resident #XXXX'.
+    - Deterministic: The same resident has the EXACT SAME token within one report/thread.
+    - Isolated: The token completely changes on different reports/threads (cannot be cross-linked).
+    - Works seamlessly on both new and existing/old comments and reports.
+    """
+    if not account_id or not report_id:
+        return "Anonymous Resident"
+    token = hashlib.sha256(f"actbayan_thread_salt:{report_id}:{account_id}".encode('utf-8')).hexdigest()[:4].upper()
+    return f"Anonymous Resident #{token}"
 
 
 def connect_db():
@@ -1022,20 +1036,30 @@ def api_comments(report_id):
     cursor.execute("""
         SELECT
             f.activity_id AS feedback_id,
+            f.account_id,
             f.content AS comment_text,
             COALESCE(r.last_activity, r.created_at) AS uploaded_at,
-            a.first_name,
-            a.last_name
+            COALESCE(NULLIF(a.first_name, ''), 'Resident') AS first_name,
+            COALESCE(NULLIF(a.last_name, ''), 'User') AS last_name
         FROM report_activity f
         LEFT JOIN reports r ON r.report_id = f.report_id
         LEFT JOIN accounts a ON a.account_id = f.account_id
-        WHERE f.activity_type IN ('feedbacks', 'feedback') AND f.report_id = %s
+        WHERE f.activity_type IN ('feedbacks', 'feedback', 'feedback_anon') AND f.report_id = %s
         ORDER BY f.activity_id ASC
     """, (report_id,))
     comments = cursor.fetchall()
     con.close()
 
+    is_resident = session.get('user_role') == 'resident'
     for c in comments:
+        if is_resident:
+            anon = get_anon_resident_name(c.get('account_id'), report_id)
+            c['first_name'] = 'Anonymous'
+            c['last_name'] = anon.replace('Anonymous ', '')
+            c.pop('account_id', None)
+        else:
+            c.pop('account_id', None)
+
         if c.get('uploaded_at'):
             c['created_at_formatted'] = c['uploaded_at'].strftime('%b %d, %Y - %I:%M %p')
             del c['uploaded_at']
@@ -1315,9 +1339,9 @@ def lgu():
             (SELECT rm.path FROM reports_media rm WHERE rm.report_id = r.report_id LIMIT 1) AS image_url,
             COALESCE(r.category, 'General') AS category,
             cra.activity_type,
-            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE COALESCE(NULLIF(a.first_name, ''), 'Anonymous') END AS first_name,
-            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Person' ELSE COALESCE(NULLIF(a.last_name, ''), 'Person') END AS last_name,
-            CASE WHEN cra.activity_type = 'report_created_anon' THEN 1 ELSE 0 END AS is_anonymous,
+            COALESCE(NULLIF(a.first_name, ''), 'Resident') AS first_name,
+            COALESCE(NULLIF(a.last_name, ''), 'User') AS last_name,
+            0 AS is_anonymous,
             '' AS profile_photo
         FROM reports r
         LEFT JOIN location l ON r.location_id = l.location_id
@@ -1341,17 +1365,60 @@ def lgu():
 
         status = data.get('update_status')
 
-        # Phase 2: On-site GPS coordinate verification logging
+        # Strict On-Site GPS check: LGU cannot upload an update if not passed the GPS onsite check
         lgu_lat = data.get('lgu_lat')
         lgu_lng = data.get('lgu_lng')
         onsite_distance = data.get('onsite_distance')
-        if lgu_lat and lgu_lng:
+
+        if not lgu_lat or not lgu_lng:
+            flash("Cannot upload update: GPS on-site verification is required before submitting an update.", "error")
+            return redirect(url_for('lgu'))
+
+        con = connect_db()
+        cursor = con.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT l.x, l.y
+            FROM reports r
+            LEFT JOIN location l ON r.location_id = l.location_id
+            WHERE r.report_id = %s
+        """, (report_id,))
+        rep_loc = cursor.fetchone()
+
+        is_passed_gps = False
+        if rep_loc and rep_loc.get('x') is not None and rep_loc.get('y') is not None:
             try:
-                dist_num = round(float(onsite_distance)) if onsite_distance else None
-                dist_str = f"{dist_num}m away" if dist_num is not None else "location verified"
-                description += f"\n\n[📍 Verified On-Site: {dist_str} | GPS: {lgu_lat}, {lgu_lng}]"
-            except Exception:
-                description += f"\n\n[📍 GPS Recorded: {lgu_lat}, {lgu_lng}]"
+                rep_lat = float(rep_loc['x'])
+                rep_lng = float(rep_loc['y'])
+                actual_dist = haversine_distance(lgu_lat, lgu_lng, rep_lat, rep_lng)
+                if actual_dist <= 500:
+                    is_passed_gps = True
+                else:
+                    dist_txt = f"{round(actual_dist / 1000, 1)}km" if actual_dist >= 1000 else f"{round(actual_dist)}m"
+                    con.close()
+                    flash(f"Cannot upload update: You have not passed the on-site GPS check ({dist_txt} away). You must be within 500m of the reported incident.", "error")
+                    return redirect(url_for('lgu'))
+            except (ValueError, TypeError):
+                pass
+        elif onsite_distance:
+            try:
+                dist_val = float(onsite_distance)
+                if dist_val <= 500:
+                    is_passed_gps = True
+                else:
+                    con.close()
+                    flash(f"Cannot upload update: You have not passed the on-site GPS check ({round(dist_val)}m away). Maximum allowed distance is 500m.", "error")
+                    return redirect(url_for('lgu'))
+            except (ValueError, TypeError):
+                pass
+        else:
+            is_passed_gps = True
+
+        if not is_passed_gps:
+            con.close()
+            flash("Cannot upload update: On-site GPS check failed. You must be physically on-site within 500m.", "error")
+            return redirect(url_for('lgu'))
+
+        # Note: Do not append GPS coordinates or distance to description (kept clean per request)
 
         image_url = None
         update_photo = request.files.get('update_photo')
@@ -1364,13 +1431,11 @@ def lgu():
 
         # Phase 2: If marking as Resolved, photo proof captured on-site is strictly required
         if status == 'Resolved' and not image_url:
+            con.close()
             flash("Real-time photo proof captured on-site is strictly required to resolve a concern.", "error")
             return redirect(url_for('lgu'))
 
-        con = connect_db()
-        cursor = con.cursor()
-
-        # Updated for new ERD: insert into report_activity, then activity_media if photo exists
+        # Insert into report_activity
         query = """
             INSERT INTO report_activity (account_id, report_id, activity_type, content)
             VALUES (%s, %s, 'report_update', %s)
@@ -1436,11 +1501,11 @@ def lgu():
                 f.content AS feedback,
                 COALESCE(r.last_activity, r.created_at) AS uploaded_at,
                 '' AS profile_photo,
-                CONCAT(a.first_name, ' ', a.last_name) AS fullname
+                COALESCE(NULLIF(CONCAT(COALESCE(a.first_name, ''), ' ', COALESCE(a.last_name, '')), ' '), 'Resident') AS fullname
             FROM report_activity f
             LEFT JOIN reports r ON r.report_id = f.report_id
             LEFT JOIN accounts a ON a.account_id = f.account_id
-            WHERE f.activity_type IN ('feedbacks', 'feedback') AND f.report_id IN ({placeholders})
+            WHERE f.activity_type IN ('feedbacks', 'feedback', 'feedback_anon') AND f.report_id IN ({placeholders})
             ORDER BY f.activity_id DESC
         """
         cursor.execute(feedback_query, tuple(report_ids))
@@ -1509,10 +1574,11 @@ def lgu():
     for r in reps:
         fn = str(r.get('first_name') or '').strip()
         ln = str(r.get('last_name') or '').strip()
-        if not fn or fn.lower() == 'none' or not ln or ln.lower() == 'none' or r.get('is_anonymous'):
-            r['first_name'] = 'Anonymous'
-            r['last_name'] = 'Person'
-            r['is_anonymous'] = 1
+        if not fn or fn.lower() == 'none':
+            r['first_name'] = 'Resident'
+        if not ln or ln.lower() == 'none':
+            r['last_name'] = 'User'
+        r['is_anonymous'] = 0
         r['resolved_photo'] = resolved_photos_by_report.get(r.get('report_id'), '')
 
     cursor.execute(
@@ -1535,12 +1601,10 @@ def lgu():
         sort=sort
     )
 
-@app.route('/notifications')
-def notifications():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+def get_user_notifications(account_id):
+    if not account_id:
+        return {}, []
 
-    account_id = session.get('user_id')
     con = connect_db()
     cursor = con.cursor(dictionary=True)
 
@@ -1552,13 +1616,22 @@ def notifications():
     user_data = user_rows[0] if user_rows else {}
     user_data['account_status'] = get_user_account_status(account_id)
 
-    # Notification Rules: Users should only receive notifications for posts/concerns that they have actively upvoted
+    # Notification Engine: Track user's own filed reports + upvoted community concerns
+    cursor.execute("""
+        SELECT DISTINCT report_id
+        FROM report_activity
+        WHERE account_id = %s AND activity_type IN ('report_created', 'report_created_anon')
+    """, (account_id,))
+    my_report_ids = set(row['report_id'] for row in cursor.fetchall() if row.get('report_id'))
+
     cursor.execute("""
         SELECT DISTINCT report_id
         FROM report_activity
         WHERE account_id = %s AND activity_type = 'upvote'
     """, (account_id,))
-    upvoted_report_ids = [row['report_id'] for row in cursor.fetchall() if row.get('report_id')]
+    upvoted_report_ids = set(row['report_id'] for row in cursor.fetchall() if row.get('report_id'))
+
+    all_relevant_report_ids = list(my_report_ids | upvoted_report_ids)
 
     notifications_list = []
     now = datetime.now()
@@ -1579,11 +1652,52 @@ def notifications():
                 return f"{seconds // 60}m ago"
             return "Just now"
 
-    # Only fetch concern updates, comments, and map alerts if user has upvoted reports
-    if upvoted_report_ids:
-        placeholders = ",".join(["%s"] * len(upvoted_report_ids))
+    # 1. Government ID Verification Alert (System Notice)
+    acc_status = user_data.get('account_status') or 'Pending'
+    if acc_status == 'Verified':
+        notifications_list.append({
+            'id': f"sys_verified_{account_id}",
+            'type': 'system_alert',
+            'sub_type': 'verification',
+            'is_mine': True,
+            'category_label': 'ID Verification Approved',
+            'icon': 'fa-id-card',
+            'color': 'green',
+            'title': 'Government ID Verified by LGU',
+            'message': 'Your identity has been verified by General Mamerto Natividad municipal administrators. You now have full citizen privileges to file concerns, drop GPS pins, and comment.',
+            'status': 'Verified',
+            'report_id': None,
+            'public_key': '',
+            'has_coords': False,
+            'locname': 'General Mamerto Natividad',
+            'time_ago': 'Active',
+            'timestamp': datetime.now().strftime('%Y-%m-%d 23:59:59')
+        })
+    elif acc_status == 'Rejected':
+        notifications_list.append({
+            'id': f"sys_rejected_{account_id}",
+            'type': 'system_alert',
+            'sub_type': 'denied',
+            'is_mine': True,
+            'category_label': 'ID Verification Declined',
+            'icon': 'fa-ban',
+            'color': 'red',
+            'title': 'Government ID Verification Declined',
+            'message': 'Your ID submission could not be verified by the LGU. Please visit ID Verification to submit a clearer photo of a valid government ID or proof of residency.',
+            'status': 'Rejected',
+            'report_id': None,
+            'public_key': '',
+            'has_coords': False,
+            'locname': 'General Mamerto Natividad',
+            'time_ago': 'Action Needed',
+            'timestamp': datetime.now().strftime('%Y-%m-%d 23:59:59')
+        })
 
-        # 1. LGU Progress Updates on Upvoted Reports
+    # Fetch concern updates, comments, and map alerts if user has created or upvoted reports
+    if all_relevant_report_ids:
+        placeholders = ",".join(["%s"] * len(all_relevant_report_ids))
+
+        # 2. LGU Progress Updates (Includes explicit Rejection / Decline notices per panel guidance)
         cursor.execute(f"""
             SELECT
                 rp.activity_id,
@@ -1601,19 +1715,50 @@ def notifications():
             LEFT JOIN location l ON r.location_id = l.location_id
             WHERE rp.activity_type = 'report_update' AND rp.report_id IN ({placeholders})
             ORDER BY rp.activity_id DESC
-            LIMIT 30
-        """, tuple(upvoted_report_ids))
+            LIMIT 40
+        """, tuple(all_relevant_report_ids))
         for row in cursor.fetchall():
             dt_val = row.get('dt')
+            is_mine = row['report_id'] in my_report_ids
+            st = (row.get('status') or '').strip().lower()
             has_coords = row.get('x') is not None and row.get('y') is not None
+
+            # Panel requirement: Distinct alert if rejected/declined
+            if any(w in st for w in ('deni', 'decl', 'rej', 'cancel', 'invalid', 'spam')):
+                icon = 'fa-ban'
+                color = 'red'
+                cat_lbl = 'Report Declined' if is_mine else 'Concern Declined'
+                title = f"Your Report \"{row['report_title']}\" was Declined by LGU" if is_mine else f"Concern \"{row['report_title']}\" was Declined by LGU"
+                filter_sub = 'denied'
+            elif any(w in st for w in ('resolv', 'complet')):
+                icon = 'fa-check-circle'
+                color = 'green'
+                cat_lbl = 'Report Resolved' if is_mine else 'Concern Resolved'
+                title = f"Your Report \"{row['report_title']}\" has been Resolved!" if is_mine else f"Concern \"{row['report_title']}\" has been Resolved"
+                filter_sub = 'resolved'
+            elif any(w in st for w in ('prog', 'work', 'review', 'investigat')):
+                icon = 'fa-tools'
+                color = 'blue'
+                cat_lbl = 'Work in Progress' if is_mine else 'LGU In Progress'
+                title = f"LGU started work on \"{row['report_title']}\"" if is_mine else f"LGU in-progress: \"{row['report_title']}\""
+                filter_sub = 'in_progress'
+            else:
+                icon = 'fa-clipboard-check'
+                color = 'blue'
+                cat_lbl = 'Your Report Update' if is_mine else 'Upvoted Concern Update'
+                title = f"LGU updated \"{row['report_title']}\""
+                filter_sub = 'update'
+
             notifications_list.append({
                 'id': f"upd_{row['activity_id']}",
                 'type': 'concern_update',
-                'category_label': 'Upvoted Concern Update',
-                'icon': 'fa-clipboard-check',
-                'color': 'blue',
-                'title': f"LGU updated \"{row['report_title']}\"",
-                'message': (row['update_text'][:140] + '...') if row.get('update_text') and len(row['update_text']) > 140 else (row.get('update_text') or f"Status is now {row.get('status', 'Pending')}."),
+                'sub_type': filter_sub,
+                'is_mine': is_mine,
+                'category_label': cat_lbl,
+                'icon': icon,
+                'color': color,
+                'title': title,
+                'message': (row['update_text'][:160] + '...') if row.get('update_text') and len(row['update_text']) > 160 else (row.get('update_text') or f"Status is now {row.get('status', 'Pending')}."),
                 'status': row.get('status') or 'Pending',
                 'report_id': row['report_id'],
                 'public_key': row.get('public_key') or '',
@@ -1623,7 +1768,7 @@ def notifications():
                 'timestamp': dt_val.strftime('%Y-%m-%d %H:%M:%S') if dt_val else ''
             })
 
-        # 2. Community Comments on Upvoted Reports
+        # 3. Community Comments (On user's own reports or upvoted reports)
         cursor.execute(f"""
             SELECT
                 ra.activity_id,
@@ -1635,34 +1780,39 @@ def notifications():
                 r.status,
                 r.public_key,
                 COALESCE(r.last_activity, r.created_at) AS dt,
-                CASE WHEN ra.activity_type = 'feedback_anon' THEN 'Anonymous Resident'
-                     ELSE COALESCE(CONCAT(a.first_name, ' ', a.last_name), 'A resident') END AS actor_name,
+                ra.account_id AS actor_account_id,
                 l.x,
                 l.y,
                 CONCAT(l.x, ', ', l.y) AS locname
             FROM report_activity ra
             JOIN reports r ON ra.report_id = r.report_id
-            LEFT JOIN accounts a ON ra.account_id = a.account_id
             LEFT JOIN location l ON r.location_id = l.location_id
             WHERE ra.activity_type IN ('feedback', 'feedbacks', 'feedback_anon')
               AND ra.report_id IN ({placeholders})
               AND ra.account_id != %s
             ORDER BY ra.activity_id DESC
-            LIMIT 30
-        """, tuple(upvoted_report_ids) + (account_id,))
+            LIMIT 40
+        """, tuple(all_relevant_report_ids) + (account_id,))
         for row in cursor.fetchall():
             dt_val = row.get('dt')
-            actor = row.get('actor_name', 'A resident').strip() or 'A resident'
+            is_mine = row['report_id'] in my_report_ids
+            actor = get_anon_resident_name(row.get('actor_account_id'), row.get('report_id'))
             has_coords = row.get('x') is not None and row.get('y') is not None
-            notif_title = f"{actor} commented on \"{row['report_title']}\""
+            if is_mine:
+                notif_title = f"{actor} commented on your report \"{row['report_title']}\""
+                cat_lbl = 'New Comment on Your Report'
+            else:
+                notif_title = f"{actor} commented on \"{row['report_title']}\""
+                cat_lbl = 'New Comment on Upvoted Post'
             notif_msg = (row['content'][:140] + '...') if row.get('content') and len(row['content']) > 140 else (row.get('content') or '')
             icon = 'fa-comment-dots'
             color = 'green'
-            cat_lbl = 'New Comment on Upvoted Post'
 
             notifications_list.append({
                 'id': f"act_{row['activity_id']}",
                 'type': 'concern_update',
+                'sub_type': 'comment',
+                'is_mine': is_mine,
                 'category_label': cat_lbl,
                 'icon': icon,
                 'color': color,
@@ -1677,7 +1827,53 @@ def notifications():
                 'timestamp': dt_val.strftime('%Y-%m-%d %H:%M:%S') if dt_val else ''
             })
 
-        # 3. Mapped Community Reports / Area Alerts for Upvoted Concerns
+        # 4. Community Upvotes on User's Own Filed Reports
+        if my_report_ids:
+            my_ph = ",".join(["%s"] * len(my_report_ids))
+            cursor.execute(f"""
+                SELECT
+                    ra.activity_id,
+                    ra.report_id,
+                    r.title AS report_title,
+                    r.upvote_count,
+                    r.status,
+                    r.public_key,
+                    COALESCE(r.last_activity, r.created_at) AS dt,
+                    l.x,
+                    l.y,
+                    CONCAT(l.x, ', ', l.y) AS locname
+                FROM report_activity ra
+                JOIN reports r ON ra.report_id = r.report_id
+                LEFT JOIN location l ON r.location_id = l.location_id
+                WHERE ra.activity_type = 'upvote'
+                  AND ra.report_id IN ({my_ph})
+                  AND ra.account_id != %s
+                ORDER BY ra.activity_id DESC
+                LIMIT 20
+            """, tuple(my_report_ids) + (account_id,))
+            for row in cursor.fetchall():
+                dt_val = row.get('dt')
+                has_coords = row.get('x') is not None and row.get('y') is not None
+                notifications_list.append({
+                    'id': f"upv_{row['activity_id']}",
+                    'type': 'concern_update',
+                    'sub_type': 'upvote',
+                    'is_mine': True,
+                    'category_label': 'New Community Upvote',
+                    'icon': 'fa-arrow-up',
+                    'color': 'green',
+                    'title': f"A citizen upvoted your report \"{row['report_title']}\"",
+                    'message': f"Your report has gained community support and now has {row.get('upvote_count', 1)} total upvotes.",
+                    'status': row.get('status') or 'Pending',
+                    'report_id': row['report_id'],
+                    'public_key': row.get('public_key') or '',
+                    'has_coords': has_coords,
+                    'locname': row.get('locname') or 'Barangay GMN',
+                    'time_ago': format_time_ago(dt_val),
+                    'timestamp': dt_val.strftime('%Y-%m-%d %H:%M:%S') if dt_val else ''
+                })
+
+        # 5. Mapped Community Pin Alerts
         cursor.execute(f"""
             SELECT
                 r.report_id,
@@ -1689,30 +1885,32 @@ def notifications():
                 l.x,
                 l.y,
                 CONCAT(l.x, ', ', l.y) AS locname,
-                CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Anonymous Resident'
-                     ELSE COALESCE(CONCAT(a.first_name, ' ', a.last_name), 'Resident') END AS reporter_name
+                cra.account_id AS creator_account_id
             FROM reports r
             JOIN location l ON r.location_id = l.location_id
             LEFT JOIN report_activity cra ON cra.report_id = r.report_id
                 AND cra.activity_type IN ('report_created', 'report_created_anon')
-            LEFT JOIN accounts a ON cra.account_id = a.account_id
             WHERE l.x IS NOT NULL AND l.y IS NOT NULL
               AND r.report_id IN ({placeholders})
               AND (r.status != 'Resolved' OR COALESCE(r.last_activity, r.created_at) >= NOW() - INTERVAL 7 DAY)
             ORDER BY r.created_at DESC
             LIMIT 25
-        """, tuple(upvoted_report_ids))
+        """, tuple(all_relevant_report_ids))
         for row in cursor.fetchall():
             dt_val = row.get('dt')
             desc = row.get('description') or ''
+            rep_anon = get_anon_resident_name(row.get('creator_account_id'), row.get('report_id'))
+            is_mine = row['report_id'] in my_report_ids
             notifications_list.append({
                 'id': f"map_{row['report_id']}",
                 'type': 'map_alert',
-                'category_label': 'Upvoted Map Pin',
+                'sub_type': 'map',
+                'is_mine': is_mine,
+                'category_label': 'Your Pinned Report' if is_mine else 'Upvoted Map Pin',
                 'icon': 'fa-map-marker-alt',
                 'color': 'purple',
                 'title': f"Pinned Concern: \"{row['title']}\"",
-                'message': (desc[:130] + '...') if len(desc) > 130 else (desc or f"Reported by {row.get('reporter_name')} at {row.get('locname')}"),
+                'message': (desc[:130] + '...') if len(desc) > 130 else (desc or f"Reported by {rep_anon} at {row.get('locname')}"),
                 'status': row.get('status') or 'Pending',
                 'report_id': row['report_id'],
                 'public_key': row.get('public_key') or '',
@@ -1753,6 +1951,16 @@ def notifications():
 
     # Sort all notifications newest first
     notifications_list.sort(key=lambda x: x.get('timestamp') or '', reverse=True)
+    return user_data, notifications_list
+
+
+@app.route('/notifications')
+def notifications():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    account_id = session.get('user_id')
+    user_data, notifications_list = get_user_notifications(account_id)
 
     return render_template(
         'notifications.html',
@@ -1760,6 +1968,15 @@ def notifications():
         notifications=notifications_list,
         notifications_json=json.dumps(notifications_list)
     )
+
+
+@app.route('/api/notifications_count')
+def api_notifications_count():
+    account_id = session.get('user_id')
+    if not account_id:
+        return jsonify({'success': False, 'ids': []})
+    _, notifs = get_user_notifications(account_id)
+    return jsonify({'success': True, 'ids': [n['id'] for n in notifs]})
 
 @app.route('/lgu_notifications')
 def lgu_notifications():
@@ -2339,13 +2556,11 @@ def file_concern():
                 return redirect(url_for('file_concern'))
 
             if report_id and feedback:
-                is_anon = str(data.get('comment_anonymous') or data.get('is_anonymous') or '').strip() in ('1', 'true', 'True', 'yes', 'on')
-                act_type = 'feedback_anon' if is_anon else 'feedbacks'
                 comque = """
                     INSERT INTO report_activity (account_id, report_id, activity_type, content)
-                    VALUES (%s, %s, %s, %s)
+                    VALUES (%s, %s, 'feedbacks', %s)
                 """
-                cursor.execute(comque, (account_id, report_id, act_type, feedback))
+                cursor.execute(comque, (account_id, report_id, feedback))
                 cursor.execute(
                     "UPDATE reports SET last_activity = %s WHERE report_id = %s",
                     (datetime.now(), report_id)
@@ -2384,13 +2599,11 @@ def file_concern():
             """, (title, category, location_id, description, now_ts, now_ts, public_key))
             report_id = cursor.lastrowid
 
-            # 3. Record report creator in report_activity (support anonymous for verified residents)
-            is_post_anon = str(data.get('is_anonymous') or data.get('post_anonymous') or '').strip() in ('1', 'true', 'True', 'yes', 'on')
-            create_act_type = 'report_created_anon' if is_post_anon else 'report_created'
+            # 3. Record report creator in report_activity (real account_id is recorded)
             cursor.execute("""
                 INSERT INTO report_activity (account_id, report_id, activity_type, content)
-                VALUES (%s, %s, %s, %s)
-            """, (account_id, report_id, create_act_type, title))
+                VALUES (%s, %s, 'report_created', %s)
+            """, (account_id, report_id, title))
 
             # 4. Store all media paths in reports_media
             if saved_paths:
@@ -2411,16 +2624,16 @@ def file_concern():
         SELECT r.report_id, r.title, r.description, r.status, r.created_at, r.last_activity,
                r.public_key, r.upvote_count, r.location_id,
                ra.activity_type,
-               CASE WHEN ra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE COALESCE(NULLIF(a.first_name, ''), 'Anonymous') END AS first_name,
-               CASE WHEN ra.activity_type = 'report_created_anon' THEN 'Person' ELSE COALESCE(NULLIF(a.last_name, ''), 'Person') END AS last_name,
-               CASE WHEN ra.activity_type = 'report_created_anon' THEN 1 ELSE 0 END AS is_anonymous,
+               ra.account_id AS creator_account_id,
+               'Anonymous' AS first_name,
+               'Resident' AS last_name,
+               1 AS is_anonymous,
                '' AS profile_photo,
                'owner' AS user_relation,
                '' AS image_url, COALESCE(r.category, 'General') AS category, '' AS location
         FROM reports r
         JOIN report_activity ra ON r.report_id = ra.report_id
             AND ra.activity_type IN ('report_created', 'report_created_anon')
-        JOIN accounts a ON ra.account_id = a.account_id
         WHERE ra.account_id = %s
     """, (session_user_id,))
     own_concerns = cursor.fetchall()
@@ -2430,9 +2643,10 @@ def file_concern():
         SELECT r.report_id, r.title, r.description, r.status, r.created_at, r.last_activity,
                r.public_key, r.upvote_count, r.location_id,
                cra.activity_type,
-               CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE COALESCE(NULLIF(a.first_name, ''), 'Anonymous') END AS first_name,
-               CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Person' ELSE COALESCE(NULLIF(a.last_name, ''), 'Person') END AS last_name,
-               CASE WHEN cra.activity_type = 'report_created_anon' THEN 1 ELSE 0 END AS is_anonymous,
+               cra.account_id AS creator_account_id,
+               'Anonymous' AS first_name,
+               'Resident' AS last_name,
+               1 AS is_anonymous,
                '' AS profile_photo,
                'upvoted' AS user_relation,
                '' AS image_url, COALESCE(r.category, 'General') AS category, '' AS location
@@ -2441,7 +2655,6 @@ def file_concern():
             AND ra.activity_type = 'upvote' AND ra.account_id = %s
         LEFT JOIN report_activity cra ON r.report_id = cra.report_id
             AND cra.activity_type IN ('report_created', 'report_created_anon')
-        LEFT JOIN accounts a ON cra.account_id = a.account_id
     """, (session_user_id,))
     upvoted_concerns = cursor.fetchall()
 
@@ -2514,14 +2727,11 @@ def file_concern():
                 f.account_id,
                 f.content AS feedback,
                 f.activity_type,
-                CASE WHEN f.activity_type = 'feedback_anon' THEN 1 ELSE 0 END AS is_anonymous,
+                1 AS is_anonymous,
                 COALESCE(r.last_activity, r.created_at) AS uploaded_at,
-                '' AS profile_photo,
-                CASE WHEN f.activity_type = 'feedback_anon' THEN 'Anonymous Person'
-                     ELSE COALESCE(NULLIF(CONCAT(COALESCE(a.first_name, ''), ' ', COALESCE(a.last_name, '')), ' '), 'Anonymous Person') END AS fullname
+                '' AS profile_photo
             FROM report_activity f
             LEFT JOIN reports r ON r.report_id = f.report_id
-            LEFT JOIN accounts a ON a.account_id = f.account_id
             WHERE f.activity_type IN ('feedbacks', 'feedback', 'feedback_anon') AND f.report_id IN ({placeholders})
             ORDER BY f.activity_id DESC
         """
@@ -2529,10 +2739,12 @@ def file_concern():
         all_feedbacks = cursor.fetchall()
         now = datetime.now()
         for fb in all_feedbacks:
-            fname = str(fb.get('fullname') or '').strip()
-            if not fname or fname.lower() in ('none', 'none none') or fb.get('is_anonymous'):
-                fb['fullname'] = 'Anonymous Person'
-                fb['is_anonymous'] = 1
+            fb_acc = fb.get('account_id')
+            fb_rid = fb.get('report_id')
+            fb['fullname'] = get_anon_resident_name(fb_acc, fb_rid)
+            fb['is_anonymous'] = 1
+            if fb_acc != session_user_id:
+                fb['account_id'] = None
 
             if fb.get('uploaded_at'):
                 diff = now - fb['uploaded_at']
@@ -2573,12 +2785,15 @@ def file_concern():
                 break
 
     for c in all_concerns:
-        fn = str(c.get('first_name') or '').strip()
-        ln = str(c.get('last_name') or '').strip()
-        if not fn or fn.lower() == 'none' or not ln or ln.lower() == 'none' or c.get('is_anonymous'):
-            c['first_name'] = 'Anonymous'
-            c['last_name'] = 'Person'
-            c['is_anonymous'] = 1
+        c_acc = c.get('creator_account_id')
+        c_rid = c.get('report_id')
+        anon = get_anon_resident_name(c_acc, c_rid)
+        c['first_name'] = 'Anonymous'
+        c['last_name'] = anon.replace('Anonymous ', '')
+        c['fullname'] = anon
+        c['is_anonymous'] = 1
+        if c_acc != session_user_id:
+            c['creator_account_id'] = None
         c['resolved_photo'] = resolved_photos_by_report.get(c.get('report_id'), '')
 
     # ===== UPVOTES (from reports.upvote_count INT column) =====
@@ -2857,9 +3072,10 @@ def api_report_by_key(public_key):
             r.created_at,
             r.upvote_count,
             cra.activity_type,
-            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Anonymous' ELSE COALESCE(NULLIF(a.first_name, ''), 'Anonymous') END AS first_name,
-            CASE WHEN cra.activity_type = 'report_created_anon' THEN 'Person' ELSE COALESCE(NULLIF(a.last_name, ''), 'Person') END AS last_name,
-            CASE WHEN cra.activity_type = 'report_created_anon' THEN 1 ELSE 0 END AS is_anonymous,
+            cra.account_id AS creator_account_id,
+            COALESCE(NULLIF(a.first_name, ''), 'Resident') AS first_name,
+            COALESCE(NULLIF(a.last_name, ''), 'User') AS last_name,
+            0 AS is_anonymous,
             '' AS profile_photo,
             CONCAT(l.x, ', ', l.y) AS locname,
             l.x,
@@ -2888,13 +3104,24 @@ def api_report_by_key(public_key):
             report[k] = v.strftime('%B %d, %Y - %I:%M %p')
 
     report['upvote_count'] = int(report.get('upvote_count') or 0)
-    report['is_anonymous'] = bool(report.get('is_anonymous'))
-    r_fn = str(report.get('first_name') or '').strip()
-    r_ln = str(report.get('last_name') or '').strip()
-    if not r_fn or r_fn.lower() == 'none' or not r_ln or r_ln.lower() == 'none' or report['is_anonymous']:
+
+    user_role = session.get('user_role')
+    is_resident = (user_role == 'resident' or user_role not in ('lgu', 'admin'))
+
+    if is_resident:
+        c_acc = report.get('creator_account_id')
+        rep_id = report.get('report_id')
+        anon = get_anon_resident_name(c_acc, rep_id)
         report['first_name'] = 'Anonymous'
-        report['last_name'] = 'Person'
+        report['last_name'] = anon.replace('Anonymous ', '')
+        report['fullname'] = anon
         report['is_anonymous'] = True
+        report['profile_photo'] = ''
+        report.pop('creator_account_id', None)
+    else:
+        report['is_anonymous'] = False
+        report['fullname'] = f"{report.get('first_name', '')} {report.get('last_name', '')}".strip() or 'Resident'
+        report.pop('creator_account_id', None)
 
     cursor.execute(
         "SELECT COUNT(*) as count FROM report_activity WHERE activity_type IN ('feedbacks', 'feedback', 'feedback_anon') AND report_id = %s",
@@ -2904,12 +3131,12 @@ def api_report_by_key(public_key):
 
     cursor.execute("""
         SELECT
+            f.activity_id,
+            f.account_id AS comment_account_id,
             f.content AS feedback,
             f.activity_type,
-            CASE WHEN f.activity_type = 'feedback_anon' THEN 1 ELSE 0 END AS is_anonymous,
             COALESCE(r.last_activity, r.created_at) AS uploaded_at,
-            CASE WHEN f.activity_type = 'feedback_anon' THEN 'Anonymous Person'
-                 ELSE COALESCE(NULLIF(CONCAT(COALESCE(a.first_name, ''), ' ', COALESCE(a.last_name, '')), ' '), 'Anonymous Person') END AS fullname,
+            COALESCE(NULLIF(CONCAT(COALESCE(a.first_name, ''), ' ', COALESCE(a.last_name, '')), ' '), 'Resident') AS fullname,
             '' AS profile_photo
         FROM report_activity f
         LEFT JOIN reports r ON r.report_id = f.report_id
@@ -2920,10 +3147,15 @@ def api_report_by_key(public_key):
     """, (report['report_id'],))
     comments = cursor.fetchall()
     for c in comments:
-        fname = str(c.get('fullname') or '').strip()
-        if not fname or fname.lower() in ('none', 'none none') or c.get('is_anonymous'):
-            c['fullname'] = 'Anonymous Person'
+        if is_resident:
+            c_acc = c.get('comment_account_id')
+            c['fullname'] = get_anon_resident_name(c_acc, report['report_id'])
             c['is_anonymous'] = 1
+            c['profile_photo'] = ''
+            c.pop('comment_account_id', None)
+        else:
+            c['is_anonymous'] = 0
+            c.pop('comment_account_id', None)
 
         for k, v in list(c.items()):
             if isinstance(v, (bytes, bytearray)):
@@ -3212,13 +3444,13 @@ def cd():
         middle_initial = mname[0].upper() if mname else ''
 
         cursor.execute("""
-            INSERT INTO accounts (account_id, contact_id, address_id, first_name, last_name, middle_initial, dob)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO accounts (contact_id, address_id, first_name, last_name, middle_initial, dob)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """, (
-            reg_id, new_contact_id, new_address_id,
+            new_contact_id, new_address_id,
             data.get('fname'), data.get('lname'), middle_initial, data.get('dob')
         ))
-        newid = reg_id
+        newid = cursor.lastrowid
 
         # 4. Copy password_hash from registration into password
         cursor.execute("""
@@ -3431,7 +3663,8 @@ def barangay_map():
             COALESCE(NULLIF(l.locname, ''), CONCAT(l.x, ', ', l.y)) AS locname, 
             l.x, 
             l.y, 
-            COALESCE(CONCAT(a.first_name, ' ', a.last_name), 'Resident') AS reporter_name,
+            ra.account_id AS creator_account_id,
+            'Anonymous Resident' AS reporter_name,
             '' AS reporter_photo
         FROM reports r
         JOIN location l ON r.location_id = l.location_id
@@ -3440,7 +3673,6 @@ def barangay_map():
             FROM report_activity
             GROUP BY report_id
         ) ra ON ra.report_id = r.report_id
-        LEFT JOIN accounts a ON ra.account_id = a.account_id
         WHERE l.x IS NOT NULL AND l.y IS NOT NULL
           AND (r.status != 'Resolved' OR COALESCE(r.last_activity, r.created_at) >= NOW() - INTERVAL 7 DAY)
         ORDER BY r.created_at DESC
@@ -3461,6 +3693,9 @@ def barangay_map():
             user_upvoted.add(row['report_id'])
 
     for r in rloc:
+        r['reporter_name'] = get_anon_resident_name(r.get('creator_account_id'), r.get('report_id'))
+        r['is_anonymous'] = 1
+        r.pop('creator_account_id', None)
         r['is_upvoted'] = r['report_id'] in user_upvoted
 
     for r in rloc:

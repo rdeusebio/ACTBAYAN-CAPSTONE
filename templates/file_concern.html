@@ -115,15 +115,22 @@
             background-image: linear-gradient(135deg, rgba(22,101,52,0.90) 0%, rgba(22,163,74,0.85) 50%, rgba(5,46,22,0.92) 100%), url("{{ url_for('static', filename='img/mamerta.png') }}");
             background-size: cover;
             background-position: center;
-            padding: 40px 50px; position: relative; overflow: hidden; color: white;
+            padding: 24px 50px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            overflow: hidden;
+            color: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+            border-bottom: 1px solid rgba(255,255,255,0.12);
         }
         .page-badge {
             display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.25); border-radius: 50px; padding: 5px 14px;
-            font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 14px;
+            border: 1px solid rgba(255,255,255,0.25); border-radius: 50px; padding: 4px 14px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px;
         }
-        .page-title { font-size: 38px; font-weight: 900; letter-spacing: -1px; margin-bottom: 8px; margin-top: 0; }
-        .page-subtitle { font-size: 14px; color: rgba(255,255,255,0.8); font-weight: 600; margin: 0; }
+        .page-title { font-size: 32px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 6px; margin-top: 0; }
+        .page-subtitle { font-size: 13.5px; color: rgba(255,255,255,0.85); font-weight: 600; margin: 0; }
 
         .main-wrap { max-width: 1100px; margin: 0 auto; padding: 40px; display: grid; grid-template-columns: 1fr 340px; gap: 30px; align-items: start; width: 100%; }
 
@@ -217,8 +224,8 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .post-delete-btn:hover {
-            background: #22c55e;
-            border-color: #22c55e;
+            background: #dc2626;
+            border-color: #dc2626;
             color: white;
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
@@ -910,16 +917,109 @@
         .rp-empty-sub { font-size: 12px; line-height: 1.5; max-width: 240px; }
 
         .quick-submit {
-            background: linear-gradient(135deg, #052e16, #166534); border-radius: 18px; padding: 22px 20px; color: white;
-            position: sticky; top: 30px;
+            background: linear-gradient(145deg, #04381e 0%, #065f46 55%, #059669 100%);
+            border-radius: 20px;
+            padding: 24px 22px;
+            color: white;
+            position: sticky;
+            top: 120px;
+            box-shadow: 0 14px 36px rgba(4, 56, 30, 0.22), 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .qs-title { font-size: 16px; font-weight: 900; margin-bottom: 6px; }
-        .qs-sub { font-size: 13px; opacity: 0.8; line-height: 1.5; margin-bottom: 18px; }
+        .quick-submit::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(52, 211, 153, 0.28) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .qs-watermark {
+            position: absolute;
+            right: -15px;
+            bottom: -20px;
+            font-size: 110px;
+            color: rgba(255, 255, 255, 0.07);
+            pointer-events: none;
+            transform: rotate(-15deg);
+            z-index: 0;
+        }
+        .qs-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50px;
+            padding: 4px 11px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+        .qs-title {
+            font-size: 19px;
+            font-weight: 900;
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
+            color: #ffffff;
+            position: relative;
+            z-index: 1;
+        }
+        .qs-sub {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.55;
+            margin-bottom: 20px;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
         .qs-btn {
-            width: 100%; padding: 12px; border-radius: 50px; background: white; color: #166534;
-            border: none; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;
+            width: 100%;
+            padding: 13px 20px;
+            border-radius: 50px;
+            background: #ffffff;
+            color: #047857;
+            border: none;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            z-index: 1;
+            text-decoration: none;
         }
-        .qs-btn:hover { transform: translateY(-2px); }
+        .qs-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+            background: #f0fdf4;
+            color: #065f46;
+        }
+        .qs-btn-pending {
+            opacity: 0.85;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.9);
+            color: #b45309;
+        }
+        .qs-btn-verify {
+            background: #ffffff;
+            color: #047857;
+        }
+        .mobile-fab-btn { display: none; }
 
         /* ===== REDESIGNED MULTI-STEP MODAL CSS ===== */
         .modal-backdrop {
@@ -1338,33 +1438,64 @@
                 margin-left: 2px !important; background: #ffffff !important; color: var(--primary-red) !important; box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
                 padding: 1px 6px !important; border-radius: 50px !important; font-size: 10px !important; font-weight: 800 !important; flex-shrink: 0 !important;
             }
-            .main-content { margin-left: 0; margin-top: 60px; margin-bottom: 96px; width: 100%; max-width: 100vw; overflow-x: hidden; box-sizing: border-box !important; }
-            .page-header { padding: 24px 16px; width: 100%; box-sizing: border-box; }
-            .page-title { font-size: 26px; margin-bottom: 4px; }
-            .page-subtitle { font-size: 13px; line-height: 1.4; }
-            .main-wrap { display: flex !important; flex-direction: column !important; padding: 14px 12px !important; gap: 16px !important; width: 100% !important; max-width: 100vw !important; box-sizing: border-box !important; overflow-x: hidden !important; }
+            .main-content { margin-left: 0; margin-top: 60px; margin-bottom: 115px; width: 100%; max-width: 100vw; overflow-x: hidden; box-sizing: border-box !important; }
+            .page-header {
+                position: sticky !important;
+                top: 60px !important;
+                z-index: 99 !important;
+                padding: 12px 16px !important;
+                width: 100%;
+                box-sizing: border-box;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
+            }
+            .page-badge { font-size: 10px !important; padding: 2px 9px !important; margin-bottom: 4px !important; }
+            .page-title { font-size: 21px !important; margin-bottom: 2px !important; }
+            .page-subtitle { font-size: 11.5px !important; line-height: 1.35 !important; }
+            .main-wrap { display: flex !important; flex-direction: column !important; padding: 12px 12px !important; gap: 12px !important; width: 100% !important; max-width: 100vw !important; box-sizing: border-box !important; overflow-x: hidden !important; }
             .main-wrap > div:first-child { order: 2; width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; overflow: hidden !important; }
             .main-wrap > div:last-child { order: 1; width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; }
-            .quick-submit { position: static !important; margin-bottom: 6px !important; width: 100% !important; box-sizing: border-box !important; }
-            .filter-chips { flex-wrap: nowrap !important; overflow-x: auto !important; padding-bottom: 8px !important; margin-bottom: 16px !important; -webkit-overflow-scrolling: touch !important; scrollbar-width: none !important; width: 100% !important; max-width: 100% !important; display: flex !important; }
+
+            /* Sleek, compact quick-submit banner on mobile */
+            .quick-submit {
+                position: static !important;
+                margin-bottom: 2px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                padding: 14px 16px !important;
+                border-radius: 16px !important;
+                box-shadow: 0 6px 20px rgba(4, 56, 30, 0.18) !important;
+            }
+            .qs-watermark { font-size: 70px !important; right: -8px !important; bottom: -12px !important; }
+            .qs-badge { font-size: 9.5px !important; padding: 2px 8px !important; margin-bottom: 6px !important; }
+            .qs-title { font-size: 16px !important; margin-bottom: 3px !important; }
+            .qs-sub { font-size: 12px !important; line-height: 1.4 !important; margin-bottom: 12px !important; opacity: 0.9 !important; }
+            .qs-btn { padding: 10px 16px !important; font-size: 13px !important; border-radius: 50px !important; }
+
+            /* Horizontal category chips on mobile */
+            .filter-chips { flex-wrap: nowrap !important; overflow-x: auto !important; padding-bottom: 6px !important; margin-bottom: 12px !important; -webkit-overflow-scrolling: touch !important; scrollbar-width: none !important; width: 100% !important; max-width: 100% !important; display: flex !important; gap: 6px !important; }
             .filter-chips::-webkit-scrollbar { display: none !important; }
-            .chip { white-space: nowrap !important; flex-shrink: 0 !important; padding: 6px 14px !important; font-size: 12px !important; }
-            .concern-feed { width: 100% !important; max-width: 100% !important; min-width: 0 !important; overflow: hidden !important; box-sizing: border-box !important; }
+            .chip { white-space: nowrap !important; flex-shrink: 0 !important; padding: 5px 12px !important; font-size: 11.5px !important; border-radius: 50px !important; }
+
+            /* Concern feed & post card refinements */
+            .concern-feed { width: 100% !important; max-width: 100% !important; min-width: 0 !important; overflow: hidden !important; box-sizing: border-box !important; gap: 14px !important; }
             .concern-post { border-radius: 16px !important; width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; overflow: hidden !important; }
-            .post-header { padding: 12px 14px 10px !important; gap: 10px !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
-            .post-avatar { width: 36px !important; height: 36px !important; font-size: 13px !important; flex-shrink: 0 !important; }
-            .post-username { font-size: 13px !important; }
-            .post-time { font-size: 11px !important; }
-            .post-category { font-size: 10px !important; padding: 3px 9px !important; }
-            .post-img-wrap { height: 200px !important; width: 100% !important; max-width: 100% !important; }
-            .post-body { padding: 12px 14px !important; width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; overflow: hidden !important; }
-            .post-title { font-size: 15px !important; word-break: break-word !important; overflow-wrap: break-word !important; max-width: 100% !important; }
-            .post-caption { font-size: 13px !important; word-break: break-word !important; overflow-wrap: break-word !important; max-width: 100% !important; }
-            .post-footer { padding: 10px 14px !important; display: flex !important; flex-wrap: wrap !important; gap: 6px !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
-            .action-btn { flex: 1 1 auto !important; justify-content: center !important; padding: 6px 10px !important; font-size: 11.5px !important; margin-left: 0 !important; box-sizing: border-box !important; }
+            .post-header { padding: 11px 13px 8px !important; gap: 9px !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
+            .post-avatar { width: 34px !important; height: 34px !important; font-size: 12px !important; flex-shrink: 0 !important; }
+            .post-username { font-size: 12.5px !important; }
+            .post-time { font-size: 10.5px !important; }
+            .post-category { font-size: 9.5px !important; padding: 2px 8px !important; }
+            .post-img-wrap { height: 190px !important; width: 100% !important; max-width: 100% !important; }
+            .fb-media-grid.cols-1 .fb-cell { height: 230px !important; }
+            .fb-media-grid.cols-2 .fb-cell { height: 150px !important; }
+            .fb-media-grid.cols-3 .fb-cell:first-child, .fb-media-grid.cols-4 .fb-cell:first-child, .fb-media-grid.cols-5 .fb-cell:first-child { height: 170px !important; }
+            .post-body { padding: 11px 13px !important; width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; overflow: hidden !important; }
+            .post-title { font-size: 14.5px !important; margin-bottom: 4px !important; word-break: break-word !important; overflow-wrap: break-word !important; max-width: 100% !important; }
+            .post-caption { font-size: 12.5px !important; line-height: 1.45 !important; word-break: break-word !important; overflow-wrap: break-word !important; max-width: 100% !important; }
+            .post-footer { padding: 8px 12px !important; display: flex !important; flex-wrap: wrap !important; gap: 6px !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
+            .action-btn { flex: 1 1 auto !important; justify-content: center !important; padding: 6px 8px !important; font-size: 11px !important; margin-left: 0 !important; box-sizing: border-box !important; border-radius: 8px !important; }
             .comment-drawer { width: 100% !important; right: -100% !important; }
             .comment-drawer.open { right: 0 !important; }
-            .toast-container { left: 50% !important; right: auto !important; transform: translateX(-50%) !important; bottom: 80px !important; width: 90% !important; max-width: 340px !important; }
+            .toast-container { left: 50% !important; right: auto !important; transform: translateX(-50%) !important; bottom: 85px !important; width: 90% !important; max-width: 340px !important; }
             
             /* Responsive Modal Fixes */
             .modal { max-width: 95vw !important; width: 95% !important; max-height: 88vh !important; }
@@ -1376,14 +1507,42 @@
             .loc-input-col { grid-column: 1 !important; width: 100% !important; }
             .loc-map-col { grid-column: 1 !important; width: 100% !important; min-width: 100% !important; }
             .loc-map { height: 180px !important; }
+
+            /* Mobile FAB (Floating Action Button) */
+            .mobile-fab-btn {
+                position: fixed;
+                bottom: 88px;
+                right: 16px;
+                z-index: 1990;
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                padding: 10px 18px;
+                border-radius: 50px;
+                background: linear-gradient(135deg, #059669, #047857);
+                color: #ffffff !important;
+                border: 1.5px solid rgba(255, 255, 255, 0.35);
+                font-size: 12.5px;
+                font-weight: 800;
+                text-decoration: none !important;
+                cursor: pointer;
+                box-shadow: 0 8px 24px rgba(4, 120, 87, 0.45), 0 2px 6px rgba(0,0,0,0.18);
+                transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+            .mobile-fab-btn:active {
+                transform: scale(0.95);
+            }
         }
         @media (max-width: 480px) {
-            .file-concern-btn { width: 100% !important; justify-content: center !important; }
-            .page-header { padding: 18px 12px !important; }
-            .page-title { font-size: 22px !important; }
-            .main-wrap { padding: 12px 10px !important; }
+            .page-header { padding: 10px 12px !important; }
+            .page-title { font-size: 19px !important; }
+            .main-wrap { padding: 10px 8px !important; }
+            .quick-submit { padding: 12px 14px !important; }
+            .qs-title { font-size: 15px !important; }
+            .qs-sub { font-size: 11.5px !important; margin-bottom: 10px !important; }
+            .qs-btn { padding: 9px 14px !important; font-size: 12.5px !important; }
             .post-footer { justify-content: space-between; }
-            .action-btn { flex: 1; justify-content: center; padding: 6px 8px; font-size: 11px; }
+            .action-btn { flex: 1; justify-content: center; padding: 6px 6px; font-size: 10.5px; }
             .filter-chips { width: 100%; overflow-x: auto; padding-bottom: 4px; }
             .chip { white-space: nowrap; flex-shrink: 0; }
             .modal-cat-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1438,6 +1597,7 @@
             <a href="{{ url_for('notifications') }}"
                 class="sidebar-link {% if request.endpoint == 'notifications' %}active{% endif %}">
                 <i class="fas fa-bell"></i> <span>Notifications</span>
+                <span class="notif-badge" id="sidebar-notif-badge" style="display:none; margin-left:auto; background:#dc2626; color:#fff; font-size:10px; font-weight:800; padding:2px 7px; border-radius:50px;"></span>
             </a>
     </nav>
     <div class="sidebar-footer">
@@ -1535,26 +1695,12 @@
                          data-cover-photo="{{ c.image_url or '' }}"
                          data-resolved-photo="{{ c.resolved_photo or '' }}">
                         <div class="post-header">
-                            <div class="post-avatar" style="overflow:hidden; {% if c.is_anonymous %}background:#374151; color:white; display:flex; align-items:center; justify-content:center;{% endif %}">
-                                {% if c.is_anonymous %}
-                                    <i class="fas fa-user-secret" style="font-size:18px;"></i>
-                                {% elif c.profile_photo %}
-                                    {% set raw_pp = (c.profile_photo|string).replace("bytearray(b'","").replace("b'","").replace("')","").replace("'","") %}
-                                    {% set clean_pp = raw_pp.replace("static/","",1) if raw_pp.startswith("static/") else raw_pp %}
-                                    <img src="{{ url_for('static', filename=clean_pp) }}" alt="DP" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
-                                {% else %}
-                                    {{ (c.first_name[0] if c.first_name and (c.first_name|string)|lower != 'none' else 'A') }}
-                                {% endif %}
+                            <div class="post-avatar" style="overflow:hidden; background:#374151; color:white; display:flex; align-items:center; justify-content:center;">
+                                <i class="fas fa-user-shield" style="font-size:18px;"></i>
                             </div>
                             <div class="post-user">
                                 <div class="post-username">
-                                    {% set fn_str = (c.first_name|string).strip() if c.first_name else '' %}
-                                    {% set ln_str = (c.last_name|string).strip() if c.last_name else '' %}
-                                    {% if c.is_anonymous or not fn_str or fn_str|lower == 'none' or not ln_str or ln_str|lower == 'none' %}
-                                        Anonymous Person <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:11px;" title="Verified Anonymous Resident"></i>
-                                    {% else %}
-                                        {{ c.first_name }} {{ c.last_name }}
-                                    {% endif %}
+                                    {{ c.first_name }} {{ c.last_name }} <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:11px;" title="Verified Resident"></i>
                                 </div>
                                 <div class="post-time">{{ c.created_at.strftime('%B %d, %Y') if c.created_at else 'Just now' }}</div>
                             </div>
@@ -1711,26 +1857,13 @@
                                     {% if fbs %}
                                         {% for fb in fbs %}
                                         <div class="comment-item">
-                                            <div class="comment-mono" {% if fb.is_anonymous %}style="background:#374151; color:white; display:flex; align-items:center; justify-content:center;"{% endif %}>
-                                                {% if fb.is_anonymous %}
-                                                    <i class="fas fa-user-secret" style="font-size:14px;"></i>
-                                                {% elif fb.profile_photo %}
-                                                    {% set raw_path = (fb.profile_photo | string).replace("bytearray(b'", "").replace("b'", "").replace("')", "").replace("'", "") %}
-                                                    {% set clean_path = raw_path.replace("static/", "", 1) if raw_path.startswith("static/") else raw_path %}
-                                                    <img src="{{ url_for('static', filename=clean_path) }}" alt="DP" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
-                                                {% else %}
-                                                    {{ (fb.fullname[0] if fb.fullname else 'U')|upper }}
-                                                {% endif %}
+                                            <div class="comment-mono" style="background:#374151; color:white; display:flex; align-items:center; justify-content:center;">
+                                                <i class="fas fa-user-shield" style="font-size:13px;"></i>
                                             </div>
                                             <div style="display:flex; flex-direction:column; flex:1; min-width:0;">
                                                 <div class="comment-bubble">
                                                     <div class="comment-author">
-                                                        {% set raw_fn = (fb.fullname|string).strip() if fb.fullname else '' %}
-                                                        {% if fb.is_anonymous or not raw_fn or raw_fn|lower in ['none', 'none none'] %}
-                                                            Anonymous Person <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:10px;" title="Verified Anonymous Resident"></i>
-                                                        {% else %}
-                                                            {{ fb.fullname }}
-                                                        {% endif %}
+                                                        {{ fb.fullname }} <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:10px;" title="Verified Resident"></i>
                                                     </div>
                                                     <div class="comment-text">{{ fb.feedback }}</div>
                                                 </div>
@@ -1796,6 +1929,8 @@
 
         <div>
             <div class="quick-submit">
+                <div class="qs-watermark"><i class="fas fa-bullhorn"></i></div>
+                <div class="qs-badge"><i class="fas fa-bullhorn"></i> Citizen Action</div>
                 <div class="qs-title">See something wrong?</div>
                 <p class="qs-sub">Report infrastructure issues, sanitation problems, safety hazards, and more. Your report matters.</p>
                 {% if user and user.account_status == 'Verified' %}
@@ -1803,11 +1938,11 @@
                     <i class="fas fa-plus"></i> Submit a Concern
                 </button>
                 {% elif user and user.account_status == 'Pending' %}
-                <button class="qs-btn" style="opacity: 0.7; cursor: not-allowed;" onclick="showToast('Your verification documents are currently under review by the LGU.', 'info')">
+                <button class="qs-btn qs-btn-pending" onclick="showToast('Your verification documents are currently under review by the LGU.', 'info')">
                     <i class="fas fa-hourglass-half"></i> Verification Pending
                 </button>
                 {% else %}
-                <a href="{{ url_for('id_verification') }}" class="qs-btn" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <a href="{{ url_for('id_verification') }}" class="qs-btn qs-btn-verify">
                     <i class="fas fa-id-card"></i> Verify Account to Report
                 </a>
                 {% endif %}
@@ -1815,6 +1950,21 @@
         </div>
     </div>
 </main>
+
+<!-- Mobile Floating Action Button (FAB) -->
+{% if user and user.account_status == 'Verified' %}
+<button class="mobile-fab-btn" onclick="openModal()" title="Submit a Concern">
+    <i class="fas fa-plus"></i> <span>Report</span>
+</button>
+{% elif user and user.account_status == 'Pending' %}
+<button class="mobile-fab-btn" onclick="showToast('Your verification documents are currently under review by the LGU.', 'info')" title="Verification Pending" style="background: linear-gradient(135deg, #d97706, #b45309);">
+    <i class="fas fa-hourglass-half"></i> <span>Pending</span>
+</button>
+{% else %}
+<a href="{{ url_for('id_verification') }}" class="mobile-fab-btn" title="Verify Account to Report">
+    <i class="fas fa-id-card"></i> <span>Verify</span>
+</a>
+{% endif %}
 
 <div class="modal-backdrop" id="submit-modal">
     <div class="modal">
@@ -1986,24 +2136,7 @@
                             <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">First file is the cover → saved to <b>reports.image_url</b>; the rest → <b>reports_media</b>.</div>
                         </div>
                     </div>
-                    <div class="modal-review-row" style="align-items: center; padding: 12px 0; border-top: 1px dashed var(--border-color);">
-                        <div class="modal-review-key" style="display:flex; align-items:center; gap:6px;">
-                            <i class="fas fa-user-secret" style="color:var(--primary-red);"></i> Anonymous Post
-                        </div>
-                        <div class="modal-review-val">
-                            {% if user and user.account_status == 'Verified' %}
-                            <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; font-size:13px; color:var(--text-main);">
-                                <input type="checkbox" id="m-anon-toggle" name="is_anonymous_checkbox" style="width:16px; height:16px; accent-color:var(--primary-red);">
-                                <span>Post anonymously as "Anonymous Person"</span>
-                            </label>
-                            {% else %}
-                            <div style="font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
-                                <i class="fas fa-lock" style="color:#d32f2f;"></i>
-                                <span>Verified Residents Only</span>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
+
                 </div>
                 <div class="modal-action-row">
                     <button class="modal-btn-back" type="button" onclick="mGoStep(3)"><i class="fas fa-arrow-left"></i> Back</button>
@@ -2039,7 +2172,69 @@
 <style>
 #concern-details-modal.open {
     display: flex !important;
-    animation: fadeIn 0.2s ease;
+    animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cdm-photo-panel {
+    flex: 1;
+    height: 100%;
+    max-height: 100%;
+    background: radial-gradient(circle at center, #1b2620 0%, #090e0b 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+.cdm-sidebar {
+    width: 480px;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    background: var(--bg-nav-card, #ffffff);
+    border-left: 1px solid var(--border-color, rgba(0,0,0,0.08));
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    box-shadow: -8px 0 30px rgba(0,0,0,0.35);
+    z-index: 5;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+.cdm-header-close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--search-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+.cdm-header-close-btn:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #dc2626;
+    transform: scale(1.05);
+}
+.cdm-filing-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--primary-red);
+    background: rgba(22, 101, 52, 0.08);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(22, 101, 52, 0.18);
 }
 @media (max-width: 768px) {
     #concern-details-modal {
@@ -2047,7 +2242,7 @@
         overflow-y: auto !important;
     }
     #concern-details-modal > div:first-child {
-        height: 350px !important;
+        height: 320px !important;
         flex: none !important;
     }
     .cdm-sidebar {
@@ -2058,100 +2253,111 @@
     }
 }
 </style>
-<div class="modal-backdrop" id="concern-details-modal" onclick="if(event.target===this) closePostModal()" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.9); flex-direction:row; align-items:stretch; justify-content:flex-start; height:100%; max-height:100vh; overflow:hidden;">
-    <!-- LEFT PANEL: PHOTO VIEWER (ONLY ONE CLOSE BUTTON HERE) -->
-    <div style="flex:1; height:100%; max-height:100%; background:#0a0a0a; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; box-sizing:border-box;" onclick="if(event.target===this) closePostModal()">
-        <button type="button" onclick="closePostModal()" style="position:absolute; top:20px; left:20px; width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.15); color:#fff; border:none; font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'" title="Close Window">
+<div class="modal-backdrop" id="concern-details-modal" onclick="if(event.target===this) closePostModal()" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10, 15, 20, 0.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); flex-direction:row; align-items:stretch; justify-content:flex-start; height:100%; max-height:100vh; overflow:hidden;">
+    <!-- LEFT PANEL: PHOTO VIEWER -->
+    <div class="cdm-photo-panel" onclick="if(event.target===this) closePostModal()">
+        <button type="button" onclick="closePostModal()" style="position:absolute; top:20px; left:20px; width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.18); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:18px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='scale(1.05)';" onmouseout="this.style.background='rgba(255,255,255,0.18)'; this.style.transform='scale(1)';" title="Close Window">
             <i class="fas fa-times"></i>
         </button>
-        <div id="cdm-photo-container" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:40px; box-sizing:border-box;">
-            <img id="cdm-photo" src="" style="max-width:100%; max-height:100%; object-fit:contain; box-shadow:0 10px 40px rgba(0,0,0,0.5);" alt="Evidence">
+        <div id="cdm-photo-container" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:36px; box-sizing:border-box;">
+            <img id="cdm-photo" src="" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:12px; box-shadow:0 20px 50px rgba(0,0,0,0.6);" alt="Evidence">
         </div>
-        <div id="cdm-no-photo" style="display:none; flex-direction:column; align-items:center; justify-content:center; color:#555; text-align:center;">
-            <i class="fas fa-file-alt" style="font-size:64px; color:#ef4444; margin-bottom:16px; opacity:0.8;"></i>
-            <div style="font-size:20px; font-weight:700; color:#fff;">ActBayan Community Report</div>
-            <div style="font-size:14px; color:#888; margin-top:4px;">No visual evidence attached to this filing</div>
+        <div id="cdm-no-photo" style="display:none; flex-direction:column; align-items:center; justify-content:center; color:#555; text-align:center; padding:30px;">
+            <div style="width:80px; height:80px; border-radius:50%; background:rgba(22, 101, 52, 0.15); border:1px solid rgba(22, 101, 52, 0.3); display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+                <i class="fas fa-file-shield" style="font-size:36px; color:#22c55e;"></i>
+            </div>
+            <div style="font-size:20px; font-weight:800; color:#fff; letter-spacing:-0.01em;">ActBayan Community Report</div>
+            <div style="font-size:13.5px; color:#9ca3af; margin-top:6px; max-width:320px;">No visual evidence or photo attached to this filing</div>
         </div>
     </div>
-    <!-- RIGHT PANEL: DETAILS & COMMENTS SIDEBAR (FIXED HEIGHT 100% SO IT NEVER CUTS OFF AT BOTTOM) -->
-    <div class="cdm-sidebar" style="width:420px; max-width:100%; height:100%; max-height:100%; background:var(--bg-nav-card, #1c1c1e); border-left:1px solid var(--border-color, #2c2c2e); display:flex; flex-direction:column; flex-shrink:0; box-shadow:-5px 0 25px rgba(0,0,0,0.3); z-index:5; box-sizing:border-box; overflow:hidden;" onclick="event.stopPropagation()">
+    <!-- RIGHT PANEL: DETAILS & COMMENTS SIDEBAR -->
+    <div class="cdm-sidebar" onclick="event.stopPropagation()">
         <!-- DEDICATED CONCERN HEADER -->
-        <div class="cdm-concern-header" style="padding:16px 20px; border-bottom:1.5px solid var(--border-color); display:flex; flex-direction:column; gap:10px; flex-shrink:0; background:linear-gradient(135deg, rgba(139,0,0,0.06), transparent);">
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                <div style="display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.6px; color:var(--primary-red);">
-                    <i class="fas fa-shield-halved"></i> Public Concern Filing
+        <div class="cdm-concern-header" style="padding:16px 20px; border-bottom:1px solid var(--border-color); display:flex; flex-direction:column; gap:12px; flex-shrink:0; background:var(--bg-nav-card);">
+            <!-- ROW 1: TAGS, REF & ACTIONS -->
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <div style="display:flex; align-items:center; gap:7px; flex-wrap:wrap; min-width:0;">
+                    <span class="cdm-filing-tag">
+                        <i class="fas fa-shield-halved"></i> Public Filing
+                    </span>
+                    <span id="cdm-category-badge" class="post-category" style="margin:0; font-size:10.5px; padding:3px 9px;">General</span>
+                    <span id="cdm-ref-badge" style="font-size:10.5px; font-family:monospace; font-weight:700; color:var(--text-muted); background:var(--search-bg); padding:3px 8px; border-radius:6px; border:1px solid var(--border-color); white-space:nowrap;">
+                        <i class="fas fa-hashtag"></i> <span id="cdm-ref-key">ACT-0001</span>
+                    </span>
                 </div>
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span id="cdm-status-pill" class="status-overlay" style="position:static; font-size:10px; padding:2px 8px; border-radius:50px;">Pending</span>
-                    <span id="cdm-category-badge" class="post-category" style="margin:0; font-size:10px; padding:2px 8px;">General</span>
-                    <div id="cdm-author-actions" style="display:none; align-items:center; gap:6px; margin-left:4px;"></div>
+                <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                    <div id="cdm-author-actions" style="display:none; align-items:center; gap:6px;"></div>
+                    <button type="button" class="cdm-header-close-btn" onclick="closePostModal()" title="Close details">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             </div>
             
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-                <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
-                    <div id="cdm-avatar" style="width:38px; height:38px; border-radius:50%; background:var(--primary-red); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0; overflow:hidden;"></div>
+            <!-- ROW 2: AUTHOR INFO & STATUS OVERLAY -->
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                <div style="display:flex; align-items:center; gap:11px; min-width:0; flex:1;">
+                    <div id="cdm-avatar" style="width:40px; height:40px; border-radius:50%; background:var(--primary-red); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0; overflow:hidden; border:2px solid rgba(22, 101, 52, 0.2);"></div>
                     <div style="min-width:0; flex:1;">
-                        <div id="cdm-author-name" style="font-weight:800; font-size:13.5px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Resident</div>
-                        <div style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
-                            <i class="far fa-clock"></i> <span id="cdm-time">Recently</span>
+                        <div id="cdm-author-name" style="font-weight:800; font-size:14px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Resident</div>
+                        <div style="font-size:11.5px; color:var(--text-muted); display:flex; align-items:center; gap:5px; margin-top:2px;">
+                            <i class="far fa-clock" style="font-size:10.5px;"></i> <span id="cdm-time">Recently</span>
                         </div>
                     </div>
                 </div>
-                <div id="cdm-ref-badge" style="font-size:10px; font-family:monospace; font-weight:700; color:var(--text-muted); background:var(--search-bg); padding:3px 8px; border-radius:6px; border:1px solid var(--border-color); white-space:nowrap;">
-                    <i class="fas fa-hashtag"></i> <span id="cdm-ref-key">GMN-REP</span>
+                <div style="flex-shrink:0;">
+                    <span id="cdm-status-pill" class="status-overlay" style="position:static; font-size:10.5px; padding:5px 12px; border-radius:50px; display:inline-flex; align-items:center; gap:6px; box-shadow:none;">Pending</span>
                 </div>
             </div>
         </div>
         <!-- SCROLLABLE BODY -->
-        <div style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:20px; box-sizing:border-box;">
-            <div>
-                <h2 id="cdm-title" style="font-size:18px; font-weight:800; color:var(--text-main); margin:0 0 8px 0; line-height:1.3;"></h2>
-                <p id="cdm-desc" style="font-size:14px; color:var(--text-main); line-height:1.6; margin:0; white-space:pre-wrap; font-family:inherit; opacity:0.95;"></p>
-                <div id="cdm-loc" style="font-size:12px; font-weight:600; color:var(--text-muted); margin-top:10px; display:flex; align-items:center; gap:6px;">
-                    <i class="fas fa-map-marker-alt" style="color:#ef4444;"></i> <span></span>
+        <div style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:18px; box-sizing:border-box;">
+            <!-- TITLE & CAPTION -->
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <h2 id="cdm-title" style="font-size:19px; font-weight:800; color:var(--text-main); margin:0; line-height:1.35; letter-spacing:-0.01em; word-break:break-word;"></h2>
+                <p id="cdm-desc" style="font-size:14px; color:var(--text-main); line-height:1.65; margin:0; white-space:pre-wrap; font-family:inherit; opacity:0.92; word-break:break-word;"></p>
+                <div id="cdm-loc" style="margin-top:4px;"></div>
+            </div>
+            <!-- PROGRESS STEPPER -->
+            <div class="cdm-stepper-card" style="background:var(--search-bg); padding:16px 18px; border-radius:14px; border:1px solid var(--border-color); box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+                <div style="font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="display:inline-flex; align-items:center; gap:7px;"><i class="fas fa-bars-progress" style="color:var(--primary-red);"></i> Resolution Progress</span>
+                    <span id="cdm-stage-badge" style="font-size:11px; font-weight:800; padding:3px 10px; border-radius:12px;"></span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; position:relative; padding:0 10px;">
+                    <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
+                        <div id="step-dot-1" style="width:28px; height:28px; border-radius:50%; background:var(--primary-red); color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; box-shadow:0 0 0 4px rgba(22,101,52,0.18); transition:all 0.3s ease;">1</div>
+                        <span style="font-size:11px; font-weight:700; margin-top:7px; color:var(--text-main);">Filed</span>
+                    </div>
+                    <div id="step-line-1" style="height:3px; background:var(--border-color); flex:1; margin:0 8px; border-radius:2px; transition:background 0.3s ease;"></div>
+                    <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
+                        <div id="step-dot-2" style="width:28px; height:28px; border-radius:50%; background:var(--search-bg); border:2px solid var(--border-color); color:var(--text-muted); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; transition:all 0.3s ease;">2</div>
+                        <span id="step-lbl-2" style="font-size:11px; font-weight:600; margin-top:7px; color:var(--text-muted);">In Review</span>
+                    </div>
+                    <div id="step-line-2" style="height:3px; background:var(--border-color); flex:1; margin:0 8px; border-radius:2px; transition:background 0.3s ease;"></div>
+                    <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
+                        <div id="step-dot-3" style="width:28px; height:28px; border-radius:50%; background:var(--search-bg); border:2px solid var(--border-color); color:var(--text-muted); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; transition:all 0.3s ease;">3</div>
+                        <span id="step-lbl-3" style="font-size:11px; font-weight:600; margin-top:7px; color:var(--text-muted);">Resolved</span>
+                    </div>
                 </div>
             </div>
-            <!-- Progress Stepper -->
-            <div style="background:var(--search-bg); padding:16px; border-radius:12px; border:1px solid var(--border-color);">
-                <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted); margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
-                    <span><i class="fas fa-tasks" style="color:#ef4444; margin-right:6px;"></i> Resolution Stage</span>
-                    <span id="cdm-stage-badge" style="font-size:11px; font-weight:800; padding:2px 8px; border-radius:12px;"></span>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; position:relative; padding:0 8px;">
-                    <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
-                        <div id="step-dot-1" style="width:26px; height:26px; border-radius:50%; background:#ef4444; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">1</div>
-                        <span style="font-size:10px; font-weight:700; margin-top:6px; color:var(--text-main);">Filed</span>
-                    </div>
-                    <div id="step-line-1" style="height:3px; background:var(--border-color); flex:1; margin:0 6px;"></div>
-                    <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
-                        <div id="step-dot-2" style="width:26px; height:26px; border-radius:50%; background:var(--border-color); color:var(--text-muted); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">2</div>
-                        <span id="step-lbl-2" style="font-size:10px; font-weight:600; margin-top:6px; color:var(--text-muted);">In Review</span>
-                    </div>
-                    <div id="step-line-2" style="height:3px; background:var(--border-color); flex:1; margin:0 6px;"></div>
-                    <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
-                        <div id="step-dot-3" style="width:26px; height:26px; border-radius:50%; background:var(--border-color); color:var(--text-muted); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">3</div>
-                        <span id="step-lbl-3" style="font-size:10px; font-weight:600; margin-top:6px; color:var(--text-muted);">Resolved</span>
-                    </div>
-                </div>
+            <!-- STATS BAR -->
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid var(--border-color); border-bottom:1px solid var(--border-color); font-size:13px; color:var(--text-muted); font-weight:600;">
+                <span id="cdm-upvote-stat" style="display:inline-flex; align-items:center; gap:6px;"></span>
+                <span id="cdm-comment-stat" style="display:inline-flex; align-items:center; gap:6px;"></span>
             </div>
-            <!-- Stats -->
-            <div style="display:flex; align-items:center; justify-content:space-between; padding-top:4px; border-bottom:1px solid var(--border-color); padding-bottom:14px; font-size:13px; color:var(--text-muted); font-weight:600;">
-                <span id="cdm-upvote-stat"></span>
-                <span id="cdm-comment-stat"></span>
-            </div>
-            <!-- Comments Section Header -->
+            <!-- COMMENTS SECTION HEADER -->
             <div>
                 <div style="font-size:14px; font-weight:800; color:var(--text-main); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                    <i class="far fa-comments" style="color:var(--primary-red);"></i>
                     <span>Comments</span>
                 </div>
                 <div id="cdm-comments-stream" style="display:flex; flex-direction:column; gap:12px; min-height:80px;"></div>
             </div>
         </div>
-        <!-- Comment Input Bar (FIXED BOTTOM PADDING SO IT NEVER CUTS OR OVERLAPS) -->
-        <div style="padding:14px 20px 24px 20px; border-top:1px solid var(--border-color); background:var(--bg-nav-card); flex-shrink:0; box-sizing:border-box;">
+        <!-- COMMENT INPUT BAR -->
+        <div style="padding:14px 20px 20px 20px; border-top:1px solid var(--border-color); background:var(--bg-nav-card); flex-shrink:0; box-sizing:border-box;">
             {% if user and user.account_status == 'Verified' %}
-            <form action="/file_concern" method="POST" id="cdm-comment-form" style="display:flex; flex-direction:column; gap:8px; margin:0;">
+            <form action="/file_concern" method="POST" id="cdm-comment-form" style="display:flex; flex-direction:column; gap:10px; margin:0;">
                 <input type="hidden" name="fn" value="pc">
                 <input type="hidden" name="report_id" id="cdm-form-report-id" value="">
                 <div style="display:flex; gap:10px; align-items:center;">
@@ -2160,22 +2366,18 @@
                         <div class="emoji-popup" style="display:none;position:absolute;bottom:50px;left:0;z-index:10005;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.3);">
                             <emoji-picker></emoji-picker>
                         </div>
-                        <input type="text" name="comment" placeholder="Write a comment..." required autocomplete="off" style="width:100%; padding:10px 16px; border-radius:20px; border:1px solid var(--border-color); background:var(--search-bg); color:var(--text-main); font-size:13px; outline:none; transition:border-color 0.2s;">
+                        <input type="text" name="comment" placeholder="Write a comment..." required autocomplete="off" style="width:100%; padding:10px 16px; border-radius:24px; border:1.5px solid var(--border-color); background:var(--search-bg); color:var(--text-main); font-size:13.5px; outline:none; transition:border-color 0.2s, box-shadow 0.2s;" onfocus="this.style.borderColor='var(--primary-red)'; this.style.boxShadow='0 0 0 3px rgba(22,101,52,0.12)';" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
                     </div>
-                    <button type="submit" class="comment-submit-btn" style="background:var(--primary-red); color:white; border:none; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; flex-shrink:0; box-shadow:0 3px 10px rgba(231,76,60,0.3); transition:transform 0.2s;" title="Send Comment" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <button type="submit" class="comment-submit-btn" style="background:var(--primary-red); color:white; border:none; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; flex-shrink:0; box-shadow:0 3px 12px rgba(22,101,52,0.3); transition:all 0.2s;" title="Send Comment" onmouseover="this.style.transform='scale(1.06)'; this.style.background='var(--primary-red-hover)';" onmouseout="this.style.transform='scale(1)'; this.style.background='var(--primary-red)';">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:0 4px; font-size:12px;">
-                    <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; color:var(--text-muted); font-weight:600;">
-                        <input type="checkbox" name="comment_anonymous" value="1" style="width:14px; height:14px; accent-color:var(--primary-red);">
-                        <span><i class="fas fa-user-secret" style="color:var(--primary-red);"></i> Comment anonymously</span>
-                    </label>
-                    <span style="font-size:11px; color:var(--primary-red); font-weight:700;"><i class="fas fa-shield-alt"></i> Verified Resident</span>
+                <div style="display:flex; align-items:center; justify-content:flex-end; padding:0 4px; font-size:12px;">
+                    <span style="font-size:11px; color:var(--primary-red); font-weight:700; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-shield-alt"></i> Verified Resident</span>
                 </div>
             </form>
             {% else %}
-            <div style="width:100%; padding:12px 16px; border-radius:12px; background:rgba(220,38,38,0.06); color:var(--primary-red); font-size:12.5px; text-align:center; border: 1.5px solid rgba(220,38,38,0.2); font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <div style="width:100%; padding:12px 16px; border-radius:12px; background:rgba(22,101,52,0.06); color:var(--primary-red); font-size:12.5px; text-align:center; border: 1.5px solid rgba(22,101,52,0.2); font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;">
                 <i class="fas fa-lock"></i>
                 <span>Only fully verified residents can comment. <a href="{{ url_for('id_verification') }}" style="color:var(--primary-red); text-decoration:underline; font-weight:800;">Verify now</a></span>
             </div>
@@ -2792,11 +2994,7 @@
         document.getElementById('hf-title').value       = mState.title;
         document.getElementById('hf-location').value    = mState.loc;
         document.getElementById('hf-description').value = mState.desc;
-        const anonCheck = document.getElementById('m-anon-toggle');
-        const hfAnon = document.getElementById('hf-anonymous');
-        if (hfAnon) {
-            hfAnon.value = (anonCheck && anonCheck.checked) ? '1' : '0';
-        }
+
 
         // Multi-file: copy ALL selected files (1st=cover, rest=reports_media)
         const hfPhoto = document.getElementById('hf-photo');
@@ -2838,11 +3036,7 @@
         document.getElementById('hf-title').value       = mState.title;
         document.getElementById('hf-location').value    = mState.loc;
         document.getElementById('hf-description').value = mState.desc;
-        const anonCheck = document.getElementById('m-anon-toggle');
-        const hfAnon = document.getElementById('hf-anonymous');
-        if (hfAnon) {
-            hfAnon.value = (anonCheck && anonCheck.checked) ? '1' : '0';
-        }
+
 
         // Build payload
         const payload = {
@@ -2915,11 +3109,7 @@
         document.getElementById('hf-title').value       = mState.title;
         document.getElementById('hf-location').value    = mState.loc;
         document.getElementById('hf-description').value = mState.desc;
-        const anonCheck = document.getElementById('m-anon-toggle');
-        const hfAnon = document.getElementById('hf-anonymous');
-        if (hfAnon) {
-            hfAnon.value = (anonCheck && anonCheck.checked) ? '1' : '0';
-        }
+
 
         // Multi-file: copy ALL selected files (1st=cover, rest=reports_media)
         const hfPhoto2 = document.getElementById('hf-photo');
@@ -3404,7 +3594,7 @@
             if (cdmAvatar) {
                 if (r.is_anonymous) {
                     cdmAvatar.style.background = '#374151';
-                    cdmAvatar.innerHTML = '<i class="fas fa-user-secret" style="font-size:16px;color:white;"></i>';
+                    cdmAvatar.innerHTML = '<i class="fas fa-user-shield" style="font-size:16px;color:white;"></i>';
                 } else if (r.profile_photo) {
                     const photoStr = String(r.profile_photo).replace(/\bbytearray\(b['"]/g, '').replace(/['"]\)$/g, '').replace(/^b['"]/, '').replace(/['"]$/, '');
                     const clean = photoStr.replace('static/', '');
@@ -3418,14 +3608,8 @@
             // Header
             const cdmAuthor = document.getElementById('cdm-author-name');
             if (cdmAuthor) {
-                const rawFn = String(r.first_name || '').trim();
-                const rawLn = String(r.last_name || '').trim();
-                const full = `${rawFn} ${rawLn}`.trim();
-                if (r.is_anonymous || !rawFn || rawFn.toLowerCase() === 'none' || !rawLn || rawLn.toLowerCase() === 'none' || full.toLowerCase() === 'none none') {
-                    cdmAuthor.innerHTML = 'Anonymous Person <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:11px;" title="Verified Anonymous Resident"></i>';
-                } else {
-                    cdmAuthor.textContent = full || 'Anonymous Person';
-                }
+                const authorDisplay = (r.fullname || `${r.first_name || ''} ${r.last_name || ''}`.trim() || 'Anonymous Resident');
+                cdmAuthor.innerHTML = `${authorDisplay} <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:11px;" title="Verified Resident"></i>`;
             }
             
             const cdmTime = document.getElementById('cdm-time');
@@ -3448,7 +3632,15 @@
             document.getElementById('cdm-title').textContent = r.title || '';
             document.getElementById('cdm-desc').textContent = r.description || 'No additional details provided.';
             const locEl = document.getElementById('cdm-loc');
-            if (locEl) locEl.innerHTML = r.locname ? `<i class="fas fa-map-marker-alt" style="color:#ef4444;"></i> ${r.locname}` : '';
+            if (locEl) {
+                if (r.locname) {
+                    locEl.style.display = 'inline-flex';
+                    locEl.innerHTML = `<span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--text-muted); background:var(--search-bg); padding:5px 12px; border-radius:20px; border:1px solid var(--border-color);"><i class="fas fa-location-dot" style="color:var(--primary-red);"></i> ${r.locname}</span>`;
+                } else {
+                    locEl.style.display = 'none';
+                    locEl.innerHTML = '';
+                }
+            }
             
             // Set report ID for comment form
             const formIdInput = document.getElementById('cdm-form-report-id');
@@ -3458,8 +3650,8 @@
             // Stats
             const cdmUp = document.getElementById('cdm-upvote-stat');
             const cdmCom = document.getElementById('cdm-comment-stat');
-            if (cdmUp) cdmUp.innerHTML = `<i class="fas fa-arrow-up" style="color:var(--primary-red);"></i> ${r.upvote_count || 0} Upvotes`;
-            if (cdmCom) cdmCom.innerHTML = `<i class="fas fa-comment" style="color:var(--primary-red);"></i> ${r.comment_count || 0} Comments`;
+            if (cdmUp) cdmUp.innerHTML = `<i class="fas fa-arrow-up" style="color:var(--primary-red);"></i> <span>${r.upvote_count || 0} Upvotes</span>`;
+            if (cdmCom) cdmCom.innerHTML = `<i class="far fa-comment-dots" style="color:var(--primary-red);"></i> <span>${r.comment_count || 0} Comments</span>`;
             
             // Stepper
             const stLower = (r.status || '').toLowerCase();
@@ -3472,42 +3664,42 @@
             const lbl2 = document.getElementById('step-lbl-2');
             const lbl3 = document.getElementById('step-lbl-3');
             
-            // Reset
-            if (dot1) { dot1.style.background = '#ef4444'; dot1.style.color = 'white'; dot1.style.boxShadow = '0 0 0 5px rgba(239,68,68,0.2)'; dot1.innerHTML = '1'; }
-            if (dot2) { dot2.style.background = 'var(--border-color)'; dot2.style.color = 'var(--text-muted)'; dot2.style.boxShadow = 'none'; dot2.innerHTML = '2'; }
+            // Reset to clean emerald green defaults
+            if (dot1) { dot1.style.background = 'var(--primary-red)'; dot1.style.color = 'white'; dot1.style.border = 'none'; dot1.style.boxShadow = '0 0 0 4px rgba(22,101,52,0.18)'; dot1.innerHTML = '1'; }
+            if (dot2) { dot2.style.background = 'var(--search-bg)'; dot2.style.color = 'var(--text-muted)'; dot2.style.border = '2px solid var(--border-color)'; dot2.style.boxShadow = 'none'; dot2.innerHTML = '2'; }
             if (lbl2) { lbl2.style.color = 'var(--text-muted)'; lbl2.textContent = 'In Review'; lbl2.style.fontWeight = '600'; }
-            if (dot3) { dot3.style.background = 'var(--border-color)'; dot3.style.color = 'var(--text-muted)'; dot3.style.boxShadow = 'none'; dot3.innerHTML = '3'; }
+            if (dot3) { dot3.style.background = 'var(--search-bg)'; dot3.style.color = 'var(--text-muted)'; dot3.style.border = '2px solid var(--border-color)'; dot3.style.boxShadow = 'none'; dot3.innerHTML = '3'; }
             if (lbl3) { lbl3.style.color = 'var(--text-muted)'; lbl3.textContent = 'Resolved'; lbl3.style.fontWeight = '600'; }
             if (line1) line1.style.background = 'var(--border-color)';
             if (line2) line2.style.background = 'var(--border-color)';
             
             if (stLower === 'resolved' || stLower === 'completed') {
-                if (stageBadge) { stageBadge.innerHTML = '✓ Resolved'; stageBadge.style.background = '#dcfce7'; stageBadge.style.color = '#166534'; }
-                if (dot1) dot1.style.background = '#22c55e';
-                if (line1) line1.style.background = '#22c55e';
-                if (dot2) { dot2.style.background = '#22c55e'; dot2.style.color = 'white'; }
+                if (stageBadge) { stageBadge.innerHTML = '<i class="fas fa-check-circle"></i> Resolved'; stageBadge.style.background = '#dcfce7'; stageBadge.style.color = '#166534'; }
+                if (dot1) { dot1.style.background = '#166534'; dot1.style.boxShadow = 'none'; dot1.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
+                if (line1) line1.style.background = '#166534';
+                if (dot2) { dot2.style.background = '#166534'; dot2.style.color = 'white'; dot2.style.border = 'none'; dot2.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
                 if (lbl2) lbl2.style.color = 'var(--text-main)';
-                if (line2) line2.style.background = '#22c55e';
-                if (dot3) { dot3.style.background = '#22c55e'; dot3.style.color = 'white'; dot3.style.boxShadow = '0 0 0 5px rgba(34,197,94,0.25)'; }
-                if (lbl3) { lbl3.style.color = '#166534'; }
+                if (line2) line2.style.background = '#166534';
+                if (dot3) { dot3.style.background = '#16a34a'; dot3.style.color = 'white'; dot3.style.border = 'none'; dot3.style.boxShadow = '0 0 0 4px rgba(22,163,74,0.25)'; dot3.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
+                if (lbl3) { lbl3.style.color = '#166534'; lbl3.style.fontWeight = '700'; }
             } else if (stLower.includes('deny') || stLower.includes('denied') || stLower.includes('reject') || stLower.includes('declin') || stLower.includes('cancel') || stLower.includes('spam') || stLower.includes('invalid')) {
-                const labelText = stLower.includes('deny') || stLower.includes('denied') ? 'Denied' : 'Rejected';
-                if (stageBadge) { stageBadge.innerHTML = '✖ ' + labelText; stageBadge.style.background = '#fee2e2'; stageBadge.style.color = '#22c55e'; }
-                if (dot1) dot1.style.background = '#64748b';
-                if (line1) line1.style.background = '#f87171';
-                if (dot2) { dot2.style.background = '#64748b'; dot2.style.color = 'white'; }
+                const labelText = stLower.includes('deny') || stLower.includes('denied') ? 'Denied' : 'Declined';
+                if (stageBadge) { stageBadge.innerHTML = '<i class="fas fa-times-circle"></i> ' + labelText; stageBadge.style.background = '#fee2e2'; stageBadge.style.color = '#dc2626'; }
+                if (dot1) { dot1.style.background = '#64748b'; dot1.style.boxShadow = 'none'; dot1.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
+                if (line1) line1.style.background = '#cbd5e1';
+                if (dot2) { dot2.style.background = '#64748b'; dot2.style.color = 'white'; dot2.style.border = 'none'; dot2.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
                 if (lbl2) { lbl2.style.color = 'var(--text-muted)'; lbl2.textContent = 'Reviewed'; }
-                if (line2) line2.style.background = '#f87171';
-                if (dot3) { dot3.style.background = '#22c55e'; dot3.style.color = 'white'; dot3.style.boxShadow = '0 0 0 5px rgba(220,38,38,0.25)'; dot3.innerHTML = '<i class="fas fa-times"></i>'; }
-                if (lbl3) { lbl3.textContent = labelText; lbl3.style.color = '#22c55e'; lbl3.style.fontWeight = '800'; }
+                if (line2) line2.style.background = '#fca5a5';
+                if (dot3) { dot3.style.background = '#dc2626'; dot3.style.color = 'white'; dot3.style.border = 'none'; dot3.style.boxShadow = '0 0 0 4px rgba(220,38,38,0.25)'; dot3.innerHTML = '<i class="fas fa-times" style="font-size:11px;"></i>'; }
+                if (lbl3) { lbl3.textContent = labelText; lbl3.style.color = '#dc2626'; lbl3.style.fontWeight = '700'; }
             } else if (stLower.includes('prog') || stLower.includes('review') || stLower.includes('process') || stLower.includes('investigat')) {
-                if (stageBadge) { stageBadge.innerHTML = '⚡ In Progress'; stageBadge.style.background = '#dbeafe'; stageBadge.style.color = '#1d4ed8'; }
-                if (dot1) dot1.style.background = '#3b82f6';
-                if (line1) line1.style.background = '#3b82f6';
-                if (dot2) { dot2.style.background = '#3b82f6'; dot2.style.color = 'white'; dot2.style.boxShadow = '0 0 0 5px rgba(59,130,246,0.25)'; }
-                if (lbl2) lbl2.style.color = '#1d4ed8';
+                if (stageBadge) { stageBadge.innerHTML = '<i class="fas fa-bolt"></i> In Progress'; stageBadge.style.background = '#dbeafe'; stageBadge.style.color = '#1d4ed8'; }
+                if (dot1) { dot1.style.background = '#166534'; dot1.style.boxShadow = 'none'; dot1.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
+                if (line1) line1.style.background = '#2563eb';
+                if (dot2) { dot2.style.background = '#2563eb'; dot2.style.color = 'white'; dot2.style.border = 'none'; dot2.style.boxShadow = '0 0 0 4px rgba(37,99,235,0.25)'; dot2.innerHTML = '2'; }
+                if (lbl2) { lbl2.style.color = '#1d4ed8'; lbl2.style.fontWeight = '700'; }
             } else {
-                if (stageBadge) { stageBadge.innerHTML = '⏳ Pending Review'; stageBadge.style.background = '#fef3c7'; stageBadge.style.color = '#d97706'; }
+                if (stageBadge) { stageBadge.innerHTML = '<i class="fas fa-hourglass-half"></i> Pending Review'; stageBadge.style.background = '#fef3c7'; stageBadge.style.color = '#b45309'; }
             }
             
             // Photo + extra media gallery (cover + reports_media)
@@ -3542,20 +3734,20 @@
                         let avatarHtml = '';
                         let monoStyle = '';
                         let authorHtml = '';
-                        const rawFull = String(c.fullname || '').trim();
-                        if (c.is_anonymous || !rawFull || rawFull.toLowerCase() === 'none' || rawFull.toLowerCase() === 'none none') {
-                            avatarHtml = '<i class="fas fa-user-secret" style="font-size:13px;color:white;"></i>';
+                        const commentAuthor = String(c.fullname || 'Anonymous Resident').trim();
+                        if (c.is_anonymous) {
+                            avatarHtml = '<i class="fas fa-user-shield" style="font-size:13px;color:white;"></i>';
                             monoStyle = 'style="background:#374151;color:white;display:flex;align-items:center;justify-content:center;"';
-                            authorHtml = 'Anonymous Person <i class="fas fa-shield-alt" style="color:var(--primary-red);font-size:10px;" title="Verified Anonymous Resident"></i>';
+                            authorHtml = `${commentAuthor} <i class="fas fa-shield-alt" style="color:var(--primary-red);font-size:10px;" title="Verified Resident"></i>`;
                         } else {
-                            const initials = (rawFull || 'U')[0].toUpperCase();
+                            const initials = (commentAuthor || 'U')[0].toUpperCase();
                             avatarHtml = initials;
                             if (c.profile_photo) {
                                 const photoStr = String(c.profile_photo).replace(/\bbytearray\(b['"]/g, '').replace(/['"]\)$/g, '').replace(/^b['"]/, '').replace(/['"]$/, '');
                                 const clean = photoStr.replace('static/', '');
                                 avatarHtml = `<img src="/static/${clean}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
                             }
-                            authorHtml = rawFull;
+                            authorHtml = commentAuthor;
                         }
                         stream.innerHTML += `
                             <div class="comment-item">
@@ -3685,33 +3877,33 @@
         if (line2) line2.style.background = 'var(--border-color)';
         
         if (stLower === 'resolved' || stLower === 'completed') {
-            if (stageBadge) { stageBadge.innerHTML = '✓ Resolved'; stageBadge.style.background = '#dcfce7'; stageBadge.style.color = '#166534'; }
-            if (dot1) { dot1.style.background = '#22c55e'; dot1.style.boxShadow = 'none'; }
-            if (line1) line1.style.background = '#22c55e';
-            if (dot2) { dot2.style.background = '#22c55e'; dot2.style.color = 'white'; }
+            if (stageBadge) { stageBadge.innerHTML = '<i class="fas fa-check-circle"></i> Resolved'; stageBadge.style.background = '#dcfce7'; stageBadge.style.color = '#166534'; }
+            if (dot1) { dot1.style.background = '#166534'; dot1.style.boxShadow = 'none'; dot1.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
+            if (line1) line1.style.background = '#166534';
+            if (dot2) { dot2.style.background = '#166534'; dot2.style.color = 'white'; dot2.style.border = 'none'; dot2.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
             if (lbl2) lbl2.style.color = 'var(--text-main)';
-            if (line2) line2.style.background = '#22c55e';
-            if (dot3) { dot3.style.background = '#22c55e'; dot3.style.color = 'white'; dot3.style.boxShadow = '0 0 0 5px rgba(34,197,94,0.25)'; }
-            if (lbl3) lbl3.style.color = '#166534';
+            if (line2) line2.style.background = '#166534';
+            if (dot3) { dot3.style.background = '#16a34a'; dot3.style.color = 'white'; dot3.style.border = 'none'; dot3.style.boxShadow = '0 0 0 4px rgba(22,163,74,0.25)'; dot3.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
+            if (lbl3) { lbl3.style.color = '#166534'; lbl3.style.fontWeight = '700'; }
         } else if (stLower.includes('deny') || stLower.includes('denied') || stLower.includes('reject') || stLower.includes('declin') || stLower.includes('cancel') || stLower.includes('spam') || stLower.includes('invalid')) {
             const isDenied = stLower.includes('deny') || stLower.includes('denied');
-            const labelText = isDenied ? 'Denied' : 'Rejected';
-            if (stageBadge) { stageBadge.innerHTML = '✖ ' + labelText; stageBadge.style.background = '#fee2e2'; stageBadge.style.color = '#22c55e'; }
-            if (dot1) { dot1.style.background = '#64748b'; dot1.style.boxShadow = 'none'; }
-            if (line1) line1.style.background = '#f87171';
-            if (dot2) { dot2.style.background = '#64748b'; dot2.style.color = 'white'; }
+            const labelText = isDenied ? 'Denied' : 'Declined';
+            if (stageBadge) { stageBadge.innerHTML = '<i class="fas fa-times-circle"></i> ' + labelText; stageBadge.style.background = '#fee2e2'; stageBadge.style.color = '#dc2626'; }
+            if (dot1) { dot1.style.background = '#64748b'; dot1.style.boxShadow = 'none'; dot1.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
+            if (line1) line1.style.background = '#cbd5e1';
+            if (dot2) { dot2.style.background = '#64748b'; dot2.style.color = 'white'; dot2.style.border = 'none'; dot2.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
             if (lbl2) { lbl2.style.color = 'var(--text-muted)'; lbl2.textContent = 'Reviewed'; }
-            if (line2) line2.style.background = '#f87171';
-            if (dot3) { dot3.style.background = '#22c55e'; dot3.style.color = 'white'; dot3.style.boxShadow = '0 0 0 5px rgba(220,38,38,0.25)'; dot3.innerHTML = '<i class="fas fa-times"></i>'; }
-            if (lbl3) { lbl3.textContent = labelText; lbl3.style.color = '#22c55e'; lbl3.style.fontWeight = '800'; }
+            if (line2) line2.style.background = '#fca5a5';
+            if (dot3) { dot3.style.background = '#dc2626'; dot3.style.color = 'white'; dot3.style.border = 'none'; dot3.style.boxShadow = '0 0 0 4px rgba(220,38,38,0.25)'; dot3.innerHTML = '<i class="fas fa-times" style="font-size:11px;"></i>'; }
+            if (lbl3) { lbl3.textContent = labelText; lbl3.style.color = '#dc2626'; lbl3.style.fontWeight = '700'; }
         } else if (stLower.includes('prog') || stLower.includes('review') || stLower.includes('process') || stLower.includes('investigat')) {
-            if (stageBadge) { stageBadge.innerHTML = '⚡ In Progress'; stageBadge.style.background = '#dbeafe'; stageBadge.style.color = '#1d4ed8'; }
-            if (dot1) { dot1.style.background = '#3b82f6'; dot1.style.boxShadow = 'none'; }
-            if (line1) line1.style.background = '#3b82f6';
-            if (dot2) { dot2.style.background = '#3b82f6'; dot2.style.color = 'white'; dot2.style.boxShadow = '0 0 0 5px rgba(59,130,246,0.25)'; }
-            if (lbl2) lbl2.style.color = '#1d4ed8';
+            if (stageBadge) { stageBadge.innerHTML = '<i class="fas fa-bolt"></i> In Progress'; stageBadge.style.background = '#dbeafe'; stageBadge.style.color = '#1d4ed8'; }
+            if (dot1) { dot1.style.background = '#166534'; dot1.style.boxShadow = 'none'; dot1.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
+            if (line1) line1.style.background = '#2563eb';
+            if (dot2) { dot2.style.background = '#2563eb'; dot2.style.color = 'white'; dot2.style.border = 'none'; dot2.style.boxShadow = '0 0 0 4px rgba(37,99,235,0.25)'; dot2.innerHTML = '2'; }
+            if (lbl2) { lbl2.style.color = '#1d4ed8'; lbl2.style.fontWeight = '700'; }
         } else {
-            if (stageBadge) { stageBadge.innerHTML = '⏳ Pending Review'; stageBadge.style.background = '#fef3c7'; stageBadge.style.color = '#d97706'; }
+            if (stageBadge) { stageBadge.innerHTML = '<i class="fas fa-hourglass-half"></i> Pending Review'; stageBadge.style.background = '#fef3c7'; stageBadge.style.color = '#b45309'; }
         }
         
         const photoCont = document.getElementById('cdm-photo-container');
@@ -4338,6 +4530,28 @@ function showCameraGalleryPrompt(inputElement) {
             closeDeleteConcernModal();
         }
     }
+    // ===== SIDEBAR NOTIFICATION BADGE SYNC =====
+    (function syncSidebarNotifications() {
+        fetch('/api/notifications_count')
+            .then(res => res.json())
+            .then(data => {
+                if (!data || !data.success || !Array.isArray(data.ids)) return;
+                let readIds = [];
+                try {
+                    readIds = JSON.parse(localStorage.getItem('actbayan_read_notifs_v1') || '[]');
+                } catch (e) {
+                    readIds = [];
+                }
+                const readSet = new Set(readIds);
+                const unread = data.ids.filter(id => !readSet.has(id)).length;
+                const badge = document.getElementById('sidebar-notif-badge');
+                if (badge) {
+                    badge.textContent = unread;
+                    badge.style.display = unread > 0 ? 'inline-flex' : 'none';
+                }
+            })
+            .catch(() => {});
+    })();
 </script>
 </body>
 </html>

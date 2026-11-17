@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GIS Flashcards — Modules 1–4 + QGIS &amp; Campus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF2E9; --paper:#FCFDFA; --paper-2:#F1F4EB;
+    --ink:#1E2A1D; --ink-soft:#48533F; --ink-faint:#7C8672;
+    --line:#CDD5C1; --line-strong:#AEB9A0;
+
+    --m1:#2C4870; --m1-tint:#E4E9F1;
+    --m2:#54713C; --m2-tint:#E6EEDD;
+    --m3:#A6631C; --m3-tint:#F3E7D3;
+    --m4:#1C7A73; --m4-tint:#DCEEEB;
+    --qg:#6A4C93; --qg-tint:#EBE5F2;
+    --neu:#5B5F4F; --neu-tint:#E9E9DE;
+
+    --good:#3F7D4F; --good-tint:#E3EEE1;
+    --bad:#B5453A; --bad-tint:#F5E1DD;
+
+    --radius:14px; --radius-sm:9px;
+    --shadow:0 1px 2px rgba(30,42,29,.07), 0 6px 18px rgba(30,42,29,.06);
+    --font-display:'Space Grotesk', sans-serif;
+    --font-body:'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono:'IBM Plex Mono', 'Courier New', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body); line-height:1.55; font-size:16px;}
+  h1,h2,h3{font-family:var(--font-display); color:var(--ink); margin:0;}
+  button{font:inherit;}
+  .shell{max-width:640px; margin:0 auto; padding:0 1.15rem 3rem;}
+  [hidden]{display:none !important;}
+
+  /* header */
+  header.top{padding:2rem 0 0.4rem;}
+  .eyebrow{font-family:var(--font-mono); font-size:0.76rem; color:var(--ink-faint); margin:0 0 0.4rem;}
+  header.top h1{font-size:clamp(1.4rem,4.5vw,1.85rem); margin-bottom:0.5rem;}
+  header.top p{color:var(--ink-soft); margin:0 0 1.2rem; font-size:0.96rem;}
+
+  /* buttons */
+  .btn{font-family:var(--font-display); font-weight:600; font-size:0.88rem; border-radius:999px; padding:0.6rem 1.05rem; border:1px solid var(--line); background:var(--paper); color:var(--ink); cursor:pointer; transition:background .12s ease, color .12s ease, border-color .12s ease; white-space:nowrap;}
+  .btn:hover{border-color:var(--line-strong);}
+  .btn.primary{background:var(--m3); border-color:var(--m3); color:#fff;}
+  .btn.ghost{background:transparent; border-color:transparent; color:var(--ink-soft); text-decoration:underline; padding:0.3rem 0.2rem;}
+  .btn.block{width:100%;}
+  .btn:disabled{opacity:0.4; cursor:not-allowed;}
+  .btn:focus-visible, .chip:focus-visible, input:focus-visible{outline:2px solid var(--m3); outline-offset:2px;}
+
+  /* setup: chips */
+  .section-label{font-family:var(--font-display); font-weight:600; font-size:0.86rem; color:var(--ink); margin:1.2rem 0 0.5rem;}
+  .chiprow{display:flex; flex-wrap:wrap; gap:0.5rem;}
+  .chip{--c:var(--neu); font-family:var(--font-display); font-weight:600; font-size:0.83rem; padding:0.45rem 0.85rem; border-radius:999px; border:1px solid var(--line); background:var(--paper); color:var(--ink-soft); cursor:pointer;}
+  .chip.active{background:var(--c); border-color:var(--c); color:#fff;}
+  .checkrow{display:flex; align-items:center; gap:0.5rem; margin:0.45rem 0; font-size:0.92rem; color:var(--ink-soft);}
+  .checkrow input{width:16px; height:16px; accent-color:var(--m3);}
+
+  /* mastery snapshot */
+  .snapshot{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:1.05rem 1.15rem; margin:1.3rem 0;}
+  .snapshot .headline{display:flex; align-items:baseline; justify-content:space-between; gap:0.6rem;}
+  .snapshot .headline b{font-size:1.5rem;}
+  .snapshot .headline span{font-family:var(--font-mono); font-size:0.78rem; color:var(--ink-faint);}
+  .bar{height:8px; border-radius:999px; background:var(--paper-2); overflow:hidden; margin-top:0.5rem;}
+  .bar > i{display:block; height:100%; background:var(--m3); transition:width .3s ease;}
+  .bucket-line{display:flex; gap:1rem; margin-top:0.6rem; font-size:0.78rem; color:var(--ink-faint); font-family:var(--font-mono); flex-wrap:wrap;}
+  .modbars{display:grid; grid-template-columns:1fr 1fr; gap:0.6rem 1rem; margin-top:0.9rem;}
+  .modbar-row{}
+  .modbar-row .lbl{display:flex; justify-content:space-between; font-size:0.76rem; color:var(--ink-soft); margin-bottom:0.25rem; font-family:var(--font-mono);}
+  .modbar{height:5px; border-radius:999px; background:var(--paper-2); overflow:hidden;}
+  .modbar > i{display:block; height:100%;}
+
+  .quickrow{display:flex; flex-wrap:wrap; gap:0.6rem; margin:1.3rem 0 0.4rem;}
+  .resetlink{margin-top:1.4rem; text-align:center;}
+
+  /* study screen */
+  .toplinks{display:flex; justify-content:space-between; align-items:center; padding:1.3rem 0 0.7rem; font-family:var(--font-mono); font-size:0.78rem; color:var(--ink-faint);}
+  .progress-line{height:6px; border-radius:999px; background:var(--paper-2); overflow:hidden; margin-bottom:1.1rem;}
+  .progress-line > i{display:block; height:100%; background:var(--m3); transition:width .3s ease;}
+
+  .card-kicker{display:flex; align-items:center; justify-content:center; gap:0.4rem; font-family:var(--font-mono); font-size:0.74rem; color:var(--ink-faint); margin-bottom:0.85rem;}
+  .card-kicker i{width:8px; height:8px; border-radius:50%; flex:0 0 auto;}
+
+  .card-stage{
+    min-height:230px; max-height:55vh; overflow-y:auto;
+    background:var(--paper); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow);
+    padding:1.7rem 1.5rem; display:flex; flex-direction:column; justify-content:center; align-items:center;
+    text-align:center; cursor:pointer; transition:transform .15s ease;
+  }
+  .card-stage.squish{transform:scaleX(.02);}
+  .card-text{font-family:var(--font-display); font-weight:600; font-size:1.22rem; color:var(--ink); line-height:1.4;}
+  .card-text.def{font-family:var(--font-body); font-weight:400; font-size:1.04rem; color:var(--ink-soft); text-align:left; max-width:42ch;}
+  .card-text ul, .card-text ol{text-align:left; margin:0.5rem auto 0; padding-left:1.25rem; max-width:38ch; font-size:0.98rem;}
+  .card-text li{margin-bottom:0.3rem;}
+  .card-tapme{margin-top:1.1rem; font-family:var(--font-mono); font-size:0.74rem; color:var(--ink-faint);}
+
+  .controls{margin-top:1.1rem; display:flex; gap:0.6rem; flex-wrap:wrap; justify-content:center;}
+  .btn-good{background:var(--good); border-color:var(--good); color:#fff;}
+  .btn-bad{background:var(--paper); border-color:var(--bad); color:var(--bad);}
+  .requeue-note{text-align:center; font-size:0.88rem; color:var(--ink-soft); margin-top:1rem;}
+  .requeue-row{margin-top:0.6rem;}
+  .btn-requeue{border-color:var(--m3); color:var(--m3);}
+
+  .kbdhint{text-align:center; margin-top:1rem; font-family:var(--font-mono); font-size:0.72rem; color:var(--ink-faint);}
+
+  /* indicators */
+  .indicator-row { display:flex; justify-content:center; gap:0.5rem; margin-bottom:0.8rem; min-height: 24px; }
+  .badge { display:inline-flex; align-items:center; gap:0.3rem; font-family:var(--font-mono); font-weight:600; font-size:0.72rem; padding:0.25rem 0.65rem; border-radius:999px; }
+  .badge-new { background:var(--m1-tint); color:var(--m1); border:1px solid var(--m1); }
+  .badge-mastered { background:var(--good-tint); color:var(--good); border:1px solid var(--good); }
+  .badge-wrong { background:var(--bad-tint); color:var(--bad); border:1px solid var(--bad); }
+
+  /* summary */
+  .summary-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:0.65rem; margin:1.2rem 0;}
+  .stat{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-sm); padding:0.85rem 0.5rem; text-align:center;}
+  .stat b{display:block; font-family:var(--font-display); font-size:1.45rem;}
+  .stat span{font-size:0.74rem; color:var(--ink-faint);}
+  .missed-list{margin:1rem 0; display:flex; flex-direction:column; gap:0.4rem;}
+  .missed-item{background:var(--bad-tint); border-radius:var(--radius-sm); padding:0.55rem 0.85rem; font-size:0.87rem; color:var(--ink-soft);}
+  .missed-item b{color:var(--ink); font-family:var(--font-mono); font-weight:600;}
+
+  /* progress dashboard */
+  .weak-item{background:var(--paper); border:1px solid var(--line); border-left:3px solid var(--bad); border-radius:var(--radius-sm); padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.87rem; color:var(--ink-soft);}
+  .weak-item b{color:var(--ink); font-family:var(--font-mono);}
+
+  footer.foot{padding:2rem 0 0.5rem; color:var(--ink-faint); font-size:0.78rem; font-family:var(--font-mono); text-align:center;}
+
+  @media (max-width:480px){
+    .summary-stats{grid-template-columns:repeat(3,1fr); gap:0.45rem;}
+    .modbars{grid-template-columns:1fr;}
+  }
+
+  /* hints */
+  .hintbar{margin-top:0.9rem; display:flex; flex-direction:column; align-items:center; gap:0.5rem;}
+  .hintbtns{display:flex; flex-wrap:wrap; gap:0.4rem; justify-content:center; align-items:center; font-size:0.78rem; color:var(--ink-faint);}
+  .hintbtns button{font-family:var(--font-body); font-size:0.8rem; font-weight:600; color:var(--ink-soft); background:var(--paper); border:1px solid var(--line); border-radius:999px; padding:0.3rem 0.8rem; cursor:pointer;}
+  .hintbtns button[aria-pressed="true"]{background:var(--m3); border-color:var(--m3); color:#fff;}
+  .hintmask{font-family:var(--font-mono); font-weight:600; font-size:0.95rem; color:var(--m3); letter-spacing:0.12em; white-space:pre-wrap; word-break:break-word; text-align:center; max-width:46ch;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="top">
+    <p class="eyebrow">IM06 · Companion to your GIS Reviewer</p>
+    <h1>GIS Flashcards</h1>
+    <p>128 cards covering all four modules plus the QGIS demo and the campus practical. Grade yourself honestly — if you miss one, you choose whether it comes back soon or later, and it keeps returning until you get it right.</p>
+  </header>
+
+  <!-- ============ SETUP VIEW ============ -->
+  <main id="view-setup">
+    <div class="snapshot" id="snapshot"></div>
+
+    <p class="section-label">Modules</p>
+    <div class="chiprow" id="mod-chips">
+      <button class="chip active" data-mod="all" style="--c:var(--neu)">All modules</button>
+      <button class="chip" data-mod="m1" style="--c:var(--m1)">Module 1</button>
+      <button class="chip" data-mod="m2" style="--c:var(--m2)">Module 2</button>
+      <button class="chip" data-mod="m3" style="--c:var(--m3)">Module 3</button>
+      <button class="chip" data-mod="m4" style="--c:var(--m4)">Module 4</button>
+      <button class="chip" data-mod="qg" style="--c:var(--qg)">QGIS Demo</button>
+      <button class="chip" data-mod="cp" style="--c:var(--qg)">Campus Practical</button>
+    </div>
+
+    <p class="section-label">Study mode</p>
+    <div class="chiprow" id="mode-chips">
+      <button class="chip active" data-mode="mixed" style="--c:var(--neu)">Mixed (both ways)</button>
+      <button class="chip" data-mode="identify" style="--c:var(--neu)">Identify (see clue → name it)</button>
+      <button class="chip" data-mode="describe" style="--c:var(--neu)">Describe (see term → explain it)</button>
+    </div>
+
+    <p class="section-label">Include</p>
+    <label class="checkrow"><input type="checkbox" id="inc-terms" checked> Term cards (identification &amp; description)</label>
+    <label class="checkrow"><input type="checkbox" id="inc-concepts" checked> Concept &amp; fact cards (lists, tables, workflows)</label>
+
+    <div class="quickrow">
+      <button class="btn primary" id="btn-start">Start studying</button>
+      <button class="btn" id="btn-quick10">Quick 10 (random)</button>
+      <button class="btn" id="btn-weak" hidden>Weak spots (<span id="weak-count">0</span>)</button>
+      <button class="btn" id="btn-progress">My progress</button>
+    </div>
+
+    <p class="resetlink"><button class="btn ghost" id="btn-reset">Reset all saved progress</button></p>
+  </main>
+
+  <!-- ============ STUDY VIEW ============ -->
+  <main id="view-study" hidden>
+    <div class="toplinks">
+      <button class="btn ghost" id="btn-exit-study">← Change settings</button>
+      <button class="btn ghost" id="btn-progress-2">My progress</button>
+    </div>
+    <div class="progress-line"><i id="round-progress-bar" style="width:0%"></i></div>
+    <p style="text-align:center; font-family:var(--font-mono); font-size:0.76rem; color:var(--ink-faint); margin:-0.6rem 0 1rem;" id="round-progress-label">0 / 0 mastered this round</p>
+
+    <div class="card-kicker"><i id="card-dot"></i><span id="card-kicker-text"></span></div>
+    
+    <!-- New indicators container -->
+    <div class="indicator-row" id="card-indicators"></div>
+    
+    <div class="card-stage" id="card-stage">
+      <div class="card-text" id="card-face"></div>
+      <div class="card-tapme" id="card-tapme">Tap the card to reveal the answer</div>
+    </div>
+    <div class="hintbar" id="hintbar" hidden>
+      <div class="hintbtns" id="hintbtns"><span>Need a nudge?</span>
+        <button type="button" data-k="b" aria-pressed="false">Blanks</button>
+        <button type="button" data-k="f" aria-pressed="false">First letter</button>
+        <button type="button" data-k="l" aria-pressed="false">Last letter</button>
+      </div>
+      <div class="hintmask" id="hintmask" aria-live="polite"></div>
+    </div>
+
+    <div class="controls" id="controls-grade" hidden>
+      <button class="btn btn-good" id="btn-good">Got it ✓</button>
+      <button class="btn btn-bad" id="btn-bad">Missed it ✗</button>
+    </div>
+    <div id="controls-requeue" hidden>
+      <p class="requeue-note">When should this come back?</p>
+      <div class="controls requeue-row">
+        <button class="btn btn-requeue" id="btn-soon">Soon (middle of the deck)</button>
+        <button class="btn btn-requeue" id="btn-later">Later (end of the deck)</button>
+      </div>
+    </div>
+
+    <p class="kbdhint">Tip: use the hint buttons if stuck · tap the card or press Space to flip · then 1 = got it, 2 = missed it</p>
+  </main>
+
+  <!-- ============ SUMMARY VIEW ============ -->
+  <main id="view-summary" hidden>
+    <h2 style="margin:1.4rem 0 0.3rem;">Round complete</h2>
+    <p style="color:var(--ink-soft); margin:0 0 0.5rem;" id="summary-blurb"></p>
+    <div class="summary-stats">
+      <div class="stat"><b id="sum-total">0</b><span>cards seen</span></div>
+      <div class="stat"><b id="sum-firsttry">0</b><span>right first try</span></div>
+      <div class="stat"><b id="sum-retries">0</b><span>needed a retry</span></div>
+    </div>
+    <div id="summary-missed-wrap" hidden>
+      <p class="section-label">You stumbled on these — worth another pass:</p>
+      <div class="missed-list" id="summary-missed-list"></div>
+    </div>
+    <div class="quickrow">
+      <button class="btn primary" id="btn-review-missed">Review the ones I missed</button>
+      <button class="btn" id="btn-again">Study this set again</button>
+      <button class="btn" id="btn-back-setup">Change settings</button>
+    </div>
+  </main>
+
+  <!-- ============ PROGRESS DASHBOARD ============ -->
+  <main id="view-progress" hidden>
+    <div class="toplinks">
+      <button class="btn ghost" id="btn-back-from-progress">← Back</button>
+      <span></span>
+    </div>
+    <h2 style="margin:0.6rem 0 0.9rem;">My progress</h2>
+    <div class="snapshot" id="snapshot-2"></div>
+    <p class="section-label">Weak spots — missed at least once, not yet mastered</p>
+    <div id="weak-list"></div>
+    <p id="weak-empty" style="color:var(--ink-faint); font-size:0.9rem;" hidden>No weak spots right now — nice.</p>
+    <div class="quickrow">
+      <button class="btn primary" id="btn-practice-weak" hidden>Practice weak spots</button>
+    </div>
+  </main>
+
+  <footer class="foot">IM06 — Geographic Information Systems · Flashcards for Modules 1–4, QGIS demo &amp; campus practical</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================================================
+     CARD DATA
+     ============================================================ */
+  const CARDS = [
+    // ---- Module 1 : term cards ----
+    {id:'m1t1', module:'m1', kind:'term', term:`Geographic Information System (GIS)`, def:`A computer-based system that collects, stores, manages, analyzes, and displays geographically referenced information (Chang).`},
+    {id:'m1t2', module:'m1', kind:'term', term:`Attribute data`, def:`Descriptive information about a feature; answers "What is it?"`},
+    {id:'m1t3', module:'m1', kind:'term', term:`Attribute information`, def:`Descriptive details about a feature, such as its name or classification.`},
+    {id:'m1t4', module:'m1', kind:'term', term:`Cloud GIS`, def:`GIS delivered through cloud computing — online storage, shared services, large-scale processing.`},
+    {id:'m1t5', module:'m1', kind:'term', term:`Geographic information`, def:`Any information tied to a specific location; combines location and description.`},
+    {id:'m1t6', module:'m1', kind:'term', term:`Location information`, def:`The position of a feature on Earth's surface; answers "Where is it?"`},
+    {id:'m1t7', module:'m1', kind:'term', term:`Spatial data`, def:`Data describing the geographic position and shape of features; answers "Where is it?"`},
+    {id:'m1t8', module:'m1', kind:'term', term:`Web GIS`, def:`GIS accessed through web browsers or mobile applications, enabling shared, interactive maps.`},
+    // ---- Module 1 : concept cards ----
+    {id:'m1c1', module:'m1', kind:'concept', q:`What are the five components of a GIS?`, a:`<ul><li>Hardware</li><li>Software</li><li>Data</li><li>People</li><li>Methods and procedures</li></ul>`},
+    {id:'m1c2', module:'m1', kind:'concept', q:`Which GIS component is the most important, and why?`, a:`<strong>Data</strong> — it's the foundation for every GIS operation.`},
+    {id:'m1c3', module:'m1', kind:'concept', q:`What two elements make up geographic information?`, a:`<strong>Location information</strong> ("Where is it?") and <strong>attribute information</strong> ("What is it?").`},
+    {id:'m1c4', module:'m1', kind:'concept', q:`How does a GIS differ from a traditional information system? (4 points)`, a:`<ul><li>Manages geographic information, not just general information</li><li>Uses maps and spatial data, not just tables and records</li><li>Answers "What?" <em>and</em> "Where?"</li><li>Supports advanced spatial analysis</li></ul>`},
+    {id:'m1c5', module:'m1', kind:'concept', q:`List the six fields where GIS is commonly applied.`, a:`<ul><li>Urban planning</li><li>Environmental management</li><li>Disaster management</li><li>Business &amp; marketing</li><li>Transportation</li><li>Public health</li></ul>`},
+    {id:'m1c6', module:'m1', kind:'concept', q:`Name the five IT fields GIS connects to.`, a:`<ul><li>Database technology</li><li>Web technologies (Web GIS)</li><li>Cloud computing (Cloud GIS)</li><li>Data analytics</li><li>Artificial intelligence</li></ul>`},
+
+    // ---- Module 2 : term cards ----
+    {id:'m2t1', module:'m2', kind:'term', term:`Absolute location`, def:`A precise geographic position, usually given as latitude/longitude or GPS coordinates.`},
+    {id:'m2t2', module:'m2', kind:'term', term:`Adjacency`, def:`Features that share common boundaries.`},
+    {id:'m2t3', module:'m2', kind:'term', term:`Clustered pattern`, def:`Features concentrated in one location, e.g. malls in urban centers.`},
+    {id:'m2t4', module:'m2', kind:'term', term:`Connectivity`, def:`How linear features, like roads or pipelines, are linked together into a network.`},
+    {id:'m2t5', module:'m2', kind:'term', term:`Containment`, def:`Whether one feature is located inside another, e.g. a city inside a province.`},
+    {id:'m2t6', module:'m2', kind:'term', term:`Direction`, def:`The position of one feature relative to another (north, south, east, west).`},
+    {id:'m2t7', module:'m2', kind:'term', term:`Dispersed pattern`, def:`Features spread out across an area, e.g. farms across rural land.`},
+    {id:'m2t8', module:'m2', kind:'term', term:`Distance`, def:`How far apart locations are — straight-line, travel distance, or travel time.`},
+    {id:'m2t9', module:'m2', kind:'term', term:`Location`, def:`Where something exists; can be absolute or relative.`},
+    {id:'m2t10', module:'m2', kind:'term', term:`Pattern`, def:`How geographic features are arranged: clustered, dispersed, or random.`},
+    {id:'m2t11', module:'m2', kind:'term', term:`Proximity`, def:`How close features are to one another.`},
+    {id:'m2t12', module:'m2', kind:'term', term:`Random pattern`, def:`Features with no clear or predictable arrangement.`},
+    {id:'m2t13', module:'m2', kind:'term', term:`Relative location`, def:`A place described in relation to other features, e.g. a school beside a highway.`},
+    {id:'m2t14', module:'m2', kind:'term', term:`Resolution`, def:`The level of detail represented in geographic data.`},
+    {id:'m2t15', module:'m2', kind:'term', term:`Scale`, def:`The relationship between distance on a map and the corresponding real-world distance.`},
+    {id:'m2t16', module:'m2', kind:'term', term:`Spatial relationship`, def:`How geographic features relate to one another — proximity, connectivity, containment, or adjacency.`},
+    {id:'m2t17', module:'m2', kind:'term', term:`Spatial thinking`, def:`The ability to understand the location, arrangement, relationships, and patterns of objects and events in space.`},
+    // ---- Module 2 : concept cards ----
+    {id:'m2c1', module:'m2', kind:'concept', q:`What are the four components of spatial thinking?`, a:`<ul><li>Location</li><li>Distance</li><li>Direction</li><li>Pattern</li></ul>`},
+    {id:'m2c2', module:'m2', kind:'concept', q:`What are the two types of location?`, a:`<strong>Absolute location</strong> (coordinates/GPS) and <strong>relative location</strong> (position relative to other features).`},
+    {id:'m2c3', module:'m2', kind:'concept', q:`What are the three types of spatial pattern?`, a:`<strong>Clustered</strong>, <strong>dispersed</strong>, and <strong>random</strong>.`},
+    {id:'m2c4', module:'m2', kind:'concept', q:`What are the four types of spatial relationships?`, a:`<ul><li>Proximity</li><li>Connectivity</li><li>Containment</li><li>Adjacency</li></ul>`},
+    {id:'m2c5', module:'m2', kind:'concept', q:`What's the difference between scale and resolution?`, a:`<strong>Scale</strong> is the relationship between map distance and real-world distance. <strong>Resolution</strong> is the level of detail captured in the data.`},
+    {id:'m2c6', module:'m2', kind:'concept', q:`What are the four steps of the spatial thinking workflow, in order?`, a:`<ol><li>Identify the problem</li><li>Identify the required data</li><li>Analyze spatial relationships</li><li>Interpret and present results</li></ol>`},
+    {id:'m2c7', module:'m2', kind:'concept', q:`Match each IT field to its spatial application (all six).`, a:`<ul><li>Database systems → Spatial databases</li><li>Mobile development → GPS-enabled application</li><li>Web development → Interactive maps</li><li>Data analytics → Location-based analysis</li><li>Artificial intelligence → Geo AI</li><li>IoT → Sensor location monitoring</li></ul>`},
+
+    // ---- Module 3 : term cards ----
+    {id:'m3t1', module:'m3', kind:'term', term:`Attribute query`, def:`A search based on the descriptive information in an attribute table (e.g. an SQL-style WHERE condition).`},
+    {id:'m3t2', module:'m3', kind:'term', term:`Attribute table`, def:`A table storing descriptive information about the features in a vector layer; each row is a feature, each column an attribute.`},
+    {id:'m3t3', module:'m3', kind:'term', term:`Data model`, def:`A method used to represent and organize information within a computer system.`},
+    {id:'m3t4', module:'m3', kind:'term', term:`Digitizing`, def:`Converting paper maps, aerial photos, or satellite images into digital vector features — e.g. tracing roads visible in satellite imagery.`},
+    {id:'m3t5', module:'m3', kind:'term', term:`Feature ID`, def:`A unique identifier linking a feature's geometry to its attribute data.`},
+    {id:'m3t6', module:'m3', kind:'term', term:`Feature layer`, def:`The GIS equivalent of a database table — a collection of related features.`},
+    {id:'m3t7', module:'m3', kind:'term', term:`Geographic feature`, def:`A real-world object represented in GIS; the GIS equivalent of a database record.`},
+    {id:'m3t8', module:'m3', kind:'term', term:`Geometry`, def:`The part of a vector feature that defines its location and shape — point, line, or polygon.`},
+    {id:'m3t9', module:'m3', kind:'term', term:`Intersect`, def:`A spatial query that finds features that cross another feature, e.g. roads crossing a flood zone.`},
+    {id:'m3t10', module:'m3', kind:'term', term:`Line feature`, def:`A vector feature with length but relatively little width — roads, rivers, pipelines.`},
+    {id:'m3t11', module:'m3', kind:'term', term:`Near`, def:`A spatial query that finds features within a specified distance of another feature.`},
+    {id:'m3t12', module:'m3', kind:'term', term:`Point feature`, def:`A vector feature with a single, specific location — schools, hospitals, cellphone towers.`},
+    {id:'m3t13', module:'m3', kind:'term', term:`Polygon feature`, def:`A vector feature that encloses an area with a defined boundary — provinces, lakes, land parcels.`},
+    {id:'m3t14', module:'m3', kind:'term', term:`Spatial query`, def:`A search that considers location and relationships between features, not just attributes.`},
+    {id:'m3t15', module:'m3', kind:'term', term:`Topology`, def:`The set of spatial relationships that define how geographic features connect to one another.`},
+    {id:'m3t16', module:'m3', kind:'term', term:`Vector data`, def:`A data model that represents geographic features using coordinates (vertices).`},
+    {id:'m3t17', module:'m3', kind:'term', term:`Vertex / vertices`, def:`A geographic position with a specific coordinate that defines the shape of a vector feature.`},
+    {id:'m3t18', module:'m3', kind:'term', term:`Within`, def:`A spatial query that finds features located inside a boundary, e.g. schools inside a municipality.`},
+    {id:'m3t19', module:'m3', kind:'term', term:`Adjacency`, def:`Features that share common boundaries.`},
+    {id:'m3t20', module:'m3', kind:'term', term:`Connectivity`, def:`How linear features like roads or pipelines are linked together.`},
+    {id:'m3t21', module:'m3', kind:'term', term:`Containment`, def:`Whether one feature is located within another.`},
+    {id:'m3t22', module:'m3', kind:'term', term:`GPS data collection`, def:`Field workers gather coordinates with GPS receivers, smartphones, or surveying equipment — commonly used to map roads, buildings, and utilities directly from the field.`},
+    {id:'m3t23', module:'m3', kind:'term', term:`Existing data sources`, def:`Government datasets, open-data initiatives like OpenStreetMap, and other geographic databases.`},
+    // ---- Module 3 : concept cards ----
+    {id:'m3c1', module:'m3', kind:'concept', q:`What two components make up every vector feature?`, a:`<strong>Geometry</strong> (location/shape) and <strong>attributes</strong> (descriptive info).`},
+    {id:'m3c2', module:'m3', kind:'concept', q:`What are the three vector geometry types?`, a:`<strong>Point</strong>, <strong>line</strong>, and <strong>polygon</strong>.`},
+    {id:'m3c3', module:'m3', kind:'concept', q:`Match each database concept to its GIS equivalent (all five).`, a:`<ul><li>Record → Geographic feature</li><li>Field → Attribute</li><li>Primary key → Feature ID</li><li>Table → Feature layer</li><li>Geometry field → Location</li></ul>`},
+    {id:'m3c4', module:'m3', kind:'concept', q:`What are the four advantages of vector data?`, a:`<ul><li>High positional accuracy</li><li>Efficient data storage</li><li>Suited for network analysis</li><li>Easy attribute management</li></ul>`},
+    {id:'m3c5', module:'m3', kind:'concept', q:`What do the three spatial query types check?`, a:`<ul><li><strong>Within</strong> — is it inside a boundary?</li><li><strong>Intersect</strong> — does it cross another feature?</li><li><strong>Near</strong> — is it within a set distance?</li></ul>`},
+    {id:'m3c6', module:'m3', kind:'concept', q:`What are the three key topological relationships?`, a:`<strong>Adjacency</strong>, <strong>connectivity</strong>, and <strong>containment</strong>.`},
+    {id:'m3c7', module:'m3', kind:'concept', q:`What topological rule applies to polygon features?`, a:`Adjacent polygons must share boundaries <em>without</em> overlapping — every location belongs to exactly one unit.`},
+    {id:'m3c8', module:'m3', kind:'concept', q:`What topological rule applies to line features?`, a:`Segments must connect properly at intersections and endpoints, or network analysis breaks.`},
+    {id:'m3c9', module:'m3', kind:'concept', q:`What are the three ways vector data gets created?`, a:`<strong>Digitizing</strong>, <strong>GPS data collection</strong>, and pulling from <strong>existing data sources</strong>.`},
+    {id:'m3c10', module:'m3', kind:'concept', q:`List the five vector-editing operations.`, a:`<ul><li>Creating new features</li><li>Moving features</li><li>Deleting features</li><li>Modifying attributes</li><li>Correcting geometric errors</li></ul>`},
+    {id:'m3c11', module:'m3', kind:'concept', q:`Define the three key topological relationships.`, a:`<ul><li><strong>Adjacency</strong> — features that share common boundaries</li><li><strong>Connectivity</strong> — how linear features like roads or pipelines are linked together</li><li><strong>Containment</strong> — whether one feature is located within another</li></ul>`},
+    {id:'m3c12', module:'m3', kind:'concept', q:`Describe the three ways vector data gets created.`, a:`<ul><li><strong>Digitizing</strong> — converting paper maps, aerial photos, or satellite images into digital vector features (e.g. tracing roads in satellite imagery)</li><li><strong>GPS data collection</strong> — field workers gather coordinates with GPS receivers, smartphones, or surveying equipment (roads, buildings, utilities)</li><li><strong>Existing data sources</strong> — government datasets, open data like OpenStreetMap, other geographic databases</li></ul>`},
+
+    // ---- Module 4 : term cards ----
+    {id:'m4t1', module:'m4', kind:'term', term:`Aerial photography`, def:`Raster images captured from aircraft or drones/UAVs, usually higher resolution than satellite imagery.`},
+    {id:'m4t2', module:'m4', kind:'term', term:`Aspect`, def:`The compass direction a slope faces (a surface analysis operation).`},
+    {id:'m4t3', module:'m4', kind:'term', term:`Big data processing`, def:`Cloud computing, distributed storage, and parallel processing used to manage large raster datasets.`},
+    {id:'m4t4', module:'m4', kind:'term', term:`Cell`, def:`A single grid unit in a raster dataset, holding a location and a value.`},
+    {id:'m4t5', module:'m4', kind:'term', term:`Cell value`, def:`The number or category code stored in a raster cell.`},
+    {id:'m4t6', module:'m4', kind:'term', term:`Computer vision`, def:`A computer-science field applied to raster imagery for object detection, image classification, and change detection.`},
+    {id:'m4t7', module:'m4', kind:'term', term:`Continuous data`, def:`A phenomenon that changes gradually across space with no clear boundaries — elevation, temperature, rainfall.`},
+    {id:'m4t8', module:'m4', kind:'term', term:`Digital Elevation Model (DEM)`, def:`A raster dataset where each cell stores a terrain elevation value.`},
+    {id:'m4t9', module:'m4', kind:'term', term:`Discrete data`, def:`Data belonging to distinct categories or classes — land use, vegetation type, soil classification.`},
+    {id:'m4t10', module:'m4', kind:'term', term:`High-resolution raster`, def:`A raster with small cells (e.g. 1m × 1m) that captures fine detail.`},
+    {id:'m4t11', module:'m4', kind:'term', term:`Low-resolution raster`, def:`A raster with large cells (e.g. 100m × 100m) that shows broad patterns rather than fine detail.`},
+    {id:'m4t12', module:'m4', kind:'term', term:`Map algebra`, def:`Mathematical or logical operations performed across one or more raster layers.`},
+    {id:'m4t13', module:'m4', kind:'term', term:`Raster data`, def:`A data model that represents geographic information as a grid of cells arranged in rows and columns.`},
+    {id:'m4t14', module:'m4', kind:'term', term:`Raster overlay`, def:`Combining multiple raster layers to support spatial decision-making, such as site suitability.`},
+    {id:'m4t15', module:'m4', kind:'term', term:`Reclassification`, def:`Converting raster values into new, more meaningful categories.`},
+    {id:'m4t16', module:'m4', kind:'term', term:`Slope`, def:`How steep terrain is (a surface analysis operation).`},
+    {id:'m4t17', module:'m4', kind:'term', term:`Surface analysis`, def:`Examining the characteristics of a continuous surface (usually a DEM) through slope, aspect, and elevation.`},
+    // ---- Module 4 : concept cards ----
+    {id:'m4c1', module:'m4', kind:'concept', q:`What four components make up a raster dataset?`, a:`<strong>Rows</strong>, <strong>columns</strong>, <strong>cells (pixels)</strong>, and <strong>cell values</strong>.`},
+    {id:'m4c2', module:'m4', kind:'concept', q:`What's the difference between continuous and discrete raster data?`, a:`<strong>Continuous</strong> changes gradually with no clear boundaries (elevation, rainfall). <strong>Discrete</strong> holds distinct category codes (land use, soil type).`},
+    {id:'m4c3', module:'m4', kind:'concept', q:`What's the typical cell size of a high-resolution vs. low-resolution raster?`, a:`High-res ≈ <strong>1m × 1m</strong>; low-res ≈ <strong>100m × 100m</strong>.`},
+    {id:'m4c4', module:'m4', kind:'concept', q:`What's the trade-off with high-resolution raster data?`, a:`Excellent detail, but a larger file size and slower processing.`},
+    {id:'m4c5', module:'m4', kind:'concept', q:`Name five sources of raster data.`, a:`<ul><li>Satellite imagery</li><li>Aerial photography</li><li>Digital Elevation Models (DEM)</li><li>Scanned maps</li><li>Sensor data</li></ul>`},
+    {id:'m4c6', module:'m4', kind:'concept', q:`What three surface-analysis operations come from a DEM?`, a:`<strong>Slope</strong>, <strong>aspect</strong>, and <strong>elevation</strong>.`},
+    {id:'m4c7', module:'m4', kind:'concept', q:`What are the four raster analysis techniques?`, a:`<ul><li>Reclassification</li><li>Map algebra</li><li>Surface analysis</li><li>Raster overlay</li></ul>`},
+    {id:'m4c8', module:'m4', kind:'concept', q:`In the flood-mapping example, which data are vector and which are raster?`, a:`<strong>Vector:</strong> houses, roads, administrative boundaries.<br><strong>Raster:</strong> elevation, rainfall, flood depth.`},
+    {id:'m4c9', module:'m4', kind:'concept', q:`Which three IT fields connect to raster processing?`, a:`<strong>Computer vision</strong>, <strong>artificial intelligence</strong>, and <strong>big data processing</strong>.`},
+    {id:'m4c10', module:'m4', kind:'concept', q:`On the vector vs. raster table, which is better for network analysis, and which for surface/image analysis?`, a:`<strong>Vector</strong> → network &amp; feature analysis. <strong>Raster</strong> → surface &amp; image analysis.`},
+    // ---- QGIS demo ----
+    {id:'qgt1', module:'qg', kind:'term', term:`QGIS`, def:`A free, open-source desktop GIS application for viewing, editing, and analyzing spatial data.`},
+    {id:'qgt2', module:'qg', kind:'term', term:`Layers panel`, def:`The QGIS panel listing project layers; layers higher in the list draw on top of lower ones.`},
+    {id:'qgt3', module:'qg', kind:'term', term:`Browser panel`, def:`The QGIS panel for finding data files and adding XYZ Tiles basemaps like OpenStreetMap.`},
+    {id:'qgt4', module:'qg', kind:'term', term:`Processing Toolbox`, def:`The QGIS panel with searchable analysis tools such as Buffer, Clip, and Slope.`},
+    {id:'qgt5', module:'qg', kind:'term', term:`QGIS project (.qgz)`, def:`A file that stores layer links and map styling — not the data itself.`},
+    {id:'qgt6', module:'qg', kind:'term', term:`Shapefile`, def:`A vector format made of several files: .shp (geometry), .shx (index), .dbf (attributes), .prj (CRS).`},
+    {id:'qgt7', module:'qg', kind:'term', term:`GeoPackage`, def:`A single-file format (.gpkg) that can hold both vector and raster data.`},
+    {id:'qgt8', module:'qg', kind:'term', term:`EPSG:4326`, def:`The code for WGS 84, the latitude/longitude CRS measured in degrees and used by GPS.`},
+    {id:'qgt9', module:'qg', kind:'term', term:`EPSG:32651`, def:`UTM zone 51N, a projected CRS in meters covering roughly 120°E–126°E (central Luzon).`},
+    {id:'qgt10', module:'qg', kind:'term', term:`Toggle Editing`, def:`The pencil button that puts a layer into edit mode so features can be added or changed.`},
+    {id:'qgt11', module:'qg', kind:'term', term:`Categorized symbology`, def:`A QGIS renderer giving each unique attribute value its own symbol, e.g. building type.`},
+    {id:'qgt12', module:'qg', kind:'term', term:`Graduated symbology`, def:`A QGIS renderer that groups numeric values into classes, each with its own color.`},
+    {id:'qgt13', module:'qg', kind:'term', term:`Field Calculator`, def:`A QGIS tool that creates or updates fields using expressions like $area, $length, $x, and $y.`},
+    {id:'qgt14', module:'qg', kind:'term', term:`Select by Location`, def:`A tool that selects features by their spatial relationship to another layer (within, intersects, touches).`},
+    {id:'qgt15', module:'qg', kind:'term', term:`Print layout`, def:`The QGIS window for composing a finished map with title, legend, scale bar, and north arrow.`},
+    {id:'qgc1', module:'qg', kind:'concept', q:`What are the main parts of the QGIS window?`, a:`<ul><li><strong>Map canvas</strong> — where layers are drawn</li><li><strong>Layers panel</strong> — layer list and draw order</li><li><strong>Browser panel</strong> — data and basemaps</li><li><strong>Processing Toolbox</strong> — analysis tools</li><li><strong>Status bar</strong> — coordinates, scale, project CRS</li></ul>`},
+    {id:'qgc2', module:'qg', kind:'concept', q:`How do you add a CSV with coordinates to QGIS as points?`, a:`Layer → Add Layer → <strong>Add Delimited Text Layer</strong>. Set <strong>X field = longitude</strong>, <strong>Y field = latitude</strong>, and geometry CRS = <strong>EPSG:4326</strong>.`},
+    {id:'qgc3', module:'qg', kind:'concept', q:`Why measure and buffer in a projected CRS instead of EPSG:4326?`, a:`EPSG:4326 uses <strong>degrees</strong>, not meters. Reproject to a meter-based CRS like UTM 51N first (Export → Save Features As). Changing the project CRS alone only changes the display.`},
+    {id:'qgc4', module:'qg', kind:'concept', q:`What are the steps to digitize a new layer in QGIS?`, a:`<ol><li>Create a New Shapefile/GeoPackage Layer (choose geometry type, CRS, fields)</li><li>Toggle Editing</li><li>Add Point/Line/Polygon Feature</li><li>Left-click vertices; <strong>right-click</strong> to finish</li><li>Fill attributes</li><li>Save Layer Edits, toggle editing off</li></ol>`},
+    {id:'qgc5', module:'qg', kind:'concept', q:`Name four vector tools in QGIS and what each does.`, a:`<ul><li><strong>Buffer</strong> — zone around features</li><li><strong>Clip</strong> — cuts a layer to another's shape</li><li><strong>Intersect</strong> — keeps overlapping parts with both attributes</li><li><strong>Dissolve</strong> — merges features sharing a value</li></ul>`},
+    {id:'qgc6', module:'qg', kind:'concept', q:`Which QGIS tools do the Module 4 raster techniques?`, a:`<ul><li><strong>Reclassify by Table</strong> — reclassification</li><li><strong>Raster Calculator</strong> — map algebra</li><li><strong>Slope / Aspect / Hillshade</strong> — surface analysis from a DEM</li><li><strong>Clip Raster by Mask Layer</strong> — cut to a boundary</li></ul>`},
+    {id:'qgc7', module:'qg', kind:'concept', q:`What does a finished QGIS map layout need?`, a:`<strong>Title, map, legend, scale bar, north arrow</strong> (plus date, author, and source if required). Export from the Print Layout as PDF or image.`},
+    // ---- Campus practical ----
+    {id:'cpc1', module:'cp', kind:'concept', q:`Campus practical: which geometry type for gates, walkways, and buildings?`, a:`<ul><li><strong>Point</strong> — gates, guard house, bus stop, CCTV, trees</li><li><strong>Line</strong> — roads, walkways, fences, canals</li><li><strong>Polygon</strong> — buildings, parking, oval, campus boundary</li></ul>`},
+    {id:'cpc2', module:'cp', kind:'concept', q:`What are the steps of the campus mapping exercise?`, a:`<ol><li>Plan layers</li><li>Collect GPS locations and attributes</li><li>Save as CSV, import as points</li><li>Add a basemap</li><li>Digitize lines and polygons</li><li>Fill/compute attributes</li><li>Analyze (buffer, select, measure)</li><li>Style and label</li><li>Print Layout and export</li></ol>`},
+    {id:'cpc3', module:'cp', kind:'concept', q:`What is the classic mistake when importing GPS coordinates?`, a:`Swapping the axes. Phones show <strong>latitude first</strong>, but QGIS needs <strong>X = longitude, Y = latitude</strong>. Use decimal degrees in EPSG:4326.`},
+    {id:'cpc4', module:'cp', kind:'concept', q:`How would you find buildings within 50 m of the main gate?`, a:`<strong>Buffer</strong> the gate by 50 m (in a meter-based CRS), then <strong>Select by Location</strong> → intersects.`},
+    {id:'cpc5', module:'cp', kind:'concept', q:`How do you get a walkway's length or the oval's area?`, a:`Field Calculator: <code>$length</code> for lines, <code>$area</code> for polygons (in a projected CRS), or use the Measure tool.`},
+    {id:'cpc6', module:'cp', kind:'concept', q:`What mistakes cost points in the campus practical?`, a:`<ul><li>Forgot Save Layer Edits</li><li>Used a temporary scratch layer (lost on close)</li><li>Measured in degrees</li><li>Swapped latitude and longitude</li><li>Moved data files so the project can't find them</li></ul>`},
+  ];
+
+  const CARDS_BY_ID = {};
+  CARDS.forEach(c => CARDS_BY_ID[c.id] = c);
+  const MODULE_NAMES = {m1:'Module 1', m2:'Module 2', m3:'Module 3', m4:'Module 4', qg:'QGIS Demo', cp:'Campus Practical'};
+  const MODULE_VAR = {m1:'--m1', m2:'--m2', m3:'--m3', m4:'--m4', qg:'--qg', cp:'--qg'};
+  const STORAGE_KEY = 'gis-flashcards-progress-v1';
+
+  /* ============================================================
+     STATE
+     ============================================================ */
+  let progress = {}; // { cardId: {seen,correct,wrong,streak,mastered} }
+  let selectedModules = new Set(['m1','m2','m3','m4','qg','cp']);
+  let selectedMode = 'mixed';
+
+  let queue = [];         // upcoming {id,dir}
+  let current = null;     // {id,dir}
+  let showingBack = false;
+  let poolIds = new Set();
+  let clearedSet = new Set();
+  let roundMissedSet = new Set();
+
+  /* ============================================================
+     PERSISTENCE
+     ============================================================ */
+  function freshStat(){ return {seen:0, correct:0, wrong:0, streak:0, mastered:false}; }
+
+  async function loadProgress(){
+    try{
+      if(window.storage){
+        const res = await window.storage.get(STORAGE_KEY, false);
+        if(res && res.value){ progress = JSON.parse(res.value); }
+      } else { const v = localStorage.getItem(STORAGE_KEY); if(v){ progress = JSON.parse(v); } }
+    }catch(e){ /* first run or unavailable — start fresh */ }
+    if(!progress || typeof progress !== 'object') progress = {};
+  }
+  function saveProgress(){
+    try{
+      if(window.storage){ window.storage.set(STORAGE_KEY, JSON.stringify(progress), false).catch(function(){}); }
+      else { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); }
+    }catch(e){ /* non-fatal — session continues in memory */ }
+  }
+
+  function statFor(id){
+    if(!progress[id]) progress[id] = freshStat();
+    return progress[id];
+  }
+  function recordResult(id, ok){
+    const s = statFor(id);
+    s.seen++;
+    if(ok){ s.correct++; s.streak++; if(s.streak >= 2) s.mastered = true; }
+    else { s.wrong++; s.streak = 0; }
+    saveProgress();
+  }
+
+  /* ============================================================
+     HELPERS
+     ============================================================ */
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  }
+  function view(name){
+    ['setup','study','summary','progress'].forEach(function(v){
+      document.getElementById('view-'+v).hidden = (v!==name);
+    });
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function bucketCounts(cardIds){
+    let mastered=0, learning=0, fresh=0;
+    cardIds.forEach(function(id){
+      const s = progress[id];
+      if(s && s.mastered) mastered++;
+      else if(s && s.seen>0) learning++;
+      else fresh++;
+    });
+    return {mastered:mastered, learning:learning, fresh:fresh, total:cardIds.length};
+  }
+
+  function renderSnapshot(targetId){
+    const allIds = CARDS.map(function(c){return c.id;});
+    const b = bucketCounts(allIds);
+    const pct = b.total ? Math.round(b.mastered/b.total*100) : 0;
+    let html = '';
+    html += '<div class="headline"><b>'+pct+'% mastered</b><span>'+b.mastered+' / '+b.total+' cards</span></div>';
+    html += '<div class="bar"><i style="width:'+pct+'%"></i></div>';
+    html += '<div class="bucket-line"><span>Mastered: '+b.mastered+'</span><span>Still learning: '+b.learning+'</span><span>Not started: '+b.fresh+'</span></div>';
+    html += '<div class="modbars">';
+    ['m1','m2','m3','m4','qg','cp'].forEach(function(m){
+      const ids = CARDS.filter(function(c){return c.module===m;}).map(function(c){return c.id;});
+      const mb = bucketCounts(ids);
+      const mpct = mb.total ? Math.round(mb.mastered/mb.total*100) : 0;
+      html += '<div class="modbar-row"><div class="lbl"><span>'+MODULE_NAMES[m]+'</span><span>'+mb.mastered+'/'+mb.total+'</span></div>';
+      html += '<div class="modbar"><i style="width:'+mpct+'%; background:var('+MODULE_VAR[m]+')"></i></div></div>';
+    });
+    html += '</div>';
+    document.getElementById(targetId).innerHTML = html;
+  }
+
+  function weakCardIds(){
+    return Object.keys(progress).filter(function(id){
+      const s = progress[id];
+      return s && s.wrong>0 && !s.mastered && CARDS_BY_ID[id];
+    });
+  }
+
+  function refreshSetupExtras(){
+    const weak = weakCardIds();
+    const btn = document.getElementById('btn-weak');
+    document.getElementById('weak-count').textContent = weak.length;
+    btn.hidden = weak.length===0;
+    renderSnapshot('snapshot');
+  }
+
+  /* ============================================================
+     SETUP VIEW WIRING
+     ============================================================ */
+  document.getElementById('mod-chips').addEventListener('click', function(e){
+    const btn = e.target.closest('.chip');
+    if(!btn) return;
+    const m = btn.dataset.mod;
+    if(m==='all'){ selectedModules = new Set(['m1','m2','m3','m4','qg','cp']); }
+    else{
+      if(selectedModules.has(m) && selectedModules.size>1){ selectedModules.delete(m); }
+      else{ selectedModules.add(m); }
+    }
+    document.querySelectorAll('#mod-chips .chip').forEach(function(c){
+      if(c.dataset.mod==='all'){ c.classList.toggle('active', selectedModules.size===4); }
+      else{ c.classList.toggle('active', selectedModules.has(c.dataset.mod)); }
+    });
+  });
+  document.getElementById('mode-chips').addEventListener('click', function(e){
+    const btn = e.target.closest('.chip');
+    if(!btn) return;
+    selectedMode = btn.dataset.mode;
+    document.querySelectorAll('#mode-chips .chip').forEach(function(c){ c.classList.toggle('active', c===btn); });
+  });
+
+  function buildPool(){
+    const includeTerms = document.getElementById('inc-terms').checked;
+    const includeConcepts = document.getElementById('inc-concepts').checked;
+    let pool = CARDS.filter(function(c){
+      if(!selectedModules.has(c.module)) return false;
+      if(c.kind==='term' && !includeTerms) return false;
+      if(c.kind==='concept' && !includeConcepts) return false;
+      return true;
+    });
+    pool = shuffle(pool);
+    return pool.map(function(c){
+      let dir = null;
+      if(c.kind==='term'){ dir = selectedMode==='mixed' ? (Math.random()<0.5?'identify':'describe') : selectedMode; }
+      return {id:c.id, dir:dir};
+    });
+  }
+
+  document.getElementById('btn-start').addEventListener('click', function(){
+    const items = buildPool();
+    if(items.length===0){ alert('Pick at least one module and one card type first.'); return; }
+    startRound(items);
+  });
+  document.getElementById('btn-quick10').addEventListener('click', function(){
+    let pool = shuffle(CARDS.slice()).slice(0,10);
+    const items = pool.map(function(c){
+      let dir = null;
+      if(c.kind==='term'){ dir = Math.random()<0.5?'identify':'describe'; }
+      return {id:c.id, dir:dir};
+    });
+    startRound(items);
+  });
+  document.getElementById('btn-weak').addEventListener('click', function(){
+    const ids = weakCardIds();
+    if(!ids.length) return;
+    const items = shuffle(ids).map(function(id){
+      const c = CARDS_BY_ID[id];
+      let dir = null;
+      if(c.kind==='term'){ dir = Math.random()<0.5?'identify':'describe'; }
+      return {id:id, dir:dir};
+    });
+    startRound(items);
+  });
+  document.getElementById('btn-progress').addEventListener('click', openProgress);
+  document.getElementById('btn-progress-2').addEventListener('click', openProgress);
+  document.getElementById('btn-back-from-progress').addEventListener('click', function(){ view('setup'); refreshSetupExtras(); });
+  document.getElementById('btn-reset').addEventListener('click', function(){
+    if(confirm('Reset all saved progress? This clears every mastered / learning card.')){
+      progress = {};
+      saveProgress();
+      refreshSetupExtras();
+    }
+  });
+
+  function openProgress(){
+    renderSnapshot('snapshot-2');
+    const weak = weakCardIds();
+    const wrap = document.getElementById('weak-list');
+    const empty = document.getElementById('weak-empty');
+    const practiceBtn = document.getElementById('btn-practice-weak');
+    if(weak.length===0){
+      wrap.innerHTML = '';
+      empty.hidden = false;
+      practiceBtn.hidden = true;
+    }else{
+      empty.hidden = true;
+      practiceBtn.hidden = false;
+      wrap.innerHTML = weak.map(function(id){
+        const c = CARDS_BY_ID[id];
+        const label = c.kind==='term' ? c.term : c.q;
+        const s = progress[id];
+        return '<div class="weak-item"><b>'+MODULE_NAMES[c.module]+':</b> '+label+' <span style="color:var(--ink-faint)">('+s.wrong+' miss'+(s.wrong===1?'':'es')+')</span></div>';
+      }).join('');
+    }
+    view('progress');
+  }
+  document.getElementById('btn-practice-weak').addEventListener('click', function(){
+    document.getElementById('btn-weak').click();
+  });
+
+  /* ============================================================
+     STUDY LOOP
+     ============================================================ */
+  let currentRoundMode = 'mixed';
+
+  function startRound(items){
+    currentRoundMode = selectedMode;
+    queue = items.slice();
+    current = null;
+    clearedSet = new Set();
+    roundMissedSet = new Set();
+    poolIds = new Set(items.map(function(i){return i.id;}));
+    view('study');
+    drawNext();
+  }
+
+  function drawNext(){
+    updateRoundProgress();
+    if(queue.length===0){ showSummary(); return; }
+    current = queue.shift();
+    showingBack = false;
+    hintState = {b:0,f:0,l:0};
+    renderCardFace();
+    document.getElementById('controls-grade').hidden = true;
+    document.getElementById('controls-requeue').hidden = true;
+    document.getElementById('card-tapme').hidden = false;
+  }
+
+  function faceInfo(){
+    const card = CARDS_BY_ID[current.id];
+    if(card.kind==='concept'){
+      return {front:card.q, back:card.a, kicker: MODULE_NAMES[card.module]+' · Know the facts', frontIsDef:false, backIsDef:true};
+    }
+    if(current.dir==='identify'){
+      return {front:card.def, back:card.term, kicker: MODULE_NAMES[card.module]+' · Identify the term', frontIsDef:true, backIsDef:false};
+    }
+    return {front:card.term, back:card.def, kicker: MODULE_NAMES[card.module]+' · Describe it', frontIsDef:false, backIsDef:true};
+  }
+
+  function renderCardFace(){
+    const card = CARDS_BY_ID[current.id];
+    const info = faceInfo();
+    document.getElementById('card-dot').style.background = 'var('+MODULE_VAR[card.module]+')';
+    document.getElementById('card-kicker-text').textContent = info.kicker;
+    
+    // Evaluate card stats for indicators
+    const s = progress[current.id];
+    let badgesHTML = '';
+    
+    // Check if new or mastered
+    if (!s || s.seen === 0) {
+      badgesHTML += '<span class="badge badge-new">✨ New</span>';
+    } else if (s.mastered) {
+      badgesHTML += '<span class="badge badge-mastered">⭐ Mastered</span>';
+    }
+    
+    // Check if previously missed (wrong earlier in the round or past sessions)
+    if (roundMissedSet.has(current.id)) {
+      badgesHTML += '<span class="badge badge-wrong">☹️ Missed Earlier</span>';
+    } else if (s && s.wrong > 0) {
+      badgesHTML += '<span class="badge badge-wrong">☹️ Past Struggle</span>';
+    }
+    
+    document.getElementById('card-indicators').innerHTML = badgesHTML;
+
+    const face = document.getElementById('card-face');
+    const content = showingBack ? info.back : info.front;
+    const isDef = showingBack ? info.backIsDef : info.frontIsDef;
+    face.innerHTML = content;
+    face.className = 'card-text' + (isDef ? ' def' : '');
+    
+    const tapMeHint = document.getElementById('card-tapme');
+    tapMeHint.textContent = showingBack ? "Tap to see question again" : "Tap the card to reveal the answer";
+    tapMeHint.hidden = false;
+    updateHint();
+  }
+
+  /* ---- hints: blanks / first letter / last letter of the hidden answer ---- */
+  let hintState = {b:0,f:0,l:0};
+  function mask(t,f,l){
+    return t.split(' ').map(function(w){
+      const idx=[], o=w.split('');
+      for(let i=0;i<w.length;i++){ if(/[A-Za-z0-9]/.test(w[i])) idx.push(i); }
+      idx.forEach(function(p,k){ if(!((f&&k===0)||(l&&k===idx.length-1))) o[p]='_'; });
+      return o.join('');
+    }).join('   ');
+  }
+  function hintItems(){
+    const d=document.createElement('div'); d.innerHTML=faceInfo().back;
+    const lis=d.querySelectorAll('li');
+    if(lis.length) return Array.prototype.map.call(lis,function(e){ return e.textContent.trim(); });
+    return [d.textContent.trim()];
+  }
+  function updateHint(){
+    const bar=document.getElementById('hintbar');
+    if(!current || showingBack){ bar.hidden=true; return; }
+    bar.hidden=false;
+    const on = hintState.b||hintState.f||hintState.l;
+    document.getElementById('hintmask').textContent = on ? hintItems().map(function(t){ return mask(t,hintState.f,hintState.l); }).join('\n') : '';
+    Array.prototype.forEach.call(document.querySelectorAll('#hintbtns button'),function(b){
+      b.setAttribute('aria-pressed', hintState[b.dataset.k] ? 'true' : 'false');
+    });
+  }
+  document.getElementById('hintbtns').addEventListener('click',function(e){
+    const b=e.target.closest('button'); if(!b) return;
+    const k=b.dataset.k; hintState[k]=hintState[k]?0:1;
+    if(k!=='b' && hintState[k]) hintState.b=1;
+    b.blur(); updateHint();
+  });
+
+  function flip(){
+    if(!current) return;
+    
+    const stage = document.getElementById('card-stage');
+    stage.classList.add('squish');
+    
+    setTimeout(function(){
+      showingBack = !showingBack; // Toggle the state back and forth
+      renderCardFace();
+      stage.classList.remove('squish');
+      
+      // Only toggle the grade controls if the user hasn't already clicked "Missed it"
+      const requeueHidden = document.getElementById('controls-requeue').hidden;
+      if (requeueHidden) {
+        document.getElementById('controls-grade').hidden = !showingBack;
+      }
+    }, 130);
+  }
+
+  document.getElementById('card-stage').addEventListener('click', flip);
+  document.addEventListener('keydown', function(e){
+    if(document.getElementById('view-study').hidden) return;
+    
+    // Changed this line to allow flipping both ways with Space
+    if(e.code==='Space'){ e.preventDefault(); flip(); return; }
+    
+    const gradeVisible = !document.getElementById('controls-grade').hidden;
+    const requeueVisible = !document.getElementById('controls-requeue').hidden;
+    
+    if(showingBack && gradeVisible){
+      if(e.key==='1' || e.key==='y' || e.key==='ArrowRight'){ onGood(); }
+      if(e.key==='2' || e.key==='n' || e.key==='ArrowLeft'){ onBad(); }
+    }else if(requeueVisible){
+      if(e.key==='1'){ requeue('soon'); }
+      if(e.key==='2'){ requeue('later'); }
+    }
+  });
+
+  function updateRoundProgress(){
+    const total = poolIds.size;
+    const done = clearedSet.size;
+    const pct = total ? Math.round(done/total*100) : 0;
+    document.getElementById('round-progress-bar').style.width = pct+'%';
+    document.getElementById('round-progress-label').textContent = done+' / '+total+' mastered this round';
+  }
+
+  function onGood(){
+    recordResult(current.id, true);
+    clearedSet.add(current.id);
+    drawNext();
+  }
+  function onBad(){
+    recordResult(current.id, false);
+    roundMissedSet.add(current.id);
+    document.getElementById('controls-grade').hidden = true;
+    document.getElementById('controls-requeue').hidden = false;
+  }
+  document.getElementById('btn-good').addEventListener('click', onGood);
+  document.getElementById('btn-bad').addEventListener('click', onBad);
+  document.getElementById('btn-soon').addEventListener('click', function(){ requeue('soon'); });
+  document.getElementById('btn-later').addEventListener('click', function(){ requeue('later'); });
+
+  function requeue(where){
+    const item = {id:current.id, dir:current.dir};
+    if(where==='soon'){
+      const idx = Math.max(1, Math.floor(queue.length/2));
+      queue.splice(idx, 0, item);
+    }else{
+      queue.push(item);
+    }
+    document.getElementById('controls-requeue').hidden = true;
+    drawNext();
+  }
+
+  document.getElementById('btn-exit-study').addEventListener('click', function(){ view('setup'); refreshSetupExtras(); });
+
+  /* ============================================================
+     SUMMARY VIEW
+     ============================================================ */
+  function showSummary(){
+    const total = poolIds.size;
+    const missed = roundMissedSet.size;
+    const firstTry = total - missed;
+    document.getElementById('sum-total').textContent = total;
+    document.getElementById('sum-firsttry').textContent = firstTry;
+    document.getElementById('sum-retries').textContent = missed;
+    document.getElementById('summary-blurb').textContent = missed===0
+      ? 'Clean sweep — every card, right the first time.'
+      : 'Nice work — you cleared the whole set. ' + missed + ' card' + (missed===1?'':'s') + ' needed a second look.';
+
+    const wrap = document.getElementById('summary-missed-wrap');
+    const list = document.getElementById('summary-missed-list');
+    if(missed===0){
+      wrap.hidden = true;
+    }else{
+      wrap.hidden = false;
+      list.innerHTML = Array.from(roundMissedSet).map(function(id){
+        const c = CARDS_BY_ID[id];
+        const label = c.kind==='term' ? c.term : c.q;
+        return '<div class="missed-item"><b>'+MODULE_NAMES[c.module]+':</b> '+label+'</div>';
+      }).join('');
+    }
+    document.getElementById('btn-review-missed').hidden = missed===0;
+    view('summary');
+  }
+
+  document.getElementById('btn-review-missed').addEventListener('click', function(){
+    const items = Array.from(roundMissedSet).map(function(id){
+      const c = CARDS_BY_ID[id];
+      let dir = null;
+      if(c.kind==='term'){ dir = currentRoundMode==='mixed' ? (Math.random()<0.5?'identify':'describe') : currentRoundMode; }
+      return {id:id, dir:dir};
+    });
+    startRound(shuffle(items));
+  });
+  document.getElementById('btn-again').addEventListener('click', function(){
+    const items = Array.from(poolIds).map(function(id){
+      const c = CARDS_BY_ID[id];
+      let dir = null;
+      if(c.kind==='term'){ dir = currentRoundMode==='mixed' ? (Math.random()<0.5?'identify':'describe') : currentRoundMode; }
+      return {id:id, dir:dir};
+    });
+    startRound(shuffle(items));
+  });
+  document.getElementById('btn-back-setup').addEventListener('click', function(){ view('setup'); refreshSetupExtras(); });
+
+  /* ============================================================
+     INIT
+     ============================================================ */
+  loadProgress().then(function(){
+    refreshSetupExtras();
+  });
+})();
+</script>
+</body>
+</html>
