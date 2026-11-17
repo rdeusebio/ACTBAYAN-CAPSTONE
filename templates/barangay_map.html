@@ -1133,6 +1133,39 @@
         }
         .file-concern-btn { background: #fff; color: #166534; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
         .file-concern-btn:hover { background: #f1f1f1; }
+
+        /* ===== ENHANCED PINS & LEGEND ===== */
+        .actbayan-map-pin {
+            cursor: pointer;
+            transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+        }
+        .actbayan-map-pin:hover {
+            transform: rotate(-45deg) scale(1.18) !important;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.45) !important;
+            z-index: 1000 !important;
+        }
+        .civic-landmark-pin {
+            cursor: pointer;
+            transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+        }
+        .civic-landmark-pin:hover {
+            transform: scale(1.14) !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.55), 0 0 0 6px rgba(245,158,11,0.35) !important;
+            z-index: 1001 !important;
+        }
+        @keyframes pin-pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.35); opacity: 0; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+        @media (max-width: 640px) {
+            .map-status-legend {
+                bottom: 16px !important;
+                left: 12px !important;
+                padding: 8px 10px !important;
+                font-size: 10.5px !important;
+            }
+        }
     </style>
 </head>
 
@@ -1185,6 +1218,7 @@
             <a href="{{ url_for('notifications') }}"
                 class="sidebar-link {% if request.endpoint == 'notifications' %}active{% endif %}">
                 <i class="fas fa-bell"></i> <span>Notifications</span>
+                <span class="notif-badge" id="sidebar-notif-badge" style="display:none; margin-left:auto; background:#dc2626; color:#fff; font-size:10px; font-weight:800; padding:2px 7px; border-radius:50px;"></span>
             </a>
         </nav>
 
@@ -1360,6 +1394,29 @@
                     <div class="map-ctrl-btn" onclick="locateUser()" title="My Location"><i
                             class="fas fa-crosshairs"></i></div>
                 </div>
+
+                <!-- FLOATING MAP STATUS LEGEND -->
+                <div class="map-status-legend" style="position:absolute;bottom:24px;left:20px;z-index:999;background:var(--bg-nav-card);padding:10px 14px;border-radius:12px;border:1px solid var(--border-color);box-shadow:0 6px 20px rgba(0,0,0,0.18);backdrop-filter:blur(8px);display:flex;flex-direction:column;gap:6px;font-size:11.5px;font-weight:700;color:var(--text-main);pointer-events:auto;">
+                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:2px;display:flex;align-items:center;gap:5px;">
+                        <i class="fas fa-layer-group" style="color:var(--primary-red);"></i> Map Legend
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="width:12px;height:12px;border-radius:50% 50% 50% 0;background:#f59e0b;transform:rotate(-45deg);border:1.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.25);flex-shrink:0;"></span>
+                        <span>Pending Review</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="width:12px;height:12px;border-radius:50% 50% 50% 0;background:#2563eb;transform:rotate(-45deg);border:1.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.25);flex-shrink:0;"></span>
+                        <span>In Progress</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="width:12px;height:12px;border-radius:50% 50% 50% 0;background:#16a34a;transform:rotate(-45deg);border:1.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.25);flex-shrink:0;"></span>
+                        <span>Resolved</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;padding-top:4px;border-top:1px solid var(--border-color);margin-top:2px;">
+                        <span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;background:#0f172a;border:1.5px solid #f59e0b;border-radius:3px;font-size:9px;flex-shrink:0;">🏛️</span>
+                        <span>Municipal Hall (LGU)</span>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -1376,7 +1433,7 @@
             window.location.href = "{{ url_for('file_concern') }}";
         }
         // ===== MAP INIT =====
-        const GMN_CENTER = [15.587651, 121.052642];
+        const GMN_CENTER = [15.60255, 121.05011];
         const GMN_ZOOM = 13;
 
         const map = L.map('map', { zoomControl: false, center: GMN_CENTER, zoom: GMN_ZOOM });
@@ -1402,125 +1459,116 @@
         // ===== CUSTOM MARKERS =====
         function makeIcon(color, emoji) {
             return L.divIcon({
-                html: `<div style="width:36px;height:36px;border-radius:50% 50% 50% 0;background:${color};border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;font-size:16px;transform:rotate(-45deg)"><span style="transform:rotate(45deg)">${emoji}</span></div>`,
-                className: '', iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -38]
+                html: `<div class="actbayan-map-pin" style="position:relative;width:38px;height:38px;border-radius:50% 50% 50% 0;background:${color};border:2.5px solid #ffffff;box-shadow:0 4px 14px rgba(0,0,0,0.32), 0 1px 3px rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center;transform:rotate(-45deg);"><span style="transform:rotate(45deg);font-size:17px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.25));">${emoji}</span></div>`,
+                className: '', iconSize: [38, 38], iconAnchor: [19, 38], popupAnchor: [0, -40]
+            });
+        }
+
+        function makeCivicLandmarkIcon() {
+            return L.divIcon({
+                html: `<div class="civic-landmark-pin" style="position:relative;display:flex;align-items:center;justify-content:center;width:44px;height:44px;background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);border:2.5px solid #f59e0b;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.4), 0 0 0 4px rgba(245,158,11,0.25);"><span style="font-size:22px;line-height:1;">🏛️</span><span style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid #f59e0b;"></span></div>`,
+                className: '', iconSize: [44, 44], iconAnchor: [22, 48], popupAnchor: [0, -48]
             });
         }
 
         // ===== ACCURATE POINTS OF INTEREST =====
         const pois = [
-            // BARANGAYS
+            // BARANGAYS (Reference points for navigation)
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Poblacion (Town Center)', sub: 'Barangay, GMN', lat: 15.6034, lng: 121.0509
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Picaleon (Barangay GMN)', sub: 'Barangay Hall • Main Community', lat: 15.6051, lng: 121.0951
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Balangkare Norte', sub: 'Barangay, GMN', lat: 15.5985, lng: 121.0368
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Balangkare Sur', sub: 'Barangay, GMN', lat: 15.5916, lng: 121.0369
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Pula', sub: 'Barangay, GMN', lat: 15.5644, lng: 120.9927
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Mataas na Kahoy', sub: 'Barangay, GMN', lat: 15.6080, lng: 121.0170
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Manarog', sub: 'Barangay, GMN', lat: 15.6161, lng: 121.0254
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Pinahan', sub: 'Barangay, GMN', lat: 15.6227, lng: 121.0551
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Pulong Singkamas', sub: 'Barangay, GMN', lat: 15.6245, lng: 121.0955
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Talabutab Norte', sub: 'Barangay, GMN', lat: 15.6005, lng: 121.0795
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Talabutab Sur', sub: 'Barangay, GMN', lat: 15.5705, lng: 121.0627
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Bravo', sub: 'Barangay, GMN', lat: 15.5659, lng: 121.0799
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Singalat', sub: 'Barangay, Palayan City', lat: 15.5718, lng: 121.0953
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Belen', sub: 'Barangay, GMN', lat: 15.5748, lng: 121.0512
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Platero', sub: 'Barangay, GMN', lat: 15.5522, lng: 121.0412
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Kabulihan', sub: 'Barangay, GMN', lat: 15.5578, lng: 121.0218
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Sapang Bato', sub: 'Barangay, GMN', lat: 15.5537, lng: 121.0068
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Burol', sub: 'Barangay, GMN', lat: 15.5463, lng: 120.9858
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Panacsac', sub: 'Barangay, GMN', lat: 15.5952, lng: 121.0913
             },
             {
-                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+                cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
                 name: 'Balaring', sub: 'Barangay, GMN', lat: 15.6104, lng: 121.1065
             },
 
-            // KEY FACILITIES
+            // KEY CIVIC LANDMARK (Anchor)
             {
-                cat: 'govt', label: 'Government', emoji: '🏛️', dot: 'blue', color: '#3b82f6',
-                name: 'Municipal Hall — GMN', sub: 'Local Government Unit', lat: 15.5878, lng: 121.0528
-            },
-            {
-                cat: 'health', label: 'Health', emoji: '🏥', dot: 'green', color: '#22c55e',
-                name: 'Rural Health Unit', sub: 'Municipal Health Center', lat: 15.5880, lng: 121.0520
-            },
-            {
-                cat: 'education', label: 'Education', emoji: '🏫', dot: 'purple', color: '#8b5cf6',
-                name: 'GMN Central School', sub: 'Elementary School', lat: 15.5890, lng: 121.0530
-            },
-            {
-                cat: 'health', label: 'Health', emoji: '⛑️', dot: 'green', color: '#22c55e',
-                name: 'Municipal Health Center', sub: 'Barangay Health Station', lat: 15.6015, lng: 121.0715
-            },
-            {
-                cat: 'education', label: 'Education', emoji: '🏫', dot: 'purple', color: '#8b5cf6',
-                name: 'Central Elementary School', sub: 'Elementary School', lat: 15.6005, lng: 121.0705
+                cat: 'govt', label: 'Government', emoji: '🏛️', dot: 'gold', color: '#0f172a',
+                name: 'Municipal Hall of General Mamerto Natividad', sub: 'Local Government Center • Poblacion, GMN', lat: 15.60255, lng: 121.05011
             }
         ];
 
-        // Build markers
+        // Build POI markers (Municipal Hall anchor)
         const markers = {};
         pois.forEach((p, i) => {
-            if (p.cat !== 'barangays') {
-                const m = L.marker([p.lat, p.lng], { icon: makeIcon(p.color, p.emoji) })
+            if (p.cat === 'govt') {
+                const m = L.marker([p.lat, p.lng], { icon: makeCivicLandmarkIcon() })
                     .addTo(map)
-                    .bindPopup(`<div class="popup-title">${p.emoji} ${p.name}</div><div class="popup-sub">${p.sub}</div><div class="popup-tag">${p.cat.charAt(0).toUpperCase() + p.cat.slice(1)}</div>`);
+                    .bindPopup(`<div class="popup-title" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:#0f172a;"><span style="font-size:16px;">🏛️</span> Municipal Hall — GMN</div><div class="popup-sub" style="font-size:11.5px;color:#64748b;margin:4px 0 6px;">${p.sub}</div><div class="popup-tag" style="background:rgba(245,158,11,0.15);color:#b45309;border:1px solid rgba(245,158,11,0.3);padding:2px 8px;border-radius:12px;font-size:10px;font-weight:800;text-transform:uppercase;">Municipal Headquarters</div>`);
                 markers[i] = m;
             }
         });
@@ -1528,15 +1576,23 @@
         // Helper for status colors and badges
         function getStatusColor(st) {
             const s = (st || 'pending').toLowerCase();
-            if (s.includes('prog')) return '#2563eb';
-            if (s === 'resolved' || s === 'completed') return '#16a34a';
-            return '#ef4444';
+            if (s.includes('prog') || s.includes('work') || s.includes('review') || s.includes('investigat')) return '#2563eb'; // Blue
+            if (s === 'resolved' || s === 'completed') return '#16a34a'; // Emerald Green
+            if (s.includes('deny') || s.includes('denied') || s.includes('reject') || s.includes('declin') || s.includes('cancel')) return '#dc2626'; // Red
+            return '#f59e0b'; // Warm Amber for Pending
         }
         function getStatusBadgeMini(st) {
             const s = (st || 'pending').toLowerCase();
-            if (s.includes('prog')) return `<span style="background:rgba(59,130,246,0.12);color:#2563eb;border:1px solid rgba(59,130,246,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-spinner fa-spin" style="font-size:9px;"></i> In Progress</span>`;
-            if (s === 'resolved' || s === 'completed') return `<span style="background:rgba(34,197,94,0.12);color:#16a34a;border:1px solid rgba(34,197,94,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-check-circle" style="font-size:9px;"></i> Resolved</span>`;
-            return `<span style="background:rgba(239,68,68,0.12);color:#22c55e;border:1px solid rgba(239,68,68,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-clock" style="font-size:9px;"></i> Pending</span>`;
+            if (s.includes('prog') || s.includes('work') || s.includes('review') || s.includes('investigat')) {
+                return `<span style="background:rgba(37,99,235,0.12);color:#2563eb;border:1px solid rgba(37,99,235,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-tools" style="font-size:9px;"></i> In Progress</span>`;
+            }
+            if (s === 'resolved' || s === 'completed') {
+                return `<span style="background:rgba(22,163,74,0.12);color:#16a34a;border:1px solid rgba(22,163,74,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-check-circle" style="font-size:9px;"></i> Resolved</span>`;
+            }
+            if (s.includes('deny') || s.includes('denied') || s.includes('reject') || s.includes('declin') || s.includes('cancel')) {
+                return `<span style="background:rgba(220,38,38,0.12);color:#dc2626;border:1px solid rgba(220,38,38,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-ban" style="font-size:9px;"></i> Declined</span>`;
+            }
+            return `<span style="background:rgba(245,158,11,0.14);color:#b45309;border:1px solid rgba(245,158,11,0.3);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-hourglass-half" style="font-size:9px;"></i> Pending</span>`;
         }
         function getCategoryEmoji(cat) {
             const c = (cat || '').toLowerCase();
@@ -1802,7 +1858,7 @@
             const desc = r.description ?? '';
             const imgUrl = r.image_url ?? '';
             const rawRep = String(r.reporter_name || '').trim();
-            const reporter = (!rawRep || rawRep.toLowerCase() === 'none none' || rawRep.toLowerCase() === 'none' || r.is_anonymous) ? 'Anonymous Person' : rawRep;
+            const reporter = rawRep || 'Anonymous Resident';
             const dateStr = r.created_at_str ?? 'Recently';
             const public_key = r.public_key ?? '';
             const upvote_count = r.upvote_count ?? 0;
@@ -1924,11 +1980,6 @@
             .catch(() => showToast('Could not process upvote. Try again.', 'fa-exclamation'));
         }
 
-        // General Mamerto Natividad highlight circle
-        L.circle([15.6010, 121.0710], {
-            radius: 600, color: '#ff0000', fillColor: '#ff0000', fillOpacity: 0.15, weight: 3, dashArray: '6 4'
-        }).addTo(map);
-
         // ===== 100% ACCURATE MUNICIPAL BOUNDARY (GEOJSON) =====
         let municipalBoundary;
 
@@ -1937,11 +1988,11 @@
             .then(data => {
                 municipalBoundary = L.geoJSON(data, {
                     style: {
-                        color: '#ff0000',
-                        weight: 5,
-                        dashArray: '10, 6',
-                        fillColor: '#ff0000',
-                        fillOpacity: 0.1,
+                        color: '#16a34a',
+                        weight: 4,
+                        dashArray: '8, 6',
+                        fillColor: '#22c55e',
+                        fillOpacity: 0.08,
                         interactive: false
                     }
                 }).addTo(map);
@@ -1957,11 +2008,9 @@
 
         // ===== POI LIST =====
         const categories = [
-            { id: 'reports', label: '📌 Reported Concerns', dot: 'red' },
-            { id: 'barangays', label: '🏘️ Barangays', dot: 'red' },
-            { id: 'govt', label: '🏛️ Government', dot: 'blue' },
-            { id: 'health', label: '🏥 Health', dot: 'green' },
-            { id: 'education', label: '🎓 Education', dot: 'purple' },
+            { id: 'reports', label: '📌 Reported Concerns', dot: 'amber' },
+            { id: 'govt', label: '🏛️ Municipal Government', dot: 'gold' },
+            { id: 'barangays', label: '🏘️ Barangays', dot: 'green' }
         ];
 
         function renderPoiList(filteredPois, filteredReports = reportPins) {
@@ -2148,15 +2197,18 @@
             const desc = report.description ?? '';
             const imgUrl = report.image_url ?? '';
             const rawRep = String(report.reporter_name || '').trim();
-            const reporter = (!rawRep || rawRep.toLowerCase() === 'none none' || rawRep.toLowerCase() === 'none' || report.is_anonymous) ? 'Anonymous Person' : rawRep;
+            const reporter = rawRep || 'Anonymous Resident';
             const dateStr = report.created_at_str ?? 'Recently';
             const upvote_count = report.upvote_count ?? 0;
 
             const cdmAvatar = document.getElementById('cdm-avatar');
-            if (cdmAvatar) cdmAvatar.innerHTML = reporter ? reporter.charAt(0).toUpperCase() : '?';
+            if (cdmAvatar) {
+                cdmAvatar.style.background = '#374151';
+                cdmAvatar.innerHTML = '<i class="fas fa-user-shield" style="font-size:16px;color:white;"></i>';
+            }
 
             const cdmAuthor = document.getElementById('cdm-author-name');
-            if (cdmAuthor) cdmAuthor.textContent = reporter;
+            if (cdmAuthor) cdmAuthor.innerHTML = `${reporter} <i class="fas fa-shield-alt" style="color:var(--primary-red); font-size:11px;" title="Verified Resident"></i>`;
             const cdmTime = document.getElementById('cdm-time');
             if (cdmTime) cdmTime.textContent = dateStr;
             const cdmCatBadge = document.getElementById('cdm-category-badge');
@@ -2165,12 +2217,68 @@
             document.getElementById('cdm-title').textContent = title;
             document.getElementById('cdm-desc').textContent = desc || 'No additional details provided.';
             const cdmLoc = document.getElementById('cdm-loc');
-            if (cdmLoc) cdmLoc.innerHTML = '<i class="fas fa-map-marker-alt" style="color:#ef4444;"></i> <span>' + locname + '</span>';
+            if (cdmLoc) {
+                if (locname) {
+                    cdmLoc.style.display = 'inline-flex';
+                    cdmLoc.innerHTML = '<span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--text-muted); background:var(--search-bg); padding:5px 12px; border-radius:20px; border:1px solid var(--border-color);"><i class="fas fa-location-dot" style="color:var(--primary-red);"></i> ' + locname + '</span>';
+                } else {
+                    cdmLoc.style.display = 'none';
+                    cdmLoc.innerHTML = '';
+                }
+            }
 
             const cdmUp = document.getElementById('cdm-upvote-stat');
             const cdmCom = document.getElementById('cdm-comment-stat');
-            if (cdmUp) cdmUp.innerHTML = '<span style="color:var(--text-main);">' + upvote_count + '</span> <span style="font-weight:600; margin-left:4px;">Upvotes</span>';
-            if (cdmCom) cdmCom.innerHTML = '<span style="color:var(--text-muted);">0</span> <span style="font-weight:600; margin-left:4px;">Comments</span>';
+            if (cdmUp) cdmUp.innerHTML = '<i class="fas fa-arrow-up" style="color:var(--primary-red);"></i> <span>' + upvote_count + ' Upvotes</span>';
+            if (cdmCom) cdmCom.innerHTML = '<i class="far fa-comment-dots" style="color:var(--primary-red);"></i> <span>0 Comments</span>';
+
+            // Status and Stepper update
+            const repStatus = (report.status || 'Pending').toLowerCase();
+            const stageBadge = document.getElementById('cdm-stage-badge');
+            const dot1 = document.getElementById('step-dot-1');
+            const dot2 = document.getElementById('step-dot-2');
+            const dot3 = document.getElementById('step-dot-3');
+            const line1 = document.getElementById('step-line-1');
+            const line2 = document.getElementById('step-line-2');
+            const lbl2 = document.getElementById('step-lbl-2');
+            const lbl3 = document.getElementById('step-lbl-3');
+            
+            if (dot1) { dot1.style.background = 'var(--primary-red)'; dot1.style.color = 'white'; dot1.style.border = 'none'; dot1.style.boxShadow = '0 0 0 4px rgba(22,101,52,0.18)'; dot1.innerHTML = '1'; }
+            if (dot2) { dot2.style.background = 'var(--search-bg)'; dot2.style.color = 'var(--text-muted)'; dot2.style.border = '2px solid var(--border-color)'; dot2.style.boxShadow = 'none'; dot2.innerHTML = '2'; }
+            if (lbl2) { lbl2.style.color = 'var(--text-muted)'; lbl2.textContent = 'In Review'; lbl2.style.fontWeight = '600'; }
+            if (dot3) { dot3.style.background = 'var(--search-bg)'; dot3.style.color = 'var(--text-muted)'; dot3.style.border = '2px solid var(--border-color)'; dot3.style.boxShadow = 'none'; dot3.innerHTML = '3'; }
+            if (lbl3) { lbl3.style.color = 'var(--text-muted)'; lbl3.textContent = 'Resolved'; lbl3.style.fontWeight = '600'; }
+            if (line1) line1.style.background = 'var(--border-color)';
+            if (line2) line2.style.background = 'var(--border-color)';
+            
+            if (repStatus === 'resolved' || repStatus === 'completed') {
+                if (stageBadge) { stageBadge.innerHTML = '<i class="fas fa-check-circle"></i> Resolved'; stageBadge.style.background = '#dcfce7'; stageBadge.style.color = '#166534'; }
+                if (dot1) { dot1.style.background = '#166534'; dot1.style.boxShadow = 'none'; dot1.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
+                if (line1) line1.style.background = '#166534';
+                if (dot2) { dot2.style.background = '#166534'; dot2.style.color = 'white'; dot2.style.border = 'none'; dot2.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
+                if (lbl2) lbl2.style.color = 'var(--text-main)';
+                if (line2) line2.style.background = '#166534';
+                if (dot3) { dot3.style.background = '#16a34a'; dot3.style.color = 'white'; dot3.style.border = 'none'; dot3.style.boxShadow = '0 0 0 4px rgba(22,163,74,0.25)'; dot3.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
+                if (lbl3) { lbl3.style.color = '#166534'; lbl3.style.fontWeight = '700'; }
+            } else if (repStatus.includes('deny') || repStatus.includes('denied') || repStatus.includes('reject') || repStatus.includes('declin') || repStatus.includes('cancel') || repStatus.includes('spam') || repStatus.includes('invalid')) {
+                const labelText = repStatus.includes('deny') || repStatus.includes('denied') ? 'Denied' : 'Declined';
+                if (stageBadge) { stageBadge.innerHTML = '<i class="fas fa-times-circle"></i> ' + labelText; stageBadge.style.background = '#fee2e2'; stageBadge.style.color = '#dc2626'; }
+                if (dot1) { dot1.style.background = '#64748b'; dot1.style.boxShadow = 'none'; dot1.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
+                if (line1) line1.style.background = '#cbd5e1';
+                if (dot2) { dot2.style.background = '#64748b'; dot2.style.color = 'white'; dot2.style.border = 'none'; dot2.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
+                if (lbl2) { lbl2.style.color = 'var(--text-muted)'; lbl2.textContent = 'Reviewed'; }
+                if (line2) line2.style.background = '#fca5a5';
+                if (dot3) { dot3.style.background = '#dc2626'; dot3.style.color = 'white'; dot3.style.border = 'none'; dot3.style.boxShadow = '0 0 0 4px rgba(220,38,38,0.25)'; dot3.innerHTML = '<i class="fas fa-times" style="font-size:11px;"></i>'; }
+                if (lbl3) { lbl3.textContent = labelText; lbl3.style.color = '#dc2626'; lbl3.style.fontWeight = '700'; }
+            } else if (repStatus.includes('prog') || repStatus.includes('review') || repStatus.includes('process') || repStatus.includes('investigat')) {
+                if (stageBadge) { stageBadge.innerHTML = '<i class="fas fa-bolt"></i> In Progress'; stageBadge.style.background = '#dbeafe'; stageBadge.style.color = '#1d4ed8'; }
+                if (dot1) { dot1.style.background = '#166534'; dot1.style.boxShadow = 'none'; dot1.innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>'; }
+                if (line1) line1.style.background = '#2563eb';
+                if (dot2) { dot2.style.background = '#2563eb'; dot2.style.color = 'white'; dot2.style.border = 'none'; dot2.style.boxShadow = '0 0 0 4px rgba(37,99,235,0.25)'; dot2.innerHTML = '2'; }
+                if (lbl2) { lbl2.style.color = '#1d4ed8'; lbl2.style.fontWeight = '700'; }
+            } else {
+                if (stageBadge) { stageBadge.innerHTML = '<i class="fas fa-hourglass-half"></i> Pending Review'; stageBadge.style.background = '#fef3c7'; stageBadge.style.color = '#b45309'; }
+            }
 
             const modal = document.getElementById('concern-details-modal');
             if (modal) {
@@ -2301,78 +2409,127 @@
                 }, 450);
             }
         })();
+
+        // ===== SIDEBAR NOTIFICATION BADGE SYNC =====
+        (function syncSidebarNotifications() {
+            fetch('/api/notifications_count')
+                .then(res => res.json())
+                .then(data => {
+                    if (!data || !data.success || !Array.isArray(data.ids)) return;
+                    let readIds = [];
+                    try {
+                        readIds = JSON.parse(localStorage.getItem('actbayan_read_notifs_v1') || '[]');
+                    } catch (e) {
+                        readIds = [];
+                    }
+                    const readSet = new Set(readIds);
+                    const unread = data.ids.filter(id => !readSet.has(id)).length;
+                    const badge = document.getElementById('sidebar-notif-badge');
+                    if (badge) {
+                        badge.textContent = unread;
+                        badge.style.display = unread > 0 ? 'inline-flex' : 'none';
+                    }
+                })
+                .catch(() => {});
+        })();
     </script>
 
-    <div class="modal-backdrop" id="concern-details-modal" onclick="if(event.target===this) closePostModal()" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.9); flex-direction:row; align-items:stretch; justify-content:flex-start; height:100%; max-height:100vh; overflow:hidden;">
+    <div class="modal-backdrop" id="concern-details-modal" onclick="if(event.target===this) closePostModal()" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10, 15, 20, 0.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); flex-direction:row; align-items:stretch; justify-content:flex-start; height:100%; max-height:100vh; overflow:hidden;">
         <!-- LEFT PANEL: PHOTO VIEWER -->
-        <div style="flex:1; height:100%; max-height:100%; background:#0a0a0a; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; box-sizing:border-box;" onclick="if(event.target===this) closePostModal()">
-            <button type="button" onclick="closePostModal()" style="position:absolute; top:20px; left:20px; width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.15); color:#fff; border:none; font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'" title="Close Window">
+        <div class="cdm-photo-panel" style="flex:1; height:100%; max-height:100%; background:radial-gradient(circle at center, #1b2620 0%, #090e0b 100%); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; box-sizing:border-box;" onclick="if(event.target===this) closePostModal()">
+            <button type="button" onclick="closePostModal()" style="position:absolute; top:20px; left:20px; width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.18); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:18px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='scale(1.05)';" onmouseout="this.style.background='rgba(255,255,255,0.18)'; this.style.transform='scale(1)';" title="Close Window">
                 <i class="fas fa-times"></i>
             </button>
-            <div id="cdm-photo-container" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:40px; box-sizing:border-box;">
-                <img id="cdm-photo" src="" style="max-width:100%; max-height:100%; object-fit:contain; box-shadow:0 10px 40px rgba(0,0,0,0.5);" alt="Evidence">
+            <div id="cdm-photo-container" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:36px; box-sizing:border-box;">
+                <img id="cdm-photo" src="" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:12px; box-shadow:0 20px 50px rgba(0,0,0,0.6);" alt="Evidence">
             </div>
-            <div id="cdm-no-photo" style="display:none; flex-direction:column; align-items:center; justify-content:center; color:#555; text-align:center;">
-                <i class="fas fa-file-alt" style="font-size:64px; color:#ef4444; margin-bottom:16px; opacity:0.8;"></i>
-                <div style="font-size:20px; font-weight:700; color:#fff;">ActBayan Community Report</div>
-                <div style="font-size:14px; color:#888; margin-top:4px;">No visual evidence attached to this filing</div>
+            <div id="cdm-no-photo" style="display:none; flex-direction:column; align-items:center; justify-content:center; color:#555; text-align:center; padding:30px;">
+                <div style="width:80px; height:80px; border-radius:50%; background:rgba(22, 101, 52, 0.15); border:1px solid rgba(22, 101, 52, 0.3); display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+                    <i class="fas fa-file-shield" style="font-size:36px; color:#22c55e;"></i>
+                </div>
+                <div style="font-size:20px; font-weight:800; color:#fff; letter-spacing:-0.01em;">ActBayan Community Report</div>
+                <div style="font-size:13.5px; color:#9ca3af; margin-top:6px; max-width:320px;">No visual evidence or photo attached to this filing</div>
             </div>
         </div>
         <!-- RIGHT PANEL: DETAILS & COMMENTS SIDEBAR -->
-        <div class="cdm-sidebar" style="width:420px; max-width:100%; height:100%; max-height:100%; background:var(--bg-nav-card, #1c1c1e); border-left:1px solid var(--border-color, #2c2c2e); display:flex; flex-direction:column; flex-shrink:0; box-shadow:-5px 0 25px rgba(0,0,0,0.3); z-index:5; box-sizing:border-box; overflow:hidden;" onclick="event.stopPropagation()">
-            <div style="padding:16px 20px; border-bottom:1px solid var(--border-color, rgba(255,255,255,0.1)); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; background:var(--bg-nav-card); box-sizing:border-box;">
-                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
-                    <div id="cdm-avatar" style="width:40px; height:40px; border-radius:50%; background:var(--primary-red); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; flex-shrink:0; overflow:hidden;"></div>
-                    <div style="min-width:0; flex:1;">
-                        <div id="cdm-author-name" style="font-weight:700; font-size:15px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
-                        <div style="font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
-                            <span id="cdm-time"></span> • <span id="cdm-category-badge" style="color:var(--primary-red); font-weight:700;"></span>
+        <div class="cdm-sidebar" style="width:480px; max-width:100%; height:100%; max-height:100%; background:var(--bg-nav-card, #ffffff); border-left:1px solid var(--border-color, rgba(0,0,0,0.08)); display:flex; flex-direction:column; flex-shrink:0; box-shadow:-8px 0 30px rgba(0,0,0,0.35); z-index:5; box-sizing:border-box; overflow:hidden;" onclick="event.stopPropagation()">
+            <!-- DEDICATED CONCERN HEADER -->
+            <div class="cdm-concern-header" style="padding:16px 20px; border-bottom:1px solid var(--border-color); display:flex; flex-direction:column; gap:12px; flex-shrink:0; background:var(--bg-nav-card);">
+                <!-- ROW 1: TAGS, REF & ACTIONS -->
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                    <div style="display:flex; align-items:center; gap:7px; flex-wrap:wrap; min-width:0;">
+                        <span style="display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:var(--primary-red); background:rgba(22, 101, 52, 0.08); padding:4px 10px; border-radius:20px; border:1px solid rgba(22, 101, 52, 0.18);">
+                            <i class="fas fa-shield-halved"></i> Public Filing
+                        </span>
+                        <span id="cdm-category-badge" class="post-category" style="margin:0; font-size:10.5px; padding:3px 9px;">General</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                        <button type="button" onclick="closePostModal()" style="width:32px; height:32px; border-radius:50%; background:var(--search-bg); border:1px solid var(--border-color); color:var(--text-muted); font-size:13px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#fee2e2'; this.style.color='#dc2626';" onmouseout="this.style.background='var(--search-bg)'; this.style.color='var(--text-muted)';" title="Close details">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- ROW 2: AUTHOR INFO -->
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                    <div style="display:flex; align-items:center; gap:11px; min-width:0; flex:1;">
+                        <div id="cdm-avatar" style="width:40px; height:40px; border-radius:50%; background:var(--primary-red); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0; overflow:hidden; border:2px solid rgba(22, 101, 52, 0.2);"></div>
+                        <div style="min-width:0; flex:1;">
+                            <div id="cdm-author-name" style="font-weight:800; font-size:14px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Resident</div>
+                            <div style="font-size:11.5px; color:var(--text-muted); display:flex; align-items:center; gap:5px; margin-top:2px;">
+                                <i class="far fa-clock" style="font-size:10.5px;"></i> <span id="cdm-time">Recently</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:20px; box-sizing:border-box;">
-                <div>
-                    <h2 id="cdm-title" style="font-size:18px; font-weight:800; color:var(--text-main); margin:0 0 8px 0; line-height:1.3;"></h2>
-                    <p id="cdm-desc" style="font-size:14px; color:var(--text-main); line-height:1.6; margin:0; white-space:pre-wrap; font-family:inherit; opacity:0.95;"></p>
-                    <div id="cdm-loc" style="font-size:12px; font-weight:600; color:var(--text-muted); margin-top:10px; display:flex; align-items:center; gap:6px;">
-                        <i class="fas fa-map-marker-alt" style="color:#ef4444;"></i> <span></span>
+            <!-- SCROLLABLE BODY -->
+            <div style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:18px; box-sizing:border-box;">
+                <!-- TITLE & CAPTION -->
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <h2 id="cdm-title" style="font-size:19px; font-weight:800; color:var(--text-main); margin:0; line-height:1.35; letter-spacing:-0.01em; word-break:break-word;"></h2>
+                    <p id="cdm-desc" style="font-size:14px; color:var(--text-main); line-height:1.65; margin:0; white-space:pre-wrap; font-family:inherit; opacity:0.92; word-break:break-word;"></p>
+                    <div id="cdm-loc" style="margin-top:4px;"></div>
+                </div>
+                <!-- PROGRESS STEPPER -->
+                <div class="cdm-stepper-card" style="background:var(--search-bg); padding:16px 18px; border-radius:14px; border:1px solid var(--border-color); box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+                    <div style="font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="display:inline-flex; align-items:center; gap:7px;"><i class="fas fa-bars-progress" style="color:var(--primary-red);"></i> Resolution Progress</span>
+                        <span id="cdm-stage-badge" style="font-size:11px; font-weight:800; padding:3px 10px; border-radius:12px;"></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; position:relative; padding:0 10px;">
+                        <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
+                            <div id="step-dot-1" style="width:28px; height:28px; border-radius:50%; background:var(--primary-red); color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; box-shadow:0 0 0 4px rgba(22,101,52,0.18); transition:all 0.3s ease;">1</div>
+                            <span style="font-size:11px; font-weight:700; margin-top:7px; color:var(--text-main);">Filed</span>
+                        </div>
+                        <div id="step-line-1" style="height:3px; background:var(--border-color); flex:1; margin:0 8px; border-radius:2px; transition:background 0.3s ease;"></div>
+                        <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
+                            <div id="step-dot-2" style="width:28px; height:28px; border-radius:50%; background:var(--search-bg); border:2px solid var(--border-color); color:var(--text-muted); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; transition:all 0.3s ease;">2</div>
+                            <span id="step-lbl-2" style="font-size:11px; font-weight:600; margin-top:7px; color:var(--text-muted);">In Review</span>
+                        </div>
+                        <div id="step-line-2" style="height:3px; background:var(--border-color); flex:1; margin:0 8px; border-radius:2px; transition:background 0.3s ease;"></div>
+                        <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
+                            <div id="step-dot-3" style="width:28px; height:28px; border-radius:50%; background:var(--search-bg); border:2px solid var(--border-color); color:var(--text-muted); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; transition:all 0.3s ease;">3</div>
+                            <span id="step-lbl-3" style="font-size:11px; font-weight:600; margin-top:7px; color:var(--text-muted);">Resolved</span>
+                        </div>
                     </div>
                 </div>
-                <div style="background:var(--search-bg); padding:16px; border-radius:12px; border:1px solid var(--border-color);">
-                    <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted); margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
-                        <span><i class="fas fa-tasks" style="color:#ef4444; margin-right:6px;"></i> Resolution Stage</span>
-                        <span id="cdm-stage-badge" style="font-size:11px; font-weight:800; padding:2px 8px; border-radius:12px;"></span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; position:relative; padding:0 8px;">
-                        <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
-                            <div id="step-dot-1" style="width:26px; height:26px; border-radius:50%; background:#ef4444; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">1</div>
-                            <span style="font-size:10px; font-weight:700; margin-top:6px; color:var(--text-main);">Filed</span>
-                        </div>
-                        <div id="step-line-1" style="height:3px; background:var(--border-color); flex:1; margin:0 6px;"></div>
-                        <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
-                            <div id="step-dot-2" style="width:26px; height:26px; border-radius:50%; background:var(--border-color); color:var(--text-muted); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">2</div>
-                            <span id="step-lbl-2" style="font-size:10px; font-weight:600; margin-top:6px; color:var(--text-muted);">In Review</span>
-                        </div>
-                        <div id="step-line-2" style="height:3px; background:var(--border-color); flex:1; margin:0 6px;"></div>
-                        <div style="display:flex; flex-direction:column; align-items:center; z-index:2;">
-                            <div id="step-dot-3" style="width:26px; height:26px; border-radius:50%; background:var(--border-color); color:var(--text-muted); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">3</div>
-                            <span id="step-lbl-3" style="font-size:10px; font-weight:600; margin-top:6px; color:var(--text-muted);">Resolved</span>
-                        </div>
-                    </div>
+                <!-- STATS BAR -->
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid var(--border-color); border-bottom:1px solid var(--border-color); font-size:13px; color:var(--text-muted); font-weight:600;">
+                    <span id="cdm-upvote-stat" style="display:inline-flex; align-items:center; gap:6px;"></span>
+                    <span id="cdm-comment-stat" style="display:inline-flex; align-items:center; gap:6px;"></span>
                 </div>
-                <div style="display:flex; align-items:center; justify-content:space-between; padding-top:4px; border-bottom:1px solid var(--border-color); padding-bottom:14px; font-size:13px; color:var(--text-muted); font-weight:600;">
-                    <span id="cdm-upvote-stat"></span>
-                    <span id="cdm-comment-stat"></span>
-                </div>
+                <!-- COMMENTS SECTION HEADER -->
                 <div>
                     <div style="font-size:14px; font-weight:800; color:var(--text-main); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                        <i class="far fa-comments" style="color:var(--primary-red);"></i>
                         <span>Comments</span>
                     </div>
                     <div id="cdm-comments-stream" style="display:flex; flex-direction:column; gap:12px; min-height:80px;"></div>
                 </div>
             </div>
-            <div style="padding:14px 20px 24px 20px; border-top:1px solid var(--border-color); background:var(--bg-nav-card); flex-shrink:0; box-sizing:border-box;">
+            <!-- COMMENT INPUT BAR -->
+            <div style="padding:14px 20px 20px 20px; border-top:1px solid var(--border-color); background:var(--bg-nav-card); flex-shrink:0; box-sizing:border-box;">
                 {% if user and (user.account_status == 'Verified' or user.account_status is not defined) %}
                 <form action="/file_concern" method="POST" id="cdm-comment-form" style="display:flex; gap:10px; align-items:center; margin:0;">
                     <input type="hidden" name="fn" value="pc">
@@ -2382,15 +2539,16 @@
                         <div class="emoji-popup" style="display:none;position:absolute;bottom:50px;left:0;z-index:10005;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.3);">
                             <emoji-picker></emoji-picker>
                         </div>
-                        <input type="text" name="comment" placeholder="Write a comment..." required autocomplete="off" style="width:100%; padding:10px 16px; border-radius:20px; border:1px solid var(--border-color); background:var(--search-bg); color:var(--text-main); font-size:13px; outline:none; transition:border-color 0.2s;">
+                        <input type="text" name="comment" placeholder="Write a comment..." required autocomplete="off" style="width:100%; padding:10px 16px; border-radius:24px; border:1.5px solid var(--border-color); background:var(--search-bg); color:var(--text-main); font-size:13.5px; outline:none; transition:border-color 0.2s, box-shadow 0.2s;" onfocus="this.style.borderColor='var(--primary-red)'; this.style.boxShadow='0 0 0 3px rgba(22,101,52,0.12)';" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
                     </div>
-                    <button type="submit" class="comment-submit-btn" style="background:var(--primary-red); color:white; border:none; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; flex-shrink:0; box-shadow:0 3px 10px rgba(231,76,60,0.3); transition:transform 0.2s;" title="Send Comment" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <button type="submit" class="comment-submit-btn" style="background:var(--primary-red); color:white; border:none; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; flex-shrink:0; box-shadow:0 3px 12px rgba(22,101,52,0.3); transition:all 0.2s;" title="Send Comment" onmouseover="this.style.transform='scale(1.06)'; this.style.background='var(--primary-red-hover)';" onmouseout="this.style.transform='scale(1)'; this.style.background='var(--primary-red)';">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </form>
                 {% else %}
-                <div style="width:100%; padding:10px 16px; border-radius:20px; background:#fff3f3; color:#d32f2f; font-size:13px; text-align:center; border: 1px solid #ffdcdc;">
-                    <i class="fas fa-lock" style="margin-right:5px;"></i> You must be a verified user to comment.
+                <div style="width:100%; padding:12px 16px; border-radius:12px; background:rgba(22,101,52,0.06); color:var(--primary-red); font-size:12.5px; text-align:center; border: 1.5px solid rgba(22,101,52,0.2); font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <i class="fas fa-lock"></i>
+                    <span>You must be a verified user to comment.</span>
                 </div>
                 {% endif %}
             </div>

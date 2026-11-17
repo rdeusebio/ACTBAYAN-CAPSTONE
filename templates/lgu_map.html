@@ -619,6 +619,39 @@
         .lightbox-close { position: fixed; top: 20px; right: 24px; background: rgba(255,255,255,0.15); border: none; color: white; width: 42px; height: 42px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 10000; }
         .lightbox-close:hover { background: var(--primary-red); }
         .lightbox-caption { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: white; font-size: 13px; font-weight: 600; padding: 8px 18px; border-radius: 50px; white-space: nowrap; }
+
+        /* ===== ENHANCED PINS & LEGEND ===== */
+        .actbayan-map-pin {
+            cursor: pointer;
+            transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+        }
+        .actbayan-map-pin:hover {
+            transform: rotate(-45deg) scale(1.18) !important;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.45) !important;
+            z-index: 1000 !important;
+        }
+        .civic-landmark-pin {
+            cursor: pointer;
+            transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+        }
+        .civic-landmark-pin:hover {
+            transform: scale(1.14) !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.55), 0 0 0 6px rgba(245,158,11,0.35) !important;
+            z-index: 1001 !important;
+        }
+        @keyframes pin-pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.35); opacity: 0; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+        @media (max-width: 640px) {
+            .map-status-legend {
+                bottom: 16px !important;
+                left: 12px !important;
+                padding: 8px 10px !important;
+                font-size: 10.5px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1057,6 +1090,29 @@
                 <div class="map-ctrl-btn" onclick="resetView()" title="Reset View"><i class="fas fa-compress-arrows-alt"></i></div>
                 <div class="map-ctrl-btn" onclick="locateUser()" title="My Location"><i class="fas fa-crosshairs"></i></div>
             </div>
+
+            <!-- FLOATING MAP STATUS LEGEND -->
+            <div class="map-status-legend" style="position:absolute;bottom:24px;left:20px;z-index:999;background:var(--bg-nav-card);padding:10px 14px;border-radius:12px;border:1px solid var(--border-color);box-shadow:0 6px 20px rgba(0,0,0,0.18);backdrop-filter:blur(8px);display:flex;flex-direction:column;gap:6px;font-size:11.5px;font-weight:700;color:var(--text-main);pointer-events:auto;">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:2px;display:flex;align-items:center;gap:5px;">
+                    <i class="fas fa-layer-group" style="color:var(--primary-red);"></i> Map Legend
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="width:12px;height:12px;border-radius:50% 50% 50% 0;background:#f59e0b;transform:rotate(-45deg);border:1.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.25);flex-shrink:0;"></span>
+                    <span>Pending Review</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="width:12px;height:12px;border-radius:50% 50% 50% 0;background:#2563eb;transform:rotate(-45deg);border:1.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.25);flex-shrink:0;"></span>
+                    <span>In Progress</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="width:12px;height:12px;border-radius:50% 50% 50% 0;background:#16a34a;transform:rotate(-45deg);border:1.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.25);flex-shrink:0;"></span>
+                    <span>Resolved</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;padding-top:4px;border-top:1px solid var(--border-color);margin-top:2px;">
+                    <span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;background:#0f172a;border:1.5px solid #f59e0b;border-radius:3px;font-size:9px;flex-shrink:0;">🏛️</span>
+                    <span>Municipal Hall (LGU)</span>
+                </div>
+            </div>
         </div>
     </div>
 </main>
@@ -1064,7 +1120,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 // ===== MAP INIT =====
-const GMN_CENTER = [15.587651, 121.052642];
+const GMN_CENTER = [15.60255, 121.05011];
 const GMN_ZOOM = 13;
 
 const map = L.map('map', { zoomControl: false, center: GMN_CENTER, zoom: GMN_ZOOM });
@@ -1087,75 +1143,74 @@ function setLayer(name, btn) {
 // ===== CUSTOM MARKERS =====
 function makeIcon(color, emoji) {
     return L.divIcon({
-        html: `<div style="width:36px;height:36px;border-radius:50% 50% 50% 0;background:${color};border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;font-size:16px;transform:rotate(-45deg)"><span style="transform:rotate(45deg)">${emoji}</span></div>`,
-        className: '', iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -38]
+        html: `<div class="actbayan-map-pin" style="position:relative;width:38px;height:38px;border-radius:50% 50% 50% 0;background:${color};border:2.5px solid #ffffff;box-shadow:0 4px 14px rgba(0,0,0,0.32), 0 1px 3px rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center;transform:rotate(-45deg);"><span style="transform:rotate(45deg);font-size:17px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.25));">${emoji}</span></div>`,
+        className: '', iconSize: [38, 38], iconAnchor: [19, 38], popupAnchor: [0, -40]
+    });
+}
+
+function makeCivicLandmarkIcon() {
+    return L.divIcon({
+        html: `<div class="civic-landmark-pin" style="position:relative;display:flex;align-items:center;justify-content:center;width:44px;height:44px;background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);border:2.5px solid #f59e0b;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.4), 0 0 0 4px rgba(245,158,11,0.25);"><span style="font-size:22px;line-height:1;">🏛️</span><span style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid #f59e0b;"></span></div>`,
+        className: '', iconSize: [44, 44], iconAnchor: [22, 48], popupAnchor: [0, -48]
     });
 }
 
 // ===== ACCURATE POINTS OF INTEREST =====
 const pois = [
-    // BARANGAYS
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    // BARANGAYS (Reference points for navigation)
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Poblacion (Town Center)', sub: 'Barangay, GMN', lat: 15.6034, lng: 121.0509 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Picaleon (Barangay GMN)', sub: 'Barangay Hall • Main Community', lat: 15.6051, lng: 121.0951 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Balangkare Norte', sub: 'Barangay, GMN', lat: 15.5985, lng: 121.0368 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Balangkare Sur', sub: 'Barangay, GMN', lat: 15.5916, lng: 121.0369 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Pula', sub: 'Barangay, GMN', lat: 15.5644, lng: 120.9927 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Mataas na Kahoy', sub: 'Barangay, GMN', lat: 15.6080, lng: 121.0170 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Manarog', sub: 'Barangay, GMN', lat: 15.6161, lng: 121.0254 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Pinahan', sub: 'Barangay, GMN', lat: 15.6227, lng: 121.0551 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Pulong Singkamas', sub: 'Barangay, GMN', lat: 15.6245, lng: 121.0955 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Talabutab Norte', sub: 'Barangay, GMN', lat: 15.6005, lng: 121.0795 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Talabutab Sur', sub: 'Barangay, GMN', lat: 15.5705, lng: 121.0627 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Bravo', sub: 'Barangay, GMN', lat: 15.5659, lng: 121.0799 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Singalat', sub: 'Barangay, Palayan City', lat: 15.5718, lng: 121.0953 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Belen', sub: 'Barangay, GMN', lat: 15.5748, lng: 121.0512 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Platero', sub: 'Barangay, GMN', lat: 15.5522, lng: 121.0412 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Kabulihan', sub: 'Barangay, GMN', lat: 15.5578, lng: 121.0218 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Sapang Bato', sub: 'Barangay, GMN', lat: 15.5537, lng: 121.0068 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Burol', sub: 'Barangay, GMN', lat: 15.5463, lng: 120.9858 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Panacsac', sub: 'Barangay, GMN', lat: 15.5952, lng: 121.0913 },
-    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'red', color: '#166534',
+    { cat: 'barangays', label: 'Barangays', emoji: '🏘️', dot: 'green', color: '#166534',
       name: 'Balaring', sub: 'Barangay, GMN', lat: 15.6104, lng: 121.1065 },
 
-    // KEY FACILITIES
-    { cat: 'govt', label: 'Government', emoji: '🏛️', dot: 'blue', color: '#3b82f6',
-      name: 'Municipal Hall — GMN', sub: 'Local Government Unit', lat: 15.5878, lng: 121.0528 },
-    { cat: 'health', label: 'Health', emoji: '🏥', dot: 'green', color: '#22c55e',
-      name: 'Rural Health Unit', sub: 'Municipal Health Center', lat: 15.5880, lng: 121.0520 },
-    { cat: 'education', label: 'Education', emoji: '🏫', dot: 'purple', color: '#8b5cf6',
-      name: 'GMN Central School', sub: 'Elementary School', lat: 15.5890, lng: 121.0530 },
-    { cat: 'health', label: 'Health', emoji: '⛑️', dot: 'green', color: '#22c55e',
-      name: 'Municipal Health Center', sub: 'Barangay Health Station', lat: 15.6015, lng: 121.0715 },
-    { cat: 'education', label: 'Education', emoji: '🏫', dot: 'purple', color: '#8b5cf6',
-      name: 'Central Elementary School', sub: 'Elementary School', lat: 15.6005, lng: 121.0705 }
+    // KEY CIVIC LANDMARK (Anchor)
+    { cat: 'govt', label: 'Government', emoji: '🏛️', dot: 'gold', color: '#0f172a',
+      name: 'Municipal Hall of General Mamerto Natividad', sub: 'Local Government Center • Poblacion, GMN', lat: 15.60255, lng: 121.05011 }
 ];
 
-// Build POI markers
+// Build POI markers (Municipal Hall anchor)
 const markers = {};
 pois.forEach((p, i) => {
-    if (p.cat !== 'barangays') {
-        const m = L.marker([p.lat, p.lng], { icon: makeIcon(p.color, p.emoji) })
+    if (p.cat === 'govt') {
+        const m = L.marker([p.lat, p.lng], { icon: makeCivicLandmarkIcon() })
             .addTo(map)
-            .bindPopup(`<div class="popup-title">${p.emoji} ${p.name}</div><div class="popup-sub">${p.sub}</div><div class="popup-tag">${p.cat.charAt(0).toUpperCase()+p.cat.slice(1)}</div>`);
+            .bindPopup(`<div class="popup-title" style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:#0f172a;"><span style="font-size:16px;">🏛️</span> Municipal Hall — GMN</div><div class="popup-sub" style="font-size:11.5px;color:#64748b;margin:4px 0 6px;">${p.sub}</div><div class="popup-tag" style="background:rgba(245,158,11,0.15);color:#b45309;border:1px solid rgba(245,158,11,0.3);padding:2px 8px;border-radius:12px;font-size:10px;font-weight:800;text-transform:uppercase;">Municipal Headquarters</div>`);
         markers[i] = m;
     }
 });
@@ -1163,15 +1218,23 @@ pois.forEach((p, i) => {
 // Helper for status colors and badges
 function getStatusColor(st) {
     const s = (st || 'pending').toLowerCase();
-    if (s.includes('prog')) return '#2563eb';
-    if (s === 'resolved' || s === 'completed') return '#16a34a';
-    return '#ef4444';
+    if (s.includes('prog') || s.includes('work') || s.includes('review') || s.includes('investigat')) return '#2563eb'; // Blue
+    if (s === 'resolved' || s === 'completed') return '#16a34a'; // Emerald Green
+    if (s.includes('deny') || s.includes('denied') || s.includes('reject') || s.includes('declin') || s.includes('cancel')) return '#dc2626'; // Red
+    return '#f59e0b'; // Warm Amber for Pending
 }
 function getStatusBadgeMini(st) {
     const s = (st || 'pending').toLowerCase();
-    if (s.includes('prog')) return `<span style="background:rgba(59,130,246,0.12);color:#2563eb;border:1px solid rgba(59,130,246,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-spinner fa-spin" style="font-size:9px;"></i> In Progress</span>`;
-    if (s === 'resolved' || s === 'completed') return `<span style="background:rgba(34,197,94,0.12);color:#16a34a;border:1px solid rgba(34,197,94,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-check-circle" style="font-size:9px;"></i> Resolved</span>`;
-    return `<span style="background:rgba(239,68,68,0.12);color:#22c55e;border:1px solid rgba(239,68,68,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-clock" style="font-size:9px;"></i> Pending</span>`;
+    if (s.includes('prog') || s.includes('work') || s.includes('review') || s.includes('investigat')) {
+        return `<span style="background:rgba(37,99,235,0.12);color:#2563eb;border:1px solid rgba(37,99,235,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-tools" style="font-size:9px;"></i> In Progress</span>`;
+    }
+    if (s === 'resolved' || s === 'completed') {
+        return `<span style="background:rgba(22,163,74,0.12);color:#16a34a;border:1px solid rgba(22,163,74,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-check-circle" style="font-size:9px;"></i> Resolved</span>`;
+    }
+    if (s.includes('deny') || s.includes('denied') || s.includes('reject') || s.includes('declin') || s.includes('cancel')) {
+        return `<span style="background:rgba(220,38,38,0.12);color:#dc2626;border:1px solid rgba(220,38,38,0.25);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-ban" style="font-size:9px;"></i> Declined</span>`;
+    }
+    return `<span style="background:rgba(245,158,11,0.14);color:#b45309;border:1px solid rgba(245,158,11,0.3);padding:3px 8px;border-radius:50px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-hourglass-half" style="font-size:9px;"></i> Pending</span>`;
 }
 function getCategoryEmoji(cat) {
     const c = (cat || '').toLowerCase();
@@ -1378,7 +1441,7 @@ reportPins.forEach((r, idx) => {
     const desc = r.description ?? '';
     const imgUrl = r.image_url ?? '';
     const rawRep = String(r.reporter_name || '').trim();
-    const reporter = (!rawRep || rawRep.toLowerCase() === 'none none' || rawRep.toLowerCase() === 'none' || r.is_anonymous) ? 'Anonymous Person' : rawRep;
+    const reporter = (!rawRep || rawRep.toLowerCase() === 'none none' || rawRep.toLowerCase() === 'none') ? 'Resident' : rawRep;
     const dateStr = r.created_at_str ?? 'Recently';
     const color = getStatusColor(status);
     const emoji = getCategoryEmoji(cat);
@@ -1467,12 +1530,6 @@ reportPins.forEach((r, idx) => {
 // Initialize Filter Chip Badges and State
 syncFilterUI();
 
-// General Mamerto Natividad highlight circle
-L.circle([15.6010, 121.0710], {
-    radius: 600, color: '#166534', fillColor: '#166534', fillOpacity: 0.08, weight: 2, dashArray: '6 4'
-}).addTo(map);
-
-
 // ===== 100% ACCURATE MUNICIPAL BOUNDARY (GEOJSON) =====
 let municipalBoundary;
 
@@ -1481,11 +1538,11 @@ fetch("{{ url_for('static', filename='uploads/export.geojson') }}")
     .then(data => {
         municipalBoundary = L.geoJSON(data, {
             style: {
-                color: '#ff0000',      
-                weight: 5,             
-                dashArray: '10, 6',     
-                fillColor: '#ff0000',  
-                fillOpacity: 0.1,     
+                color: '#16a34a',      
+                weight: 4,             
+                dashArray: '8, 6',     
+                fillColor: '#22c55e',  
+                fillOpacity: 0.08,     
                 interactive: false     
             }
         }).addTo(map);
@@ -1500,11 +1557,9 @@ fetch("{{ url_for('static', filename='uploads/export.geojson') }}")
 
 // ===== POI & REPORTS LIST =====
 const categories = [
-    { id: 'reports', label: '📌 Reported Concerns', dot: 'red' },
-    { id: 'barangays', label: '🏘️ Barangays', dot: 'red' },
-    { id: 'govt', label: '🏛️ Government', dot: 'blue' },
-    { id: 'health', label: '🏥 Health', dot: 'green' },
-    { id: 'education', label: '🎓 Education', dot: 'purple' },
+    { id: 'reports', label: '📌 Reported Concerns', dot: 'amber' },
+    { id: 'govt', label: '🏛️ Municipal Government', dot: 'gold' },
+    { id: 'barangays', label: '🏘️ Barangays', dot: 'green' },
 ];
 
 function renderPoiList(filteredPois, filteredReports = reportPins) {
@@ -1915,13 +1970,14 @@ function resolveReport() {
         return;
     }
 
-    if (window._lguOnSiteVerified === false) {
-        const confirmAnyway = confirm("Location Warning: You appear to be further than 500m away from the reported incident location.\n\nAre you sure you want to proceed with resolving this report?");
-        if (!confirmAnyway) return;
-    } else {
-        const confirmResolve = confirm("Are you sure you want to mark this report as RESOLVED with the verified on-site camera proof and GPS coordinates?");
-        if (!confirmResolve) return;
+    const distVal = parseFloat(document.getElementById('update-onsite-dist').value || '0');
+    if (window._lguOnSiteVerified === false || (currentReportLat && currentReportLng && distVal > 500)) {
+        alert("Cannot resolve report: You have not passed the on-site GPS check. You must be physically within 500m of the reported incident location.");
+        return;
     }
+
+    const confirmResolve = confirm("Are you sure you want to mark this report as RESOLVED with the verified on-site camera proof and GPS coordinates?");
+    if (!confirmResolve) return;
 
     const sel = document.getElementById('update-status');
     let opt = Array.from(sel.options).find(o => o.value === 'Resolved');
@@ -1945,6 +2001,26 @@ function resolveReport() {
     }
     document.getElementById('lgu-update-form').submit();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const updateForm = document.getElementById('lgu-update-form');
+    if (updateForm) {
+        updateForm.addEventListener('submit', function(e) {
+            const latVal = document.getElementById('update-lgu-lat').value;
+            const distVal = parseFloat(document.getElementById('update-onsite-dist').value || '0');
+            if (!latVal) {
+                e.preventDefault();
+                alert("Cannot upload update: Device GPS location is required. Please click 'Check GPS' to verify your on-site location.");
+                return false;
+            }
+            if (window._lguOnSiteVerified === false || (currentReportLat && currentReportLng && distVal > 500)) {
+                e.preventDefault();
+                alert("Cannot upload update: You have not passed the on-site GPS check. You must be physically within 500m of the reported incident location.");
+                return false;
+            }
+        });
+    }
+});
 
 function opReportUpdate(btn) {
     const d = btn.dataset;

@@ -396,13 +396,16 @@
         <div class="filter-inner">
             <button class="filter-chip active" onclick="setFilter('all', this)"><i class="fas fa-layer-group"></i> All</button>
             <button class="filter-chip" onclick="setFilter('unread', this)"><i class="fas fa-envelope"></i> Unread</button>
-            <button class="filter-chip" onclick="setFilter('concern_update', this)"><i class="fas fa-exclamation-circle"></i> Concerns & Updates</button>
+            <button class="filter-chip" onclick="setFilter('my_reports', this)"><i class="fas fa-user-circle"></i> My Reports</button>
+            <button class="filter-chip" onclick="setFilter('denied', this)"><i class="fas fa-ban" style="color:#ef4444;"></i> Declined</button>
+            <button class="filter-chip" onclick="setFilter('resolved', this)"><i class="fas fa-check-circle" style="color:#22c55e;"></i> Resolved</button>
+            <button class="filter-chip" onclick="setFilter('concern_update', this)"><i class="fas fa-exclamation-circle"></i> Updates & Comments</button>
             <button class="filter-chip" onclick="setFilter('announcement', this)"><i class="fas fa-bullhorn"></i> Announcements</button>
-            <button class="filter-chip" onclick="setFilter('map_alert', this)"><i class="fas fa-map-marked-alt"></i> Map Alerts</button>
+            <button class="filter-chip" onclick="setFilter('map_alert', this)"><i class="fas fa-map-marked-alt"></i> Map Pins</button>
 
             <div class="filter-search">
                 <i class="fas fa-search"></i>
-                <input type="text" id="notif-search" placeholder="Search keyword or location..." oninput="renderNotifications()">
+                <input type="text" id="notif-search" placeholder="Search keyword, location, status..." oninput="renderNotifications()">
             </div>
         </div>
     </div>
@@ -473,7 +476,10 @@
             return `{{ url_for('announcements') }}?title=${encodeURIComponent(n.ann_title || n.title)}`;
         }
         if (n.type === 'map_alert') {
-            return `{{ url_for('barangay_map') }}?report_id=${encodeURIComponent(n.report_id)}`;
+            return `{{ url_for('barangay_map') }}?report_id=${encodeURIComponent(n.report_id || '')}`;
+        }
+        if (n.type === 'system_alert') {
+            return `{{ url_for('id_verification') }}`;
         }
         return `{{ url_for('file_concern') }}?public_key=${encodeURIComponent(n.public_key || '')}&report_id=${encodeURIComponent(n.report_id || '')}`;
     }
@@ -494,9 +500,12 @@
         const filtered = rawNotifications.filter(n => {
             const isUnread = !readSet.has(n.id);
             if (currentFilter === 'unread' && !isUnread) return false;
-            if (currentFilter !== 'all' && currentFilter !== 'unread' && n.type !== currentFilter) return false;
+            if (currentFilter === 'my_reports' && !n.is_mine) return false;
+            if (currentFilter === 'denied' && n.sub_type !== 'denied') return false;
+            if (currentFilter === 'resolved' && n.sub_type !== 'resolved') return false;
+            if (currentFilter !== 'all' && currentFilter !== 'unread' && currentFilter !== 'my_reports' && currentFilter !== 'denied' && currentFilter !== 'resolved' && n.type !== currentFilter) return false;
             if (q) {
-                const hay = `${n.title || ''} ${n.message || ''} ${n.category_label || ''} ${n.locname || ''}`.toLowerCase();
+                const hay = `${n.title || ''} ${n.message || ''} ${n.category_label || ''} ${n.locname || ''} ${n.sub_type || ''}`.toLowerCase();
                 if (!hay.includes(q)) return false;
             }
             return true;
@@ -518,7 +527,12 @@
             const primaryUrl = getPrimaryUrl(n);
             let actionsHtml = '';
 
-            if (n.type === 'announcement') {
+            if (n.type === 'system_alert') {
+                actionsHtml = `
+                    <button class="notif-btn primary" onclick="markReadAndGo('${n.id}', '${primaryUrl}', event)">
+                        <i class="fas fa-id-card"></i> View Verification Status
+                    </button>`;
+            } else if (n.type === 'announcement') {
                 actionsHtml = `
                     <button class="notif-btn primary" onclick="markReadAndGo('${n.id}', '${primaryUrl}', event)">
                         <i class="fas fa-book-open"></i> Read Announcement
